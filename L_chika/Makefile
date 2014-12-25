@@ -25,7 +25,8 @@ LDSCRIPT	=	../M120AN/m120an.ld
 
 MCU_TARGET	=	-mcpu=r8c
 
-INC_SYS		=	/usr/boost_1_53_0
+#INC_SYS		=	/usr/boost_1_53_0
+INC_SYS		=
 
 INC_APP		=	. ../M120AN ../common
 
@@ -36,11 +37,11 @@ CPP_OPT		=	-Wno-pmf-conversions
 CC_OPT		=	-Wall \
 				-fno-exceptions
 
-INC_S		=	$(addprefix -I, $(INC_SYS))
-INC_A		=	$(addprefix -I, $(INC_APP))
-AINCS		=	$(INC_S) $(INC_A)
-CINCS		=	$(INC_S) $(INC_A)
-PINCS		=	$(INC_S) $(INC_A)
+SYSINCS		=	$(addprefix -I, $(INC_SYS))
+APPINCS		=	$(addprefix -I, $(INC_APP))
+AINCS		=	$(INC_SYS) $(APPINCS)
+CINCS		=	$(INC_SYS) $(APPINCS)
+PINCS		=	$(INC_SYS) $(APPINCS)
 LIBINCS		=	$(addprefix -L, $(LIB_ROOT))
 DEFS		=	$(addprefix -D, $(USER_DEFS))
 LIBS		=	$(addprefix -l, $(USER_LIBS))
@@ -99,19 +100,19 @@ $(BUILD)/%.o : %.cpp
 
 $(BUILD)/%.d: %.s
 	mkdir -p $(dir $@); \
-	$(CC) -MM -DDEPEND_ESCAPE $(AOPT) $(AFLAGS) $(INC_A) $< \
+	$(CC) -MM -DDEPEND_ESCAPE $(AOPT) $(AFLAGS) $(APPINCS) $< \
 	| sed 's/$(notdir $*)\.o:/$(subst /,\/,$(patsubst %.d,%.o,$@) $@):/' > $@ ; \
 	[ -s $@ ] || rm -f $@
 
 $(BUILD)/%.d: %.c
 	mkdir -p $(dir $@); \
-	$(CC) -MM -DDEPEND_ESCAPE $(COPT) $(CFLAGS) $(INC_C) $< \
+	$(CC) -MM -DDEPEND_ESCAPE $(COPT) $(CFLAGS) $(APPINCS) $< \
 	| sed 's/$(notdir $*)\.o:/$(subst /,\/,$(patsubst %.d,%.o,$@) $@):/' > $@ ; \
 	[ -s $@ ] || rm -f $@
 
 $(BUILD)/%.d: %.cpp
 	mkdir -p $(dir $@); \
-	$(CP) -MM -DDEPEND_ESCAPE $(POPT) $(PFLAGS) $(INC_P) $< \
+	$(CP) -MM -DDEPEND_ESCAPE $(POPT) $(PFLAGS) $(APPINCS) $< \
 	| sed 's/$(notdir $*)\.o:/$(subst /,\/,$(patsubst %.d,%.o,$@) $@):/' > $@ ; \
 	[ -s $@ ] || rm -f $@
 
