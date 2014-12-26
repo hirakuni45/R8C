@@ -1,0 +1,264 @@
+[Header]
+Description = Flash Development Toolkit Configuration File
+File Type = 2.1
+
+[Device Info]
+EVB Name = R5F2M120A
+EVB Kernel Suffix = R5F2M120A
+uKernel = 
+Main Kernel = 
+Baud Rate 0 = 500000
+BRR Formula = ctSimpleDivide
+RAM Size = 
+Read module = 
+Write module = 
+Erase module = 
+CheckBlank module = 
+FLASH ROM Size = 32768
+Default Interface = 
+Kernel Handshake = 
+Kernel Directory = \R5F2M120A
+JTAG Available = False
+JTAG Default TCKDiv = 0
+JTAG Default CLK = 0
+USER Main Kernel = 
+USER uKernel = 
+BOOT Mode Auto Erase = True
+EDK Available = False
+Architecture = R8C
+EVB Clock MHz = 0.0000
+Protocol = 4 ;Protocol D
+Technology = RM
+Device Code = 00FFDF
+Product Code = 
+Aux String 1 = 
+Aux String 2 = 
+Aux String 3 = 
+Aux String 4 = 
+Aux DWORD 1 = 
+Aux DWORD 2 = 
+Aux DWORD 3 = 
+Aux DWORD 4 = 
+Main Function Overlay = False
+Autobaud Peripheral Clock Range 38400 = 
+Autobaud Peripheral Clock Range 19200 = 
+Autobaud Peripheral Clock Range 9600 = 
+Autobaud Peripheral Clock Range 4800 = 
+Autobaud Peripheral Clock Range 2400 = 
+Autobaud Peripheral Clock Range 1200 = 
+User Boot Area Size = 
+Data Area Size = 2048
+SupportsLocking = False
+Device ID (HEX) = 
+HiSpeed Write Module = 
+LCD_CLOCK = 
+Secret Flash Memory = 
+Erase Block Count = 10
+Memory Area Count = 2
+Reserved Area Count = 0
+
+[Kernel Info]
+Base Device = R5F2M120A
+Compiler = Renesas
+Compiler Version = embedded
+Kernel Version = 1_0_00
+Protocol = D
+Short Base Device Name = R5F2M120A
+USBDirect = No
+Boot Mode JumpAddress = False
+User Mode JumpAddress = False
+Reset Address = 
+Asynchronous Baud Calculation Constant = 32|0
+;  Bit Field Structure as follows:
+; +------+------+------+------+------+------+------+------+
+; | 0x80 | 0x40 | 0x20 | 0x10 | 0x08 | 0x04 | 0x02 | 0x01 |
+; +------+------+------+------+------+------+------+------+
+; |Clock | Dld  |Custom| W/E  | Main |  uK  |  uK  | BOOT |
+; |Master|  uK  | Cmd  |Funcs | Kern | Baud |      |      |
+; |      |      |      |      |      |change|      |      |
+; +------+------+------+------+------+------+------+------+
+; |   0  |   0  |   0  |   0  |   0  |   0  |   0  |   0  | Clock Sync Modules ()
+; +------+------+------+------+------+------+------+------+
+Clock Sync Modules = 
+E10AUSB = No
+Alternate uKernel = 
+Alternate Main Kernel = 
+Alternate Read module = 
+Alternate Write module = 
+Alternate Erase module = 
+Alternate CheckBlank module = 
+Alternate USER Main Kernel = 
+Alternate USER uKernel = 
+E8 = No
+FoUSB = No
+MCU ID (HEX) = 0x0002
+E8Direct = No
+ROM Protect Address = 
+QZROM Parameters = 
+Com = Yes
+FDM = No
+BlankCheck Supported = True
+Checksum Supported = False
+Block Erase Supported = True
+Erase All Blocks Supported = False
+E8aDirect = No
+Info = 
+E8a = Yes
+Protect Supported = False
+Unprotect Supported = False
+HiSpeed Supported = 
+R38F Parameters = 
+CRC Supported = False
+All BlankCheck Command Supported = True
+End Command Supported = True
+ADP NAME = 2
+Target Power 1_8V Supported = 0x0016
+
+[Erase Block 0]
+Block Name = EBA
+Start Address = 12288
+Start (Hex) = 0x00003000
+Block Size = 1024
+Size (Hex) = 0x00000400
+EBR0 = 0
+EBR1 = 0
+EBR2 = 0
+Overlay = 0
+Lockable = False
+
+[Erase Block 1]
+Block Name = EBB
+Start Address = 13312
+Start (Hex) = 0x00003400
+Block Size = 1024
+Size (Hex) = 0x00000400
+EBR0 = 0
+EBR1 = 0
+EBR2 = 0
+Overlay = 0
+Lockable = False
+
+[Erase Block 2]
+ Block Name = EB8
+ Start Address = 32768
+ Start (Hex) = 0x00008000
+ Block Size = 4096
+ Size (Hex) = 0x00001000
+ EBR0 = 0
+ EBR1 = 0
+ EBR2 = 0
+ Overlay = 0
+ Lockable = False
+
+ [Erase Block 3]
+ Block Name = EB7
+ Start Address = 36864
+ Start (Hex) = 0x00009000
+ Block Size = 4096
+ Size (Hex) = 0x00001000
+ EBR0 = 0
+ EBR1 = 0
+ EBR2 = 0
+Overlay = 0
+Lockable = False
+
+ [Erase Block 4]
+ Block Name = EB6
+ Start Address = 40960
+ Start (Hex) = 0x0000A000
+ Block Size = 4096
+ Size (Hex) = 0x00001000
+ EBR0 = 0
+ EBR1 = 0
+ EBR2 = 0
+ Overlay = 0
+ Lockable = False
+
+ [Erase Block 5]
+ Block Name = EB5
+ Start Address = 45056
+ Start (Hex) = 0x0000B000
+ Block Size = 4096
+ Size (Hex) = 0x00001000
+ EBR0 = 0
+ EBR1 = 0
+ EBR2 = 0
+ Overlay = 0
+ Lockable = False
+
+ [Erase Block 6]
+ Block Name = EB4
+ Start Address = 49152
+ Start (Hex) = 0x0000C000
+ Block Size = 4096
+ Size (Hex) = 0x00001000
+ EBR0 = 0
+ EBR1 = 0
+ EBR2 = 0
+ Overlay = 0
+ Lockable = False
+
+ [Erase Block 7]
+ Block Name = EB3
+ Start Address = 53248
+ Start (Hex) = 0x0000D000
+ Block Size = 4096
+ Size (Hex) = 0x00001000
+ EBR0 = 0
+ EBR1 = 0
+ EBR2 = 0
+ Overlay = 0
+ Lockable = False
+
+ [Erase Block 8]
+ Block Name = EB2
+ Start Address = 57344
+ Start (Hex) = 0x0000E000
+ Block Size = 4096
+ Size (Hex) = 0x00001000
+ EBR0 = 0
+ EBR1 = 0
+ EBR2 = 0
+ Overlay = 0
+ Lockable = False
+
+ [Erase Block 9]
+ Block Name = EB1
+ Start Address = 61440
+ Start (Hex) = 0x0000F000
+ Block Size = 4096
+ Size (Hex) = 0x00001000
+ EBR0 = 0
+ EBR1 = 0
+ EBR2 = 0
+ Overlay = 0
+ Lockable = False
+
+[Memory Area 0]
+ Block Name = UA0
+ Start Address = 32768
+ Start (Hex) = 0x00008000
+ Block Size = 32768
+ Size (Hex) = 0x00008000
+ Area Type = User Flash
+ Overlay = 0
+
+[Memory Area 1]
+Block Name = DA0
+Start Address = 12288
+Start (Hex) = 0x00003000
+Block Size = 2048
+Size (Hex) = 0x00000800
+Area Type = Data Flash
+Overlay = 0
+
+[Clock Mode NONE]
+Crystal Frequency Range = 0.00|99.99
+CKM = 1
+CKP = 
+
+[Valid Clock Modes]
+Clock Modes = NONE
+
+[Checksum]
+Checksum =  49
