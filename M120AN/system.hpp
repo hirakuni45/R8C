@@ -110,9 +110,4 @@ namespace device {
 	};
 	static rstfr_t RSTFR;
 
-
-
-
-
-
 }
