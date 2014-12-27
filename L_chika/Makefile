@@ -32,9 +32,12 @@ INC_APP		=	. ../M120AN ../common
 
 OPTIMIZE	=	-O2
 
-CPP_OPT		=	-Wno-pmf-conversions
+CP_OPT		=	-Wall -Werror \
+				-Wno-unused-variable \
+				-fno-exceptions
 
-CC_OPT		=	-Wall \
+CC_OPT		=	-Wall -Werror \
+				-Wno-unused-variable \
 				-fno-exceptions
 
 SYSINCS		=	$(addprefix -I, $(INC_SYS))
@@ -63,7 +66,7 @@ ALL_ASFLAGS    = $(AFLAGS) $(MCU_TARGET) $(DEFS)
 # Override is only needed by avr-lib build system.
 
 CFLAGS		=	-std=gnu99 $(CC_OPT) $(OPTIMIZE) $(MCU_TARGET) $(DEFS)
-PFLAGS		=	-std=c++0x $(CPP_OPT) $(OPTIMIZE) $(MCU_TARGET) $(DEFS)
+PFLAGS		=	-std=c++0x $(CP_OPT) $(OPTIMIZE) $(MCU_TARGET) $(DEFS)
 # override LDFLAGS	= $(MCU_TARGET) -nostartfiles -Wl,-Map,$(TARGET).map,-fdata-sections,-ffunction-sections,-falign-jumps,-fno-function-cse,-funit-at-a-time --select-lib=newlib -T $(LDSCRIPT)
 # override LDFLAGS	= $(MCU_TARGET) -nostartfiles -Wl,-Map,$(TARGET).map,--cref,--gc-sections -T $(LDSCRIPT)
 
