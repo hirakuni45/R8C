@@ -1,6 +1,7 @@
 #include "system.hpp"
 #include "clock.hpp"
 #include "port.hpp"
+#include "uart.hpp"
 
 static void wait_(uint16_t n)
 {

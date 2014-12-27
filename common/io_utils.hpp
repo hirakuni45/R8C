@@ -143,6 +143,22 @@ namespace device {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
+		@brief  16 bits アクセス・テンプレート(RO)
+		@param[in]	adr	アドレス
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	template <address_type adr>
+	struct io16_ro {
+		typedef uint16_t value_type;
+
+		static uint16_t read() { return rd16_(adr); }
+
+		value_type operator () () const { return read(); }
+	};
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
 		@brief  32 bits アクセス・テンプレート
 		@param[in]	adr	アドレス
 	*/
