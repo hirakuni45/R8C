@@ -1,4 +1,5 @@
 #include "system.hpp"
+#include "clock.hpp"
 #include "port.hpp"
 
 int main(int argc, char *ragv[])
