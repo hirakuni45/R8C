@@ -12,6 +12,27 @@ namespace device {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
+		@brief	UART0 送受信モードレジスタ U0MR
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	typedef io8<0x0080> u0mr_io;
+	struct u0mr_t : public u0mr_io {
+		using u0mr_io::operator =;
+		using u0mr_io::operator ();
+		using u0mr_io::operator |=;
+		using u0mr_io::operator &=;
+
+		bits_t<u0mr_io, 0, 3> SMD;
+		bit_t <u0mr_io, 3>    CKDIR;
+		bit_t <u0mr_io, 4>    STPS;
+		bit_t <u0mr_io, 5>    PRY;
+		bit_t <u0mr_io, 6>    PRYE;
+	};
+	static u0mr_t U0MR;
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
 		@brief	UART0 ビットレートレジスタ U0BRG
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -23,6 +44,30 @@ namespace device {
 		using u0brg_io::operator &=;
 	};
 	static u0brg_t U0BRG;
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief	UART0 送信バッファレジスタ U0TBL
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	typedef io8<0x0082> u0tbl_io;
+	struct u0tbl_t : public u0tbl_io {
+		using u0tbl_io::operator =;
+	};
+	static u0tbl_t U0TBL;
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief	UART0 送信バッファレジスタ U0TBH
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	typedef io8<0x0083> u0tbh_io;
+	struct u0tbh_t : public u0tbh_io {
+		using u0tbh_io::operator =;
+	};
+	static u0tbh_t U0TBH;
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
