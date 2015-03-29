@@ -14,6 +14,8 @@
 #  error "uart_io.hpp requires F_CLK to be defined"
 #endif
 
+#define INTERRUPT_FUNC __attribute__ ((interrupt))
+
 namespace device {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -30,10 +32,57 @@ namespace device {
 		static utils::fifo<recv_size>	recv_;
 		static utils::fifo<send_size>	send_;
 
+		bool	crlf_;
 		bool	polling_;
 
-		// ※必要なら、実装する
-		void sleep_() { }
+
+		static INTERRUPT_FUNC void recv_task_()
+		{
+#if 0
+			bool err = false;
+			if(SCIx::SSR.ORER()) {	///< 受信オーバランエラー状態確認
+				SCIx::SSR = 0x00;	///< 受信オーバランエラークリア
+				err = true;
+			}
+			///< フレーミングエラー/パリティエラー状態確認
+			if(SCIx::SSR() & (SCIx::SSR.FER.b() | SCIx::SSR.PER.b())) {
+				err = true;
+			}
+			if(!err) recv_.put(SCIx::RDR());
+#endif
+		}
+
+		static INTERRUPT_FUNC void send_task_()
+		{
+#if 0
+			SCIx::TDR = send_.get();
+			if(send_.length() == 0) {
+				SCIx::SCR.TEIE = 0;
+			}
+#endif
+		}
+
+
+		// ※同期が必要なら、実装する
+		void sleep_() {
+			asm("nop");
+		}
+
+
+		void putch_(char ch) {
+			if(polling_) {
+				while(UART::UC1.TI() == 0) sleep_();
+				UART::UTBL = ch;
+			} else {
+				/// ７／８ を超えてた場合は、バッファが空になるまで待つ。
+				if(send_.length() >= (send_.size() * 7 / 8)) {
+					while(send_.length() != 0) sleep_();
+				}
+				send_.put(ch);
+///				SCIx::SCR.TEIE = 1;
+			}
+		}
+
 
 	public:
 		//-----------------------------------------------------------------//
@@ -41,7 +90,7 @@ namespace device {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		uart_io() : polling_(false) { }
+		uart_io() : crlf_(true), polling_(false) { }
 
 
 		//-----------------------------------------------------------------//
@@ -93,5 +142,39 @@ namespace device {
 			return true;
 		}
 
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	CRLF 自動送出
+			@param[in]	f	「false」なら無効
+		 */
+		//-----------------------------------------------------------------//
+		void auto_crlf(bool f = true) { crlf_ = f; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	SCI 文字出力
+			@param[in]	ch	文字コード
+		 */
+		//-----------------------------------------------------------------//
+		void putch(char ch) {
+			if(crlf_ && ch == '\n') {
+				putch_('\r');
+			}
+			putch_(ch);
+		}
+
+
+
+
+
+
 	};
+
+	// 受信、送信バッファのテンプレート内スタティック実態定義
+	template<class UART, uint16_t recv_size, uint16_t send_size>
+		utils::fifo<recv_size> uart_io<UART, recv_size, send_size>::recv_;
+	template<class UART, uint16_t recv_size, uint16_t send_size>
+		utils::fifo<send_size> uart_io<UART, recv_size, send_size>::send_;
 }
