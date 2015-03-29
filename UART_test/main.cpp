@@ -26,10 +26,20 @@ int main(int argc, char *ragv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
-// UART の設定
-	uart_io_.start(9600);
+	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
+	// ※シリアルライターでは、RXD 端子は、P1_2 となっているので注意！
+	MSTCR.MSTUART = 0;  // モジュールスタンバイ制御
+	PMH1E.P14SEL2 = 0;
+	PMH1.P14SEL = 1;
+	PMH1E.P15SEL2 = 0;
+	PMH1.P15SEL = 1;
+	uart_io_.start(19200, true);
 
-// L チカ・メイン
+	for(char ch = 0x20; ch < 0x7f; ++ch) {
+		uart_io_.putch(ch);
+	} 
+
+	// L チカ・メイン
 	PD1.B0 = 1;
 	while(1) {
 		P1.B0 = 0;
@@ -37,5 +47,4 @@ int main(int argc, char *ragv[])
 		P1.B0 = 1;
 		for(uint32_t i = 0; i < 300000; ++i) { asm("nop"); }
 	}
-
 }
