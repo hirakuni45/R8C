@@ -38,13 +38,19 @@ int main(int argc, char *ragv[])
 	for(char ch = 0x20; ch < 0x7f; ++ch) {
 		uart_io_.putch(ch);
 	} 
+	uart_io_.putch('\n');
 
 	// L チカ・メイン
 	PD1.B0 = 1;
+	uint8_t v = 0;
 	while(1) {
-		P1.B0 = 0;
-		for(uint32_t i = 0; i < 300000; ++i) { asm("nop"); }
-		P1.B0 = 1;
-		for(uint32_t i = 0; i < 300000; ++i) { asm("nop"); }
+		P1.B0 = v;
+		for(uint32_t i = 0; i < 50000; ++i) {
+			if(uart_io_.length()) {
+				char ch = uart_io_.getch();
+				uart_io_.putch(ch);
+			}
+		}
+		v ^= 1;
 	}
 }
