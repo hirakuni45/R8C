@@ -10,6 +10,55 @@ static void wait_(uint16_t n)
 	}
 }
 
+extern "C" {
+	void null_task_(void);
+	void brk_inst_(void);
+}
+
+extern "C" {
+	const void* variable_vectors_[] __attribute__ ((section (".rodata"))) = {
+		(void*)brk_inst_,   nullptr,	// (0)
+		(void*)null_task_,  nullptr,	// (1) flash_ready
+		(void*)null_task_,  nullptr,	// (2)
+		(void*)null_task_,  nullptr,	// (3)
+
+		(void*)null_task_,  nullptr,	// (4) コンパレーターB1
+		(void*)null_task_,  nullptr,	// (5) コンパレーターB3
+		(void*)null_task_,  nullptr,	// (6)
+		(void*)null_task_,  nullptr,	// (7) タイマＲＣ
+
+		(void*)null_task_,  nullptr,	// (8)
+		(void*)null_task_,  nullptr,	// (9)
+		(void*)null_task_,  nullptr,	// (10)
+		(void*)null_task_,  nullptr,	// (11)
+
+		(void*)null_task_,  nullptr,	// (12)
+		(void*)null_task_,  nullptr,	// (13) キー入力
+		(void*)null_task_,  nullptr,	// (14) A/D 変換
+		(void*)null_task_,  nullptr,	// (15)
+
+		(void*)null_task_,  nullptr,	// (16)
+		(void*)null_task_,  nullptr,   // (17) UART0 送信
+		(void*)null_task_,  nullptr,   // (18) UART0 受信
+		(void*)null_task_,  nullptr,	// (19)
+
+		(void*)null_task_,  nullptr,	// (20)
+		(void*)null_task_,  nullptr,	// (21) /INT2
+		(void*)null_task_,  nullptr,	// (22) タイマＲＪ２
+		(void*)null_task_,  nullptr,	// (23) 周期タイマ
+
+		(void*)null_task_,  nullptr,	// (24) タイマＲＢ２
+		(void*)null_task_,  nullptr,	// (25) /INT1
+		(void*)null_task_,  nullptr,	// (26) /INT3
+		(void*)null_task_,  nullptr,	// (27)
+
+		(void*)null_task_,  nullptr,	// (28)
+		(void*)null_task_,  nullptr,	// (29) /INT0
+		(void*)null_task_,  nullptr,	// (30)
+		(void*)null_task_,  nullptr,	// (31)
+	};
+}
+
 
 int main(int argc, char *ragv[])
 {
