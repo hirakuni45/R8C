@@ -2,8 +2,8 @@
 /																/
 /   R8C(Tiny)/M110AN, R8C(Tiny)/M120AN Link Loader Script       /
 /	Flash-ROM and RAM extends version                           /
-/   Flash-ROM: 2048(0xF800) ---> 32768(0x8000) bytes            /
-/   RAM:        256(0x0400) --->  1280(0x0300) bytes            / 
+/   Flash-ROM: 2048(0xF800) ---> 32768(start: 0x8000) bytes     /
+/   RAM:        256(0x0400) --->  1280(start: 0x0300) bytes     / 
 /																/ 
 /==============================================================*/
 
@@ -22,8 +22,8 @@ MEMORY {
 }
 SECTIONS
 {
-		_usp_init = 0x07E0 - 2;
-		_isp_init = 0x0800 - 2;
+		_usp_init = 0x07E0;
+		_isp_init = 0x0800;
 
   /* There are three cases we care about: First, RW data that must be
      in the low 64k.  This will always be copied from ROM.  Second, RO

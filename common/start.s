@@ -12,6 +12,10 @@ _start:
 	fset u
 	ldc #_usp_init,sp
 
+	/* 可変ベクターテーブルアドレス設定 */
+	.extern _variable_vectors_
+	ldc #_variable_vectors_,intbl
+		
 	/* 割り込み許可 */
 	fset i
 

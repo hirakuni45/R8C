@@ -22,8 +22,8 @@ namespace device {
 	/*!
 		@brief  UART I/O 制御クラス
 		@param[in]	UART		UARTx 定義クラス
-		@param[in]	recv_size	受信バッファサイズ
-		@param[in]	send_size	送信バッファサイズ
+		@param[in]	recv_size	受信バッファサイズ（最低８バイト）
+		@param[in]	send_size	送信バッファサイズ（最低８バイト）
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <class UART, uint16_t recv_size, uint16_t send_size>
@@ -35,9 +35,8 @@ namespace device {
 		bool	crlf_;
 		bool	polling_;
 
-
-		static INTERRUPT_FUNC void recv_task_()
-		{
+public:
+		static INTERRUPT_FUNC void recv_task() {
 #if 0
 			bool err = false;
 			if(SCIx::SSR.ORER()) {	///< 受信オーバランエラー状態確認
@@ -52,17 +51,14 @@ namespace device {
 #endif
 		}
 
-		static INTERRUPT_FUNC void send_task_()
-		{
-#if 0
-			SCIx::TDR = send_.get();
+		static INTERRUPT_FUNC void send_task() {
+			UART::UTBL = send_.get();
 			if(send_.length() == 0) {
-				SCIx::SCR.TEIE = 0;
+				UART::UIR.UTIE = 0;
 			}
-#endif
 		}
 
-
+private:
 		// ※同期が必要なら、実装する
 		void sleep_() {
 			asm("nop");
@@ -75,11 +71,12 @@ namespace device {
 				UART::UTBL = ch;
 			} else {
 				/// ７／８ を超えてた場合は、バッファが空になるまで待つ。
+				/// ※ヒステリシス動作
 				if(send_.length() >= (send_.size() * 7 / 8)) {
 					while(send_.length() != 0) sleep_();
 				}
 				send_.put(ch);
-///				SCIx::SCR.TEIE = 1;
+				UART::UIR.UTIE = 1;
 			}
 		}
 
@@ -136,7 +133,8 @@ namespace device {
 			if(polling) {
 				UART::UIR = UART::UIR.URIE.b(false) | UART::UIR.UTIE.b(false);
 			} else {
-				UART::UIR = UART::UIR.URIE.b() | UART::UIR.UTIE.b();
+				// 送信割り込み許可は、バッファが「空」では無い場合に設定
+				UART::UIR = UART::UIR.URIE.b();
 			}
 
 			return true;
@@ -206,12 +204,11 @@ namespace device {
 			}
 		}
 
-
 	};
 
 	// 受信、送信バッファのテンプレート内スタティック実態定義
 	template<class UART, uint16_t recv_size, uint16_t send_size>
-		utils::fifo<recv_size> uart_io<UART, recv_size, send_size>::recv_;
+	utils::fifo<recv_size> uart_io<UART, recv_size, send_size>::recv_;
 	template<class UART, uint16_t recv_size, uint16_t send_size>
-		utils::fifo<send_size> uart_io<UART, recv_size, send_size>::send_;
+	utils::fifo<send_size> uart_io<UART, recv_size, send_size>::send_;
 }
