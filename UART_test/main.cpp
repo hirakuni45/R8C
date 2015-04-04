@@ -8,6 +8,10 @@
 #include "system.hpp"
 #include "clock.hpp"
 #include "port.hpp"
+#include "intr.hpp"
+
+// 割り込みの場合
+#define UART_INTR
 
 static void wait_(uint16_t n)
 {
@@ -25,7 +29,7 @@ extern "C" {
 static uart0 uart0_;
 
 extern "C" {
-	const void* variable_vectors_[] __attribute__ ((section (".rodata"))) = {
+	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
 		(void*)brk_inst_,   nullptr,	// (0)
 		(void*)null_task_,  nullptr,	// (1) flash_ready
 		(void*)null_task_,  nullptr,	// (2)
@@ -89,7 +93,14 @@ int main(int argc, char *ragv[])
 	PMH1.P14SEL = 1;
 	PMH1E.P15SEL2 = 0;
 	PMH1.P15SEL = 1;
-	uart0_.start(19200, /* ポーリング */ true);
+
+#ifdef UART_INTR
+	uart0_.initialize(1);  // 割り込みレベル
+	uart0_.start(19200);
+#else
+	// ポーリングの場合
+	uart0_.start(19200, true);
+#endif
 
 	for(char ch = 0x20; ch < 0x7f; ++ch) {
 		uart0_.putch(ch);
