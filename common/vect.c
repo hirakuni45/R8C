@@ -20,7 +20,7 @@ INTERRUPT_FUNC void null_task_(void)
 }
 
 #if 0
-const void* variable_vectors_[] __attribute__ ((section (".rodata"))) = {
+const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
 	brk_inst_,  (const void*)0x0000,	// (0)
 	null_task_,  (const void*)0x0000,	// (1) flash_ready
 	null_task_,  (const void*)0x0000,	// (2)
@@ -65,7 +65,7 @@ const void* variable_vectors_[] __attribute__ ((section (".rodata"))) = {
 
 // R8C M110AN, M120AN の場合、メモリーマップは６４キロバイト以内の為、
 // ポインターは２バイト、ベクターテーブルは４バイト単位のアドレスを想定
-const void* fixed_vectors_[] __attribute__ ((section (".vec"))) = {
+const void* fixed_vectors_[] __attribute__ ((section (".fvec"))) = {
 // 0xFFD8  予約領域 (with OSF2)
 	(const void*)0xffff, (const void*)0xffff,
 // 0xFFDC  未定義命令 (with ID1)

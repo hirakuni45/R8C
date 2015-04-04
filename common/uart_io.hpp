@@ -8,6 +8,7 @@
 //=====================================================================//
 #include "uart.hpp"
 #include "fifo.hpp"
+#include "intr.hpp"
 
 /// F_PCKB はボーレートパラメーター計算で必要で、設定が無いとエラーにします。
 #ifndef F_CLK
@@ -32,29 +33,29 @@ namespace device {
 		static utils::fifo<recv_size>	recv_;
 		static utils::fifo<send_size>	send_;
 
+		uint8_t	intr_level_;
 		bool	crlf_;
 		bool	polling_;
 
 public:
 		static INTERRUPT_FUNC void recv_task() {
-#if 0
-			bool err = false;
-			if(SCIx::SSR.ORER()) {	///< 受信オーバランエラー状態確認
-				SCIx::SSR = 0x00;	///< 受信オーバランエラークリア
-				err = true;
-			}
+			uint16_t ch = UART::URB();
+			UART::UIR.URIF = 0;
 			///< フレーミングエラー/パリティエラー状態確認
-			if(SCIx::SSR() & (SCIx::SSR.FER.b() | SCIx::SSR.PER.b())) {
-				err = true;
+			if(ch & (UART::URB.OER.b() | UART::URB.FER.b() | UART::URB.PER.b() | UART::URB.SUM.b())) {
+//				++recv_err_;
+				// 強制的にエラーフラグを除去する
+				UART::UC1.RE = 0;
+				UART::UC1.RE = 1;
+			} else {
+				recv_.put(static_cast<char>(ch));
 			}
-			if(!err) recv_.put(SCIx::RDR());
-#endif
 		}
 
 		static INTERRUPT_FUNC void send_task() {
-			UART::UTBL = send_.get();
-			if(send_.length() == 0) {
-				UART::UIR.UTIE = 0;
+			UART::UIR.UTIF = 0;
+			if(send_.length()) {
+				UART::UTBL = send_.get();
 			}
 		}
 
@@ -63,7 +64,6 @@ private:
 		void sleep_() {
 			asm("nop");
 		}
-
 
 		void putch_(char ch) {
 			if(polling_) {
@@ -75,8 +75,11 @@ private:
 				if(send_.length() >= (send_.size() * 7 / 8)) {
 					while(send_.length() != 0) sleep_();
 				}
-				send_.put(ch);
-				UART::UIR.UTIE = 1;
+				if(send_.length() == 0 && UART::UC1.TI()) {
+					UART::UTBL = ch;
+				} else {
+					send_.put(ch);
+				}
 			}
 		}
 
@@ -87,18 +90,18 @@ private:
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		uart_io() : crlf_(true), polling_(false) { }
+		uart_io() : intr_level_(0), crlf_(true), polling_(false) { }
 
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief  初期化 @n
+			@brief  初期化、割り込みレベルの設定 @n
 					※ポーリングの場合は設定しなくても良い
 			@param[in]	level	割り込みレベル
 		*/
 		//-----------------------------------------------------------------//
 		void initialize(uint8_t level) {
-//			intr_level_ = level;
+			intr_level_ = level;
 		}
 
 
@@ -112,6 +115,8 @@ private:
 		//-----------------------------------------------------------------//
 		bool start(uint32_t baud, bool polling = false) {
 			polling_ = polling;
+
+			UART::UC1 = 0x00;
 
 			uint32_t brr = F_CLK / baud / 16;
 			uint8_t cks = 0;
@@ -133,8 +138,9 @@ private:
 			if(polling) {
 				UART::UIR = UART::UIR.URIE.b(false) | UART::UIR.UTIE.b(false);
 			} else {
-				// 送信割り込み許可は、バッファが「空」では無い場合に設定
-				UART::UIR = UART::UIR.URIE.b();
+				ILVL8.B45 = intr_level_;
+				ILVL9.B01 = intr_level_;
+				UART::UIR = UART::UIR.URIE.b() | UART::UIR.UTIE.b();
 			}
 
 			return true;
@@ -193,9 +199,12 @@ private:
 			if(polling_) {
 				while(length() == 0) sleep_();
 				uint16_t ch = UART::URB();
-				// エラー発生時の動作（現状：無視）
-//				if(ch & (UART::URB.OER.b() | UART::URB.FER.b() | UART::URB.PER.b() | UART::URB.SUM.b())) {
-//				}
+				// エラー発生時の動作
+				if(ch & (UART::URB.OER.b() | UART::URB.FER.b() | UART::URB.PER.b() | UART::URB.SUM.b())) {
+					UART::UC1.RE = 0;
+					UART::UC1.RE = 1;
+					ch = 0;
+				}
 				return static_cast<char>(ch);
 			} else {
 				// バッファが空なら、受信するまで待つ。
