@@ -16,14 +16,15 @@ INPUT(-lm32cgloss)
 /* Do we need any of these for elf?
    __DYNAMIC = 0;    */
 MEMORY {
-	RAM (w) : ORIGIN = 0x0300, LENGTH = 0x0480
-	ROM (r) : ORIGIN = 0x8000, LENGTH = 0x7FD8
-	VEC (r) : ORIGIN = 0xFFD8, LENGTH = 40
+	RAM (w)  : ORIGIN = 0x0300, LENGTH = 0x0480
+	ROM (r)  : ORIGIN = 0x8000, LENGTH = 0x7FD8
+	VVEC (r) : ORIGIN = 0xFED8, LENGTH = 256
+	FVEC (r) : ORIGIN = 0xFFD8, LENGTH = 40
 }
 SECTIONS
 {
-		_usp_init = 0x07E0-1;
-		_isp_init = 0x0800-1;
+		_usp_init = 0x0760-1;
+		_isp_init = 0x0780-1;
 
   /* There are three cases we care about: First, RW data that must be
      in the low 64k.  This will always be copied from ROM.  Second, RO
@@ -142,9 +143,13 @@ SECTIONS
   } > RAM
   PROVIDE (__bsssize = SIZEOF(.bss));
 
-  .vec : {
-    *(.vec)
-  } > VEC
+  .vvec : {
+    *(.vvec)
+  } > VVEC
+
+  .fvec : {
+    *(.fvec)
+  } > FVEC
 
   /* The rest are all not normally part of the runtime image.  */
 
