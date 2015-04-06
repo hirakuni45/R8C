@@ -11,6 +11,7 @@
 #include "timer_rj.hpp"
 #include "timer_rb.hpp"
 #include "timer_rc.hpp"
+#include "trb_io.hpp"
 
 static void wait_(uint16_t n)
 {
@@ -19,6 +20,8 @@ static void wait_(uint16_t n)
 		--n;
 	}
 }
+
+static device::trb_io timer_b_;
 
 extern "C" {
 	void null_task_(void);
@@ -57,7 +60,7 @@ extern "C" {
 		(void*)null_task_,  nullptr,	// (22) タイマＲＪ２
 		(void*)null_task_,  nullptr,	// (23) 周期タイマ
 
-		(void*)null_task_,  nullptr,	// (24) タイマＲＢ２
+		(void*)timer_b_.trb_task,  nullptr,	// (24) タイマＲＢ２
 		(void*)null_task_,  nullptr,	// (25) /INT1
 		(void*)null_task_,  nullptr,	// (26) /INT3
 		(void*)null_task_,  nullptr,	// (27)
@@ -83,17 +86,19 @@ int main(int argc, char *ragv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
-	// モジュールスタンバイ制御
-	MSTCR.MSTUART = 0;
+	// モジュールスタンバイ制御 (RB2)
+	MSTCR.MSTTRB = 0;
+
+	timer_b_.start_timer(60, 1);
 
 	// L チカ・メイン
 	PD1.B0 = 1;
-	uint8_t v = 0;
+	uint8_t n = 0;
 	while(1) {
-		P1.B0 = v;
-		for(uint32_t i = 0; i < 50000; ++i) {
-
-		}
-		v ^= 1;
+		if(n < 20) P1.B0 = 0; 
+		else P1.B0 = 1;
+		timer_b_.sync();
+		++n;
+		if(n >= 60) n = 0;
 	}
 }
