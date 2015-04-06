@@ -1,7 +1,7 @@
 #pragma once
 //=====================================================================//
 /*!	@file
-	@brief	R8C/M110AN, R8C/M120AN グループ・タイマー・レジスター定義 @n
+	@brief	R8C/M110AN, R8C/M120AN グループ・タイマーＲＣレジスター定義 @n
 			Copyright 2015 Kunihito Hiramatsu
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
@@ -201,6 +201,86 @@ namespace device {
 	static trccr2_t TRCCR2;
 
 
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  タイマＲＣデジタルフィルタ機能制御レジスタ TRCDF
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	typedef io8<0x00F9> trcdf_io;
+	struct trcdf_t : public trcdf_io {
+		using trcdf_io::operator =;
+		using trcdf_io::operator ();
+		using trcdf_io::operator |=;
+		using trcdf_io::operator &=;
 
+		bit_t<trcdf_io, 0> DFA;
+		bit_t<trcdf_io, 1> DFB;
+		bit_t<trcdf_io, 2> DFC;
+		bit_t<trcdf_io, 3> DFD;
+		bit_t<trcdf_io, 4> DFTRG;
+		bits_t<trcdf_io, 6, 2> DFCK;
+	};
+	static trcdf_t TRCDF;
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  タイマＲＣ出力許可レジスタ TRCOER
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	typedef io8<0x00FA> trcoer_io;
+	struct trcoer_t : public trcoer_io {
+		using trcoer_io::operator =;
+		using trcoer_io::operator ();
+		using trcoer_io::operator |=;
+		using trcoer_io::operator &=;
+
+		bit_t<trcoer_io, 0> EA;
+		bit_t<trcoer_io, 1> EB;
+		bit_t<trcoer_io, 2> EC;
+		bit_t<trcoer_io, 3> ED;
+		bit_t<trcoer_io, 7> PTO;
+	};
+	static trcoer_t TRCOER;
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  タイマＲＣ A/D 変換トリガ制御レジスタ TRCADCR
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	typedef io8<0x00FB> trcadcr_io;
+	struct trcadcr_t : public trcadcr_io {
+		using trcadcr_io::operator =;
+		using trcadcr_io::operator ();
+		using trcadcr_io::operator |=;
+		using trcadcr_io::operator &=;
+
+		bit_t<trcadcr_io, 0> ADTRGAE;
+		bit_t<trcadcr_io, 1> ADTRGBE;
+		bit_t<trcadcr_io, 2> ADTRGCE;
+		bit_t<trcadcr_io, 3> ADTRGDE;
+	};
+	static trcadcr_t TRCADCR;
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  タイマＲＣ波形出力操作レジスタ TRCOPR
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	typedef io8<0x00FC> trcopr_io;
+	struct trcopr_t : public trcopr_io {
+		using trcopr_io::operator =;
+		using trcopr_io::operator ();
+		using trcopr_io::operator |=;
+		using trcopr_io::operator &=;
+
+		bits_t<trcopr_io, 0, 2> OPSEL;
+		bits_t<trcopr_io, 2, 2> OPOL;
+		bit_t<trcopr_io, 4> RESTATS;
+		bit_t<trcopr_io, 5> OPE;
+	};
+	static trcopr_t TRCOPR;
 
 }
