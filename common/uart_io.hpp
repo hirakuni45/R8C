@@ -10,7 +10,7 @@
 #include "fifo.hpp"
 #include "intr.hpp"
 
-/// F_PCKB はボーレートパラメーター計算で必要で、設定が無いとエラーにします。
+/// F_CLK はボーレートパラメーター計算で必要で、設定が無いとエラーにします。
 #ifndef F_CLK
 #  error "uart_io.hpp requires F_CLK to be defined"
 #endif
@@ -61,7 +61,7 @@ public:
 
 private:
 		// ※同期が必要なら、実装する
-		void sleep_() {
+		void sleep_() const {
 			asm("nop");
 		}
 
