@@ -114,8 +114,4 @@ namespace device {
 	};
 	static trjir_t TRJIR;
 
-
-
-
-
 }
