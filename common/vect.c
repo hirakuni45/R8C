@@ -24,6 +24,23 @@ INTERRUPT_FUNC void null_task_(void)
 {
 }
 
+
+void di(void)
+{
+	asm("fclr i");
+	asm("nop");
+	asm("nop");
+}
+
+
+void ei(void)
+{
+	asm("fset i");
+	asm("nop");
+	asm("nop");
+}
+
+
 #if 0
 const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
 	brk_inst_,  (const void*)0x0000,	// (0)

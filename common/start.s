@@ -25,20 +25,6 @@ _start:
 	.extern _init
 	jmp.w _init
 
-	.global _di
-_di:
-	fclr i
-	nop
-	nop
-	rts
-
-	.global _ei
-_ei:
-	nop
-	nop
-	fset i
-	rts
-
 	.global _exit
 _exit:
 	jmp.w	_exit

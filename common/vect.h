@@ -15,6 +15,8 @@ extern "C" {
 #endif
 	void brk_inst_(void);
 	void null_task_(void);
+	void di(void);
+	void ei(void);
 #ifdef __cplusplus
 };
 #endif
