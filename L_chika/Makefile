@@ -28,7 +28,7 @@ MCU_TARGET	=	-mcpu=r8c
 #INC_SYS		=	/usr/boost_1_53_0
 INC_SYS		=
 
-INC_APP		=	. ../M120AN ../common
+INC_APP		=	. ../ ../M120AN
 
 OPTIMIZE	=	-O2
 

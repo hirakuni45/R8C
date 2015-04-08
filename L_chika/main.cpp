@@ -1,3 +1,4 @@
+#include "common/vect.h"
 #include "system.hpp"
 #include "clock.hpp"
 #include "port.hpp"
@@ -8,11 +9,6 @@ static void wait_(uint16_t n)
 		asm("nop");
 		--n;
 	}
-}
-
-extern "C" {
-	void null_task_(void);
-	void brk_inst_(void);
 }
 
 extern "C" {

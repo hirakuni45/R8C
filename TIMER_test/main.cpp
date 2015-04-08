@@ -4,6 +4,7 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
+#include "common/vect.h"
 #include "system.hpp"
 #include "clock.hpp"
 #include "port.hpp"
@@ -11,7 +12,7 @@
 #include "timer_rj.hpp"
 #include "timer_rb.hpp"
 #include "timer_rc.hpp"
-#include "trb_io.hpp"
+#include "common/trb_io.hpp"
 
 static void wait_(uint16_t n)
 {
@@ -22,11 +23,6 @@ static void wait_(uint16_t n)
 }
 
 static device::trb_io timer_b_;
-
-extern "C" {
-	void null_task_(void);
-	void brk_inst_(void);
-}
 
 extern "C" {
 	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
@@ -85,9 +81,6 @@ int main(int argc, char *ragv[])
 	wait_(1000);
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
-
-	// モジュールスタンバイ制御 (RB2)
-	MSTCR.MSTTRB = 0;
 
 	timer_b_.start_timer(60, 1);
 

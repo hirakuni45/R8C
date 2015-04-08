@@ -4,6 +4,7 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
+#include "common/vect.h"
 #include "main.hpp"
 #include "system.hpp"
 #include "clock.hpp"
@@ -19,11 +20,6 @@ static void wait_(uint16_t n)
 		asm("nop");
 		--n;
 	}
-}
-
-extern "C" {
-	void null_task_(void);
-	void brk_inst_(void);
 }
 
 static uart0 uart0_;
@@ -88,18 +84,16 @@ int main(int argc, char *ragv[])
 
 	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
 	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
-	MSTCR.MSTUART = 0;  // モジュールスタンバイ制御
 	PMH1E.P14SEL2 = 0;
 	PMH1.P14SEL = 1;
 	PMH1E.P15SEL2 = 0;
 	PMH1.P15SEL = 1;
 
 #ifdef UART_INTR
-	uart0_.initialize(1);  // 割り込みレベル
-	uart0_.start(19200);
+	uart0_.start(19200, 1);
 #else
 	// ポーリングの場合
-	uart0_.start(19200, true);
+	uart0_.start(19200, 0);
 #endif
 
 	for(char ch = 0x20; ch < 0x7f; ++ch) {
