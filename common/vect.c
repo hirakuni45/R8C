@@ -1,6 +1,11 @@
-#include <stdlib.h>
-
-#define INTERRUPT_FUNC __attribute__ ((interrupt))
+//=====================================================================//
+/*!	@file
+	@brief	R8C グループ・ベクター関係 @n
+			Copyright 2015 Kunihito Hiramatsu
+	@author	平松邦仁 (hira@rvf-rc45.net)
+*/
+//=====================================================================//
+#include "vect.h"
 
 extern void reset_start(void);
 

@@ -6,16 +6,17 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
+#include "vect.h"
+#include "system.hpp"
+#include "intr.hpp"
 #include "uart.hpp"
 #include "fifo.hpp"
-#include "intr.hpp"
+
 
 /// F_CLK はボーレートパラメーター計算で必要で、設定が無いとエラーにします。
 #ifndef F_CLK
 #  error "uart_io.hpp requires F_CLK to be defined"
 #endif
-
-#define INTERRUPT_FUNC __attribute__ ((interrupt))
 
 namespace device {
 
@@ -33,9 +34,7 @@ namespace device {
 		static utils::fifo<recv_size>	recv_;
 		static utils::fifo<send_size>	send_;
 
-		uint8_t	intr_level_;
 		bool	crlf_;
-		bool	polling_;
 
 public:
 		static INTERRUPT_FUNC void recv_task() {
@@ -66,10 +65,7 @@ private:
 		}
 
 		void putch_(char ch) {
-			if(polling_) {
-				while(UART::UC1.TI() == 0) sleep_();
-				UART::UTBL = ch;
-			} else {
+			if(UART::UIR.UTIE()) {
 				/// ７／８ を超えてた場合は、バッファが空になるまで待つ。
 				/// ※ヒステリシス動作
 				if(send_.length() >= (send_.size() * 7 / 8)) {
@@ -80,6 +76,9 @@ private:
 				} else {
 					send_.put(ch);
 				}
+			} else {
+				while(UART::UC1.TI() == 0) sleep_();
+				UART::UTBL = ch;
 			}
 		}
 
@@ -90,31 +89,19 @@ private:
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		uart_io() : intr_level_(0), crlf_(true), polling_(false) { }
-
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief  初期化、割り込みレベルの設定 @n
-					※ポーリングの場合は設定しなくても良い
-			@param[in]	level	割り込みレベル
-		*/
-		//-----------------------------------------------------------------//
-		void initialize(uint8_t level) {
-			intr_level_ = level;
-		}
+		uart_io() : crlf_(true) { }
 
 
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  ボーレートを設定して、UART を有効にする
 			@param[in]	baud	ボーレート
-			@param[in]	polling	ポーリングの場合「true」
+			@param[in]	ir_level	割り込みレベル、「０」の場合ポーリング
 			@return エラーなら「false」
 		*/
 		//-----------------------------------------------------------------//
-		bool start(uint32_t baud, bool polling = false) {
-			polling_ = polling;
+		bool start(uint32_t baud, uint8_t ir_level) {
+			MSTCR.MSTUART = 0;  // モジュールスタンバイ解除
 
 			UART::UC1 = 0x00;
 
@@ -135,12 +122,12 @@ private:
 
 			UART::UC1 = UART::UC1.TE.b() | UART::UC1.RE.b();
 
-			if(polling) {
-				UART::UIR = UART::UIR.URIE.b(false) | UART::UIR.UTIE.b(false);
-			} else {
-				ILVL8.B45 = intr_level_;
-				ILVL9.B01 = intr_level_;
+			ILVL8.B45 = ir_level;
+			ILVL9.B01 = ir_level;
+			if(ir_level) {
 				UART::UIR = UART::UIR.URIE.b() | UART::UIR.UTIE.b();
+			} else {
+				UART::UIR = UART::UIR.URIE.b(false) | UART::UIR.UTIE.b(false);
 			}
 
 			return true;
@@ -177,14 +164,15 @@ private:
 		 */
 		//-----------------------------------------------------------------//
 		uint16_t length() {
-			if(polling_) {
+			if(UART::UIR.URIE()) {
+				return recv_.length();
+			} else {
 				if(UART::UC1.RI()) {
 					return 1;	///< 受信データあり
 				} else {
 					return 0;	///< 受信データなし
 				}
-			} else {
-				return recv_.length();
+			
 			}
 		}
 
@@ -196,7 +184,11 @@ private:
 		 */
 		//-----------------------------------------------------------------//
 		char getch() {
-			if(polling_) {
+			if(UART::UIR.URIE()) {
+				// バッファが空なら、受信するまで待つ。
+				while(recv_.length() == 0) sleep_();
+				return recv_.get();
+			} else {
 				while(length() == 0) sleep_();
 				uint16_t ch = UART::URB();
 				// エラー発生時の動作
@@ -206,10 +198,6 @@ private:
 					ch = 0;
 				}
 				return static_cast<char>(ch);
-			} else {
-				// バッファが空なら、受信するまで待つ。
-				while(recv_.length() == 0) sleep_();
-				return recv_.get();
 			}
 		}
 
