@@ -97,7 +97,7 @@ int main(int argc, char *ragv[])
 
 	// タイマーＢ初期化
 	{
-		uint8_t ir_level = 1;
+		uint8_t ir_level = 2;
 		timer_b_.start_timer(60, ir_level);
 	}
 
