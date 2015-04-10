@@ -132,6 +132,7 @@ namespace device {
 			} else {
 				while(TRBIR.TRBIF() == 0) sleep_();
 				TRBIR.TRBIF = 0;
+				++count_;
 			}
 		}
 

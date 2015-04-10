@@ -18,8 +18,11 @@
 /// エラーのメッセージ出力
 // #define ERROR_MESSAGE
 
+void putch_(char ch);
+
 namespace utils {
 
+#ifdef ERROR_MESSAGE
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  エラー・ケース
@@ -41,7 +44,6 @@ namespace utils {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <class OUT>
 	class error {
-#ifdef ERROR_MESSAGE
 		OUT		out_;
 		void str_(const char* str) {
 			char ch;
@@ -49,27 +51,27 @@ namespace utils {
 				out_(ch);
 			}
 		}
-#endif
 	public:
 		void operator() (error_case::type t) {
-#ifdef ERROR_MESSAGE
 			if(t == error_case::UNKNOWN_TYPE) {
 				str_("Unknown type\n");
 			} else if(t == error_case::DIFFERENT_TYPE) {
 				str_("Different type\n");
 			}
-#endif
 		}
 	};
-
+#endif
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  簡易 format クラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class OUT, class ERR = error<OUT> >
+//	template <class OUT, typename INT = int, typename UINT = unsigned int, class ERR = error<OUT> >
 	class format {
+
+		typedef int32_t INT;
+		typedef uint32_t UINT;
 
 		enum mode {
 			CHA,		///< 文字
@@ -91,9 +93,10 @@ namespace utils {
 			NONE_		///< 不明
 		};
 
-		OUT			out_;	///< 出力関数クラス
+//		OUT			out_;	///< 出力関数クラス
+#ifdef ERROR_MESSAGE
 		ERR			err_;	///< エラー関数クラス
-
+#endif
 		const char*	form_;
 
 		uint8_t		real_;
@@ -114,7 +117,9 @@ namespace utils {
 
 		void next_() {
 			if(form_ == 0) {
+#ifdef ERROR_MESSAGE
 				err_(error_case::NULL_PTR);
+#endif
 				return;
 			}
 			char ch;
@@ -189,16 +194,18 @@ namespace utils {
 						return;
 #endif
 					} else if(ch == '%') {
-						out_(ch);
+						putch_(ch);
 						fm = false;
 					} else {
+#ifdef ERROR_MESSAGE
 						err_(error_case::UNKNOWN_TYPE);
+#endif
 						return;
 					}
 				} else if(ch == '%') {
 					fm = true;
 				} else {
-					out_(ch);
+					putch_(ch);
 				}
 			}
 		}
@@ -206,7 +213,7 @@ namespace utils {
 		void out_s_(const char* str) {
 			char ch;
 			while((ch = *str++) != 0) {
-				out_(ch);
+				putch_(ch);
 			}
 		}
 
@@ -216,14 +223,14 @@ namespace utils {
 				uint8_t spc = real_ - n;
 				while(spc) {
 					--spc;
-					if(zerosupp_) out_('0');
-					else out_(' ');
+					if(zerosupp_) putch_('0');
+					else putch_(' ');
 				}
 			}
 			out_s_(str);
 		}
 
-		void out_bin_(int v) {
+		void out_bin_(INT v) {
 			char tmp[34];
 			char* p = &tmp[sizeof(tmp) - 1];
 			*p = 0;
@@ -239,7 +246,7 @@ namespace utils {
 		}
 
 #ifdef WITH_OCTAL_FORMAT
-		void out_oct_(int v) {
+		void out_oct_(INT v) {
 			char tmp[14];
 			char* p = &tmp[sizeof(tmp) - 1];
 			*p = 0;
@@ -255,7 +262,7 @@ namespace utils {
 		}
 #endif
 
-		void out_dec_(int v) {
+		void out_dec_(INT v) {
 			char tmp[12];
 			char* p = &tmp[sizeof(tmp) - 1];
 			*p = 0;
@@ -273,7 +280,7 @@ namespace utils {
 			out_str_(p, n);
 		}
 
-		void out_dec_(unsigned int v) {
+		void out_dec_(UINT v) {
 			char tmp[12];
 			char* p = &tmp[sizeof(tmp) - 1];
 			*p = 0;
@@ -288,7 +295,7 @@ namespace utils {
 			out_str_(p, n);
 		}
 
-		void out_hex_(unsigned int v, char top) {
+		void out_hex_(UINT v, char top) {
 			char tmp[10];
 			char* p = &tmp[sizeof(tmp) - 1];
 			*p = 0;
@@ -316,16 +323,16 @@ namespace utils {
 			return m;
 		}
 
-		void out_fixed_point_(int v, uint8_t fixpoi) {
+		void out_fixed_point_(INT v, uint8_t fixpoi) {
 
 			out_dec_(v >> fixpoi);
-			out_('.');
+			putch_('.');
 
 			uint32_t d;
 			if(v < 0) { d = -v; } else { d = v; }
 			uint32_t dec = d & make_mask_(fixpoi);
 
-			int l = 0;
+			uint8_t l = 0;
 			char buff[24];
 			if(decimal_ > (sizeof(buff) - 1)) decimal_ = sizeof(buff) - 1;
 			while(dec > 0) {
@@ -415,7 +422,7 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		format(const char* form) : out_(), err_(), form_(form), real_(0), decimal_(0), ppos_(0),
+		format(const char* form) : form_(form), real_(0), decimal_(0), ppos_(0),
 			mode_(mode::NONE_), zerosupp_(false), sign_(false) {
 			next_();
 		}
@@ -430,9 +437,11 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 		//-----------------------------------------------------------------//
 		format& operator % (char val) {
 			if(mode_ == mode::CHA) {
-				out_(val);
+				putch_(val);
 			} else {
+#ifdef ERROR_MESSAGE
 				err_(error_case::DIFFERENT_TYPE);
+#endif
 			}
 			reset_();
 			next_();
@@ -457,7 +466,9 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 				}
 				out_str_(val, n);
 			} else {
+#ifdef ERROR_MESSAGE
 				err_(error_case::DIFFERENT_TYPE);
+#endif
 			}
 			reset_();
 			next_();
@@ -472,7 +483,7 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 			@return	自分の参照
 		*/
 		//-----------------------------------------------------------------//
-		format& operator % (int val) {
+		format& operator % (INT val) {
 			if(mode_ == mode::BINARY) {
 				out_bin_(val);
 #ifdef WITH_OCTAL_FORMAT
@@ -489,7 +500,9 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 				if(decimal_ == 0) decimal_ = 3;
 				out_fixed_point_(val, ppos_);
 			} else {
+#ifdef ERROR_MESSAGE
 				err_(error_case::DIFFERENT_TYPE);
+#endif
 			}
 			reset_();
 			next_();
@@ -504,7 +517,7 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 			@return	自分の参照
 		*/
 		//-----------------------------------------------------------------//
-		format& operator % (unsigned int val) {
+		format& operator % (UINT val) {
 			if(mode_ == mode::BINARY) {
 				out_bin_(val);
 #ifdef WITH_OCTAL_FORMAT
@@ -523,7 +536,9 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 				if(decimal_ == 0) decimal_ = 3;
 				out_fixed_point_(val, ppos_);
 			} else {
+#ifdef ERROR_MESSAGE
 				err_(error_case::DIFFERENT_TYPE);
+#endif
 			}
 			reset_();
 			next_();
@@ -547,7 +562,9 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 			} else if(mode_ == mode::REAL_AUTO) {
 				out_real_auto_(val);
 			} else {
+#ifdef ERROR_MESSAGE
 				err_(error_case::DIFFERENT_TYPE);
+#endif
 			}
 			reset_();
 			next_();
@@ -571,7 +588,9 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 			} else if(mode_ == mode::REAL_AUTO) {
 				out_real_auto_(val);
 			} else {
+#ifdef ERROR_MESSAGE
 				err_(error_case::DIFFERENT_TYPE);
+#endif
 			}
 			reset_();
 			next_();
