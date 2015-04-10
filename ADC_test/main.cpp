@@ -8,7 +8,6 @@
 #include "system.hpp"
 #include "clock.hpp"
 #include "port.hpp"
-#include "common/adc_io.hpp"
 #include "common/format.hpp"
 
 static void wait_(uint16_t n)
@@ -28,7 +27,15 @@ public:
 	} 
 };
 
-typedef utils::format<out_cha> format_;
+void putch_(char ch) {
+	uart0_.putch(ch);
+}
+
+// typedef utils::format<out_cha, int32_t, uint32_t> format_;
+// typedef utils::format<out_cha> format_;
+typedef utils::format format_;
+
+static adc adc_;
 
 extern "C" {
 	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
@@ -105,7 +112,15 @@ int main(int argc, char *ragv[])
 		uart0_.start(19200, ir_level);
 	}
 
-	format_("Start R8C ADC\n");
+	uart0_.puts("Start R8C ADC\n");
+
+	// ADC の設定（CH1のサイクルモード）
+	// port1.b1 の A/D 変換
+	{
+		PD1.B1 = 0;
+		adc_.setup(true, device::adc_io::cnv_type::chanel1, 0);
+		adc_.start();
+	}
 
 	// L チカ・メイン
 	PD1.B0 = 1;
@@ -113,7 +128,16 @@ int main(int argc, char *ragv[])
 	while(1) {
 		timer_b_.sync();
 		++cnt;
-		if(cnt >= 60) cnt = 0;
+		if(cnt >= 60) {
+			cnt = 0;
+			if(adc_.get_state()) {
+				uint16_t v = adc_.get_value(1);
+				format_("(%d): %1.2:8y\n")
+					% static_cast<uint32_t>(timer_b_.get_count())
+					% static_cast<uint32_t>(((v + 1) * 10) >> 3);
+				adc_.start();
+			}
+		}
 
 		if(cnt < 20) P1.B0 = 1;
 		else P1.B0 = 0;

@@ -7,8 +7,10 @@
 //=====================================================================//
 #include "common/uart_io.hpp"
 #include "common/trb_io.hpp"
+#include "common/adc_io.hpp"
 
 typedef device::uart_io<device::UART0, 16, 16> uart0;
 
 typedef device::trb_io timer_b;
 
+typedef device::adc_io adc;
