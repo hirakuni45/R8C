@@ -6,6 +6,7 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
+#include "common/vect.h"
 #include "system.hpp"
 #include "intr.hpp"
 #include "timer_rb.hpp"
@@ -15,7 +16,8 @@
 #  error "trb_io.hpp requires F_CLK to be defined"
 #endif
 
-#define INTERRUPT_FUNC __attribute__ ((interrupt))
+// 割り込みタスクへの関数登録を有効にする場合
+// #define INTR_TASK
 
 namespace device {
 
@@ -28,12 +30,16 @@ namespace device {
 
 	public:
 		static volatile uint16_t	count_;
+#ifdef INTR_TASK
 		static void (*task_)(void);
+#endif
 
 		static INTERRUPT_FUNC void trb_task() {
 			TRBIR.TRBIF = 0;
 			++count_;
+#ifdef INTR_TASK
 			if(task_) (*task_)();
+#endif
 		}
 
 		uint16_t	limit_;
@@ -97,7 +103,9 @@ namespace device {
 
 			ILVLC.B01 = ir_lvl;
 			if(ir_lvl) {
+#ifdef INTR_TASK
 				task_ = nullptr;
+#endif
 				TRBIR.TRBIE = 1;				
 			} else {
 				TRBIR.TRBIE = 0;
@@ -108,7 +116,7 @@ namespace device {
 			return true;
 		}
 
-
+#ifdef INTR_TASK
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  割り込みタスクの登録
@@ -118,7 +126,7 @@ namespace device {
 		void set_task(void (*task)(void)) {
 			task_ = task;
 		}
-
+#endif
 
 		//-----------------------------------------------------------------//
 		/*!

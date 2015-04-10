@@ -6,7 +6,7 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
-#include "vect.h"
+#include "common/vect.h"
 #include "system.hpp"
 #include "intr.hpp"
 #include "uart.hpp"

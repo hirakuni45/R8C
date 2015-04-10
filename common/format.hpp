@@ -333,7 +333,7 @@ namespace utils {
 			uint32_t dec = d & make_mask_(fixpoi);
 
 			uint8_t l = 0;
-			char buff[24];
+			char buff[12];
 			if(decimal_ > (sizeof(buff) - 1)) decimal_ = sizeof(buff) - 1;
 			while(dec > 0) {
 				dec *= 10;

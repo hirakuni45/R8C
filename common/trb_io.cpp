@@ -10,5 +10,7 @@
 namespace device {
 
 	volatile uint16_t trb_io::count_ = 0;
+#ifdef INTR_TASK
 	void (*trb_io::task_)(void);
+#endif
 }

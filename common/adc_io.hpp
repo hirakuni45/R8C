@@ -6,10 +6,10 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
+#include "common/vect.h"
 #include "adc.hpp"
 #include "intr.hpp"
 #include "system.hpp"
-#include "common/vect.h"
 
 namespace device {
 
