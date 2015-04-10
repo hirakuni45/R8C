@@ -16,15 +16,15 @@ INPUT(-lm32cgloss)
 /* Do we need any of these for elf?
    __DYNAMIC = 0;    */
 MEMORY {
-	RAM (w)  : ORIGIN = 0x0300, LENGTH = 0x0480
+	RAM (w)  : ORIGIN = 0x0300, LENGTH = 0x0400
 	ROM (r)  : ORIGIN = 0x8000, LENGTH = 0x7FD8
 	VVEC (r) : ORIGIN = 0xFED8, LENGTH = 256
 	FVEC (r) : ORIGIN = 0xFFD8, LENGTH = 40
 }
 SECTIONS
 {
-		_usp_init = 0x0740;
-		_isp_init = 0x0780;
+		_usp_init = 0x07C0;
+		_isp_init = 0x0800;
 
   /* There are three cases we care about: First, RW data that must be
      in the low 64k.  This will always be copied from ROM.  Second, RO
