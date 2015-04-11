@@ -31,10 +31,6 @@ void putch_(char ch) {
 	uart0_.putch(ch);
 }
 
-// typedef utils::format<out_cha, int32_t, uint32_t> format_;
-// typedef utils::format<out_cha> format_;
-typedef utils::format format_;
-
 static adc adc_;
 
 extern "C" {
@@ -125,21 +121,24 @@ int main(int argc, char *ragv[])
 	// L チカ・メイン
 	PD1.B0 = 1;
 	uint8_t cnt = 0;
+	uint16_t nnn = 0;
 	while(1) {
 		timer_b_.sync();
 		++cnt;
-		if(cnt >= 60) {
+		if(cnt >= 30) {
 			cnt = 0;
 			if(adc_.get_state()) {
 				uint16_t v = adc_.get_value(1);
-				format_("(%d): %1.2:8y\n")
-					% static_cast<uint32_t>(timer_b_.get_count())
-					% static_cast<uint32_t>(((v + 1) * 10) >> 3);
+				utils::format("(%d): %1.2:8y[V], %d\n")
+					% static_cast<uint32_t>(nnn)
+					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
+					% static_cast<uint32_t>(v);
 				adc_.start();
 			}
+			++nnn;
 		}
 
-		if(cnt < 20) P1.B0 = 1;
+		if(cnt < 10) P1.B0 = 1;
 		else P1.B0 = 0;
 
 		if(uart0_.length()) {  // UART のレシーブデータがあるか？
