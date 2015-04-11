@@ -110,4 +110,45 @@ namespace device {
 	};
 	static rstfr_t RSTFR;
 
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  オプション機能選択レジスタ２ OFS2
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	typedef io8<0xffdb> ofs2_io;
+	struct ofs2_t : public ofs2_io {
+		using ofs2_io::operator =;
+		using ofs2_io::operator ();
+		using ofs2_io::operator |=;
+		using ofs2_io::operator &=;
+
+		bits_t<ofs2_io, 0, 2> WDTUFS;
+		bits_t<ofs2_io, 2, 2> WDTRCS;
+		bit_t<ofs2_io, 5> MSTINI;
+	};
+	static ofs2_t OFS2;
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  オプション機能選択レジスタ OFS
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	typedef io8<0xffff> ofs_io;
+	struct ofs_t : public ofs_io {
+		using ofs_io::operator =;
+		using ofs_io::operator ();
+		using ofs_io::operator |=;
+		using ofs_io::operator &=;
+
+		bit_t<ofs_io, 0> WDTON;
+		bit_t<ofs_io, 2> ROMCR;
+		bit_t<ofs_io, 3> ROMCP1;
+		bits_t<ofs_io, 4, 2> VDSEL;
+		bit_t<ofs_io, 6> LVDAS;
+		bit_t<ofs_io, 7> CSPRONI;
+	};
+	static ofs_t OFS;
+
 }
