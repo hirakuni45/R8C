@@ -16,7 +16,8 @@
 #  error "trb_io.hpp requires F_CLK to be defined"
 #endif
 
-// 割り込みタスクへの関数登録を有効にする場合
+/// 割り込みタスクへの関数登録を有効にする場合
+/// ※これを有効にすると、ハードウェアースタックを大量に消費する場合がある。
 // #define INTR_TASK
 
 namespace device {
@@ -35,11 +36,11 @@ namespace device {
 #endif
 
 		static INTERRUPT_FUNC void trb_task() {
-			TRBIR.TRBIF = 0;
 			++count_;
 #ifdef INTR_TASK
 			if(task_) (*task_)();
 #endif
+			TRBIR.TRBIF = 0;
 		}
 
 		uint16_t	limit_;

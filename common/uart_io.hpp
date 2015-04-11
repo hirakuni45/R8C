@@ -39,7 +39,6 @@ namespace device {
 public:
 		static INTERRUPT_FUNC void recv_task() {
 			uint16_t ch = UART::URB();
-			UART::UIR.URIF = 0;
 			///< フレーミングエラー/パリティエラー状態確認
 			if(ch & (UART::URB.OER.b() | UART::URB.FER.b() | UART::URB.PER.b() | UART::URB.SUM.b())) {
 //				++recv_err_;
@@ -49,13 +48,14 @@ public:
 			} else {
 				recv_.put(static_cast<char>(ch));
 			}
+			UART::UIR.URIF = 0;
 		}
 
 		static INTERRUPT_FUNC void send_task() {
-			UART::UIR.UTIF = 0;
 			if(send_.length()) {
 				UART::UTBL = send_.get();
 			}
+			UART::UIR.UTIF = 0;
 		}
 
 private:
