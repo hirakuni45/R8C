@@ -40,7 +40,9 @@ namespace device {
 #ifdef INTR_TASK
 			if(task_) (*task_)();
 #endif
-			TRBIR.TRBIF = 0;
+			// IR 関係フラグは必ず mov 命令で・・
+			volatile uint8_t r = TRBIR();
+			TRBIR = TRBIR.TRBIF.b(false) | (r & TRBIR.TRBIE.b());
 		}
 
 		uint16_t	limit_;
@@ -107,9 +109,9 @@ namespace device {
 #ifdef INTR_TASK
 				task_ = nullptr;
 #endif
-				TRBIR.TRBIE = 1;				
+				TRBIR = TRBIR.TRBIE.b();				
 			} else {
-				TRBIR.TRBIE = 0;
+				TRBIR = TRBIR.TRBIE.b(false);
 			}
 
 			TRBCR.TSTART = 1;

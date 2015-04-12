@@ -48,14 +48,20 @@ public:
 			} else {
 				recv_.put(static_cast<char>(ch));
 			}
-			UART::UIR.URIF = 0;
+			volatile uint8_t r = UART::UIR();
+			UART::UIR = UART::UIR.URIF.b(false) | UART::UIR.UTIF.b()
+				| (r & (UART::UIR.UTIE.b() | UART::UIR.URIE.b()));
+// (NG)		UART::UIR.URIF = 0;
 		}
 
 		static INTERRUPT_FUNC void send_task() {
 			if(send_.length()) {
 				UART::UTBL = send_.get();
 			}
-			UART::UIR.UTIF = 0;
+			volatile uint8_t r = UART::UIR();
+			UART::UIR = UART::UIR.URIF.b() | UART::UIR.UTIF.b(false)
+				| (r & (UART::UIR.UTIE.b() | UART::UIR.URIE.b()));
+// (NG)		UART::UIR.UTIF = 0;
 		}
 
 private:
