@@ -36,7 +36,8 @@ OPTIMIZE	=	-O2
 
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
-				-fno-exceptions
+				-fno-exceptions \
+				-fno-rtti
 
 CC_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \

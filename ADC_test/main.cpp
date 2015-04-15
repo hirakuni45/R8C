@@ -20,12 +20,6 @@ static void wait_(uint16_t n)
 
 static timer_b timer_b_;
 static uart0 uart0_;
-class out_cha {
-public:
-	void operator () (char ch) {
-		uart0_.putch(ch);
-	} 
-};
 
 void putch_(char ch) {
 	uart0_.putch(ch);
@@ -121,7 +115,7 @@ int main(int argc, char *ragv[])
 	// L チカ・メイン
 	PD1.B0 = 1;
 	uint8_t cnt = 0;
-	uint16_t nnn = 0;
+	uint32_t nnn = 0;
 	while(1) {
 		timer_b_.sync();
 		++cnt;
