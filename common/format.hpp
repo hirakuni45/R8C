@@ -132,19 +132,20 @@ namespace utils {
 					if(ch == '+') {
 						sign_ = true;
 					} else if(ch >= '0' && ch <= '9') {
-						if(n == 0 && ch == '0') {
+						ch -= '0';
+						if(n == 0 && ch == 0) {
 							zerosupp_ = true;
 						} else if(point || ppos) {
 							if(point) {
 								decimal_ *= 10;
-								decimal_ += static_cast<uint8_t>(ch - '0');
+								decimal_ += static_cast<uint8_t>(ch);
 							} else {
 								ppos_ *= 10;
-								ppos_ += static_cast<uint8_t>(ch - '0');
+								ppos_ += static_cast<uint8_t>(ch);
 							}
 						} else {
 							real_ *= 10;
-							real_ += static_cast<uint8_t>(ch - '0');
+							real_ += static_cast<uint8_t>(ch);
 						}
 						++n;
 					} else if(ch == '.') {
@@ -262,24 +263,6 @@ namespace utils {
 		}
 #endif
 
-		void out_dec_(INT v) {
-			char tmp[12];
-			char* p = &tmp[sizeof(tmp) - 1];
-			*p = 0;
-			uint8_t n = 0;
-			char sign = 0;
-			if(v < 0) { v = -v; sign = '-'; }
-			else if(sign_) { sign = '+'; }
-			do {
-				--p;
-				*p = (v % 10) + '0';
-				v /= 10;
-				++n;
-			} while(v != 0) ;
-			if(sign) { --p; ++n; *p = sign; }
-			out_str_(p, n);
-		}
-
 		void out_dec_(UINT v) {
 			char tmp[12];
 			char* p = &tmp[sizeof(tmp) - 1];
@@ -294,6 +277,26 @@ namespace utils {
 			if(sign_) { --p; ++n; *p = '+'; }
 			out_str_(p, n);
 		}
+
+
+		void out_dec_(INT v) {
+			char sign = 0;
+			if(v < 0) { v = -v; sign = '-'; }
+			else if(sign_) { sign = '+'; }
+			char tmp[12];
+			char* p = &tmp[sizeof(tmp) - 1];
+			*p = 0;
+			uint8_t n = 0;
+			do {
+				--p;
+				*p = (v % 10) + '0';
+				v /= 10;
+				++n;
+			} while(v != 0) ;
+			if(sign) { --p; ++n; *p = sign; }
+			out_str_(p, n);
+		}
+
 
 		void out_hex_(UINT v, char top) {
 			char tmp[10];
