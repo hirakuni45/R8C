@@ -8,7 +8,7 @@
 #include "system.hpp"
 #include "clock.hpp"
 #include "port.hpp"
-#include "common/format.hpp"
+#include "common/command.hpp"
 
 static void wait_(uint16_t n)
 {
@@ -22,11 +22,25 @@ static timer_b timer_b_;
 static uart0 uart0_;
 static flash flash_;
 
-void putch_(char ch) {
-	uart0_.putch(ch);
+extern "C" {
+	void sci_putch(char ch) {
+		uart0_.putch(ch);
+	}
+
+	char sci_getch(void) {
+		return uart0_.getch();
+	}
+
+	uint16_t sci_length() {
+		return uart0_.length();
+	}
+
+	void sci_puts(const char* str) {
+		uart0_.puts(str);
+	}
 }
 
-static adc adc_;
+static utils::command<64> command_;
 
 extern "C" {
 	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
@@ -103,42 +117,28 @@ int main(int argc, char *ragv[])
 		uart0_.start(19200, ir_level);
 	}
 
-	uart0_.puts("Start R8C ADC\n");
+	sci_puts("Start R8C FLASH monitor\n");
+	command_.set_prompt("# ");
 
-	// ADC の設定（CH1のサイクルモード）
-	// port1.b1 の A/D 変換
-	{
-		PD1.B1 = 0;
-		adc_.setup(true, device::adc_io::cnv_type::chanel1, 0);
-		adc_.start();
-	}
-
-	// L チカ・メイン
+	// LED シグナル用ポートを出力
 	PD1.B0 = 1;
+
 	uint8_t cnt = 0;
-	uint32_t nnn = 0;
 	while(1) {
 		timer_b_.sync();
+
+		if(command_.service()) {
+//			char cmd[16];
+//			if(command_.get_word(0, sizeof(cmd), cmd)) {				
+//			}
+		}
+
 		++cnt;
 		if(cnt >= 30) {
 			cnt = 0;
-			if(adc_.get_state()) {
-				uint16_t v = adc_.get_value(1);
-				utils::format("(%d): %1.2:8y[V], %d\n")
-					% static_cast<uint32_t>(nnn)
-					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
-					% static_cast<uint32_t>(v);
-				adc_.start();
-			}
-			++nnn;
 		}
 
 		if(cnt < 10) P1.B0 = 1;
 		else P1.B0 = 0;
-
-		if(uart0_.length()) {  // UART のレシーブデータがあるか？
-			char ch = uart0_.getch();
-			uart0_.putch(ch);
-		}
 	}
 }
