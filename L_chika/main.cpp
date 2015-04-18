@@ -1,3 +1,11 @@
+//=====================================================================//
+/*!	@file
+	@brief	R8C L チカ・メイン @n
+			LED は、Ｐ１、０に接続（吸い込み点灯）@n
+			※M120AN(20)
+	@author	平松邦仁 (hira@rvf-rc45.net)
+*/
+//=====================================================================//
 #include "common/vect.h"
 #include "system.hpp"
 #include "clock.hpp"
@@ -12,7 +20,7 @@ static void wait_(uint16_t n)
 }
 
 extern "C" {
-	const void* variable_vectors_[] __attribute__ ((section (".rodata"))) = {
+	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
 		(void*)brk_inst_,   nullptr,	// (0)
 		(void*)null_task_,  nullptr,	// (1) flash_ready
 		(void*)null_task_,  nullptr,	// (2)
