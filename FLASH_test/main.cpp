@@ -9,6 +9,7 @@
 #include "clock.hpp"
 #include "port.hpp"
 #include "common/command.hpp"
+#include <cstring>
 
 static void wait_(uint16_t n)
 {
@@ -86,7 +87,32 @@ extern "C" {
 	};
 }
 
-int main(int argc, char *ragv[])
+static bool check_key_word_(uint8_t idx, const char* key)
+{
+	char buff[16];
+	if(command_.get_word(idx, sizeof(buff), buff)) {
+		if(strcmp(buff, key) == 0) {
+			return true;
+		}				
+	}
+	return false;
+}
+
+static uint16_t get_hexadecimal_(const char* str)
+{
+	uint16_t v = 0;
+	char ch;
+	while((ch = *str++) != 0) {
+		v <<= 4;
+		if(ch >= '0' && ch <= '9') v |= ch - '0';
+		else if(ch >= 'A' && ch <= 'F') v |= ch - 'A' + 10;
+		else if(ch >= 'a' && ch <= 'f') v |= ch - 'a' + 10;
+		else return 0;
+	}
+	return v;
+}
+
+int main(int argc, char *argv[])
 {
 	using namespace device;
 
@@ -128,9 +154,22 @@ int main(int argc, char *ragv[])
 		timer_b_.sync();
 
 		if(command_.service()) {
-//			char cmd[16];
-//			if(command_.get_word(0, sizeof(cmd), cmd)) {				
-//			}
+			if(check_key_word_(0, "erase")) {
+
+			} else if(check_key_word_(0, "r")) {
+				char buff[16];
+				if(command_.get_word(1, sizeof(buff), buff)) {
+					uint16_t ofs = get_hexadecimal_(buff);
+					uint8_t v = flash_.read(ofs);
+					
+				}
+			} else if(check_key_word_(0, "write")) {
+
+			} else {
+				sci_puts("command error: ");
+				sci_puts(command_.get_command());
+				sci_puts("\n");
+			}
 		}
 
 		++cnt;

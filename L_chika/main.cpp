@@ -64,7 +64,7 @@ extern "C" {
 }
 
 
-int main(int argc, char *ragv[])
+int main(int argc, char *argv[])
 {
 	using namespace device;
 
