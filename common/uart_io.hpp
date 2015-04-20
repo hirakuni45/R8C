@@ -57,6 +57,7 @@ public:
 		static INTERRUPT_FUNC void send_task() {
 			if(send_.length()) {
 				UART::UTBL = send_.get();
+			} else {
 			}
 			volatile uint8_t r = UART::UIR();
 			UART::UIR = UART::UIR.URIF.b() | UART::UIR.UTIF.b(false)
@@ -79,11 +80,9 @@ private:
 						sleep_();
 					}
 				}
-				if(send_.length() == 0) {
-					while(UART::UC1.TI() == 0) sleep_();
-					UART::UTBL = ch;
-				} else {
-					send_.put(ch);
+				send_.put(ch);
+				if(UART::UC1.TI()) {
+					UART::UTBL = send_.get();
 				}
 			} else {
 				while(UART::UC1.TI() == 0) sleep_();
