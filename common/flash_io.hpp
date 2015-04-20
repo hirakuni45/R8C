@@ -24,7 +24,7 @@ namespace device {
 			@brief  データ・バンク定義
 		*/
 		//-----------------------------------------------------------------//
-		enum class data_bank {
+		enum class data_area {
 			bank0,	///< 0x3000 to 0x33FF (1024)
 			bank1,	///< 0x3400 to 0x37FF (1024)
 		};
@@ -44,8 +44,8 @@ namespace device {
 			FMR0.FMR02 = 0;
 			FMR0.FMR02 = 1;  // EW1 モード
 			if(ofs < 0x0400) {
-				FMR1.FMR16 = 0;
 				FMR1.FMR16 = 1;
+				FMR1.FMR16 = 0;
 			} else {
 				FMR1.FMR17 = 1;
 				FMR1.FMR17 = 0;
@@ -54,9 +54,9 @@ namespace device {
 
 		void disable_(uint16_t ofs) const {
 			if(ofs < 0x0400) {
-				FMR1.FMR16 = 0;
+				FMR1.FMR16 = 1;
 			} else {
-				FMR1.FMR17 = 0;
+				FMR1.FMR17 = 1;
 			}
 			FMR0.FMR01 = 0;  // CPU 書き換え無効
 		}
@@ -90,11 +90,11 @@ namespace device {
 			@return エラーがあれば「false」
 		*/
 		//-----------------------------------------------------------------//
-		bool erase(data_bank bank) const {
+		bool erase(data_area bank) const {
 			uint16_t ofs;
-			if(bank == data_bank::bank0) {
-				ofs = 0;
-			} else if(bank == data_bank::bank1) {
+			if(bank == data_area::bank0) {
+				ofs = 0x0000;
+			} else if(bank == data_area::bank1) {
 				ofs = 0x0400;
 			} else {
 				return false;
@@ -112,7 +112,7 @@ namespace device {
 				wr8_(0x3000, 0x50);  // ステータス消去 
 			}
 
-			wr8_(0x3000, 0xff);  // リードアレイコマンド（以降、通常読み出し）
+			wr8_(0x3000, 0xff);
 
 			disable_(ofs);
 			ei();
@@ -176,7 +176,7 @@ namespace device {
 
 			bool ret = write_(ofs, data);
 
-			wr8_(0x3000, 0xff);  // リードアレイコマンド（以降、通常読み出し）
+			wr8_(0x3000, 0xff);
 
 			disable_(ofs);
 			ei();
@@ -208,7 +208,7 @@ namespace device {
 				++src;
 			}
 
-			wr8_(0x3000, 0xff);  // リードアレイコマンド（以降、通常読み出し）
+			wr8_(0x3000, 0xff);
 
 			disable_(ofs);
 			ei();
@@ -218,4 +218,3 @@ namespace device {
 
 	};
 }
-
