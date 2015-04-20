@@ -155,7 +155,7 @@ namespace utils {
 				}
 				if(bc != ' ' && (ch == ' ' || ch == 0)) {
 					if(argc == 0) {
-						short i;
+						uint8_t i;
 						for(i = 0; i < (p - wd); ++i) {
 							--limit;
 							if(limit == 0) break;
