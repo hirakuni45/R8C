@@ -75,9 +75,12 @@ private:
 				/// ７／８ を超えてた場合は、バッファが空になるまで待つ。
 				/// ※ヒステリシス動作
 				if(send_.length() >= (send_.size() * 7 / 8)) {
-					while(send_.length() != 0) sleep_();
+					while(send_.length() != 0) {
+						sleep_();
+					}
 				}
-				if(send_.length() == 0 && UART::UC1.TI()) {
+				if(send_.length() == 0) {
+					while(UART::UC1.TI() == 0) sleep_();
 					UART::UTBL = ch;
 				} else {
 					send_.put(ch);
