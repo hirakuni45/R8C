@@ -89,7 +89,7 @@ extern "C" {
 
 static bool check_key_word_(uint8_t idx, const char* key)
 {
-	char buff[16];
+	char buff[8];
 	if(command_.get_word(idx, sizeof(buff), buff)) {
 		if(strcmp(buff, key) == 0) {
 			return true;
@@ -111,6 +111,21 @@ static uint16_t get_hexadecimal_(const char* str)
 	}
 	return v;
 }
+
+
+static void put_hexadecimal_(uint8_t val) {
+	val &= 0xf;
+	if(val > 9) val += 'A' - 10;
+	else val += '0';
+	sci_putch(val);	
+}
+
+
+static void put_hexadecimal_byte_(uint8_t val) {
+	put_hexadecimal_(val >> 4);
+	put_hexadecimal_(val);
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -155,20 +170,48 @@ int main(int argc, char *argv[])
 
 		if(command_.service()) {
 			if(check_key_word_(0, "erase")) {
-
+				bool f = false;
+				if(check_key_word_(1, "bank0")) {
+					f = flash_.erase(flash_io::data_area::bank0);
+				} else if(check_key_word_(1, "bank1")) {
+					f = flash_.erase(flash_io::data_area::bank1);
+				} else {
+					sci_puts("Erase bank error...\n");
+					f = true;
+				}
+				if(!f) {
+					sci_puts("Erase error...\n");
+				}
 			} else if(check_key_word_(0, "r")) {
-				char buff[16];
+				char buff[5];
 				if(command_.get_word(1, sizeof(buff), buff)) {
 					uint16_t ofs = get_hexadecimal_(buff);
 					uint8_t v = flash_.read(ofs);
-					
+					put_hexadecimal_byte_(v);
+					sci_putch('\n');
 				}
 			} else if(check_key_word_(0, "write")) {
-
+				char buff[5];
+				if(command_.get_word(1, sizeof(buff), buff)) {
+					uint16_t ofs = get_hexadecimal_(buff);
+					if(command_.get_word(2, sizeof(buff), buff)) {
+						uint16_t val = get_hexadecimal_(buff);
+						if(!flash_.write(ofs, val)) {
+							sci_puts("Write error...\n");
+						}
+					}
+				}
+			} else if(check_key_word_(0, "?")) {
+				sci_puts("erase bank[01]\n");
+				sci_puts("r xxxx\n");
+				sci_puts("write xxxx yy\n");
 			} else {
-				sci_puts("command error: ");
-				sci_puts(command_.get_command());
-				sci_puts("\n");
+				const char* p = command_.get_command();
+				if(p[0]) {
+					sci_puts("command error: ");
+					sci_puts(p);
+					sci_puts("\n");
+				}
 			}
 		}
 
