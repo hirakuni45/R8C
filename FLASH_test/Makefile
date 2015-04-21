@@ -161,7 +161,8 @@ bin_zip:
 	zip $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H)_bin.zip *.exe *.dll res/*.*
 
 run:
-	r8cprog -d R5F2M120 -P COM5 -s 57600 -e -w -v $(TARGET).mot
+	r8cprog -d R5F2M120 -P COM5 -s 115200 -e -w -v $(TARGET).mot
+
 
 -include $(DEPENDS)
 

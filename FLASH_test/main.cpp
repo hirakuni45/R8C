@@ -1,6 +1,6 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C ADC メイン
+	@brief	R8C FLASH メイン
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -10,6 +10,7 @@
 #include "port.hpp"
 #include "common/command.hpp"
 #include <cstring>
+#include <cstdlib>
 
 static void wait_(uint16_t n)
 {
