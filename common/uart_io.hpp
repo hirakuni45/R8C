@@ -80,10 +80,12 @@ private:
 						sleep_();
 					}
 				}
+				di();
 				send_.put(ch);
 				if(UART::UC1.TI()) {
 					UART::UTBL = send_.get();
 				}
+				ei();
 			} else {
 				while(UART::UC1.TI() == 0) sleep_();
 				UART::UTBL = ch;
