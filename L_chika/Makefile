@@ -120,7 +120,7 @@ $(BUILD)/%.d: %.cpp
 	[ -s $@ ] || rm -f $@
 
 clean:
-	rm -rf $(BUILD) $(TARGET).elf
+	rm -rf $(BUILD) $(TARGET).elf $(TARGET).mot $(TARGET).lst $(TARGET).map
 
 clean_depend:
 	rm -f $(DEPENDS)
