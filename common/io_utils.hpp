@@ -259,20 +259,20 @@ namespace device {
 		@param[in]	len	ビット幅
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class T, uint8_t pos, uint8_t len>
+	template <class T, uint8_t pos, uint8_t len, typename R = typename T::value_type>
 	struct bits_t {
-		static typename T::value_type get() {
-			return (T::read() >> pos) & ((1 << len) - 1);
+		static R get() {
+			return static_cast<R>(T::read() >> pos) & ((1 << len) - 1);
 		}
-		static void set(typename T::value_type v) {
+		static void set(R v) {
 			typename T::value_type m = ((1 << static_cast<typename T::value_type>(len)) - 1) << pos;
-			T::write((T::read() & ~m) | (v << pos));
+			T::write((T::read() & ~m) | (static_cast<typename T::value_type>(v) << pos));
 		}
 
-	    typename T::value_type b(typename T::value_type v) const { return v << pos; }
+	    R b(R v) const { return v << pos; }
 
-		void operator = (typename T::value_type v) const { set(v); }
-		typename T::value_type operator () () const { return get(); }
+		void operator = (R v) const { set(v); }
+		R operator () () const { return get(); }
 	};
 
 
