@@ -95,9 +95,9 @@ int main(int argc, char *argv[])
 	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
 	{
 		PMH1E.P14SEL2 = 0;
-		PMH1.P14SEL = 1;
+		PMH1.P14SEL = pmh1_t::P14TYPE::TXD0;
 		PMH1E.P15SEL2 = 0;
-		PMH1.P15SEL = 1;
+		PMH1.P15SEL = pmh1_t::P15TYPE::RXD0;
 		uint8_t ir_level = 1;
 		uart0_.start(19200, ir_level);
 	}

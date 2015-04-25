@@ -85,9 +85,9 @@ int main(int argc, char *argv[])
 	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
 	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
 	PMH1E.P14SEL2 = 0;
-	PMH1.P14SEL = 1;
+	PMH1.P14SEL = pmh1_t::P14TYPE::TXD0;
 	PMH1E.P15SEL2 = 0;
-	PMH1.P15SEL = 1;
+	PMH1.P15SEL = pmh1_t::P15TYPE::RXD0;
 
 #ifdef UART_INTR
 	uart0_.start(19200, 1);
