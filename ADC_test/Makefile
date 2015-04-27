@@ -163,6 +163,9 @@ bin_zip:
 run:
 	r8cprog -d R5F2M120 -P COM5 -s 57600 -e -w -v $(TARGET).mot
 
+verify:
+	r8cprog -d R5F2M120 -P COM5 -s 57600 -v $(TARGET).mot
+
 -include $(DEPENDS)
 
 
