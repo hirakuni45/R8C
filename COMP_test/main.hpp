@@ -17,4 +17,4 @@ typedef device::trb_io<utils::null_task> timer_b;
 
 typedef device::adc_io adc;
 
-typedef device::comp_io<utils::null_task> comp;
+typedef device::comp_io<utils::null_task, utils::null_task> comp;

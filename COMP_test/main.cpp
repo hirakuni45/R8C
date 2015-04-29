@@ -29,8 +29,8 @@ extern "C" {
 		(void*)null_task_,  nullptr,	// (2)
 		(void*)null_task_,  nullptr,	// (3)
 
-		(void*)null_task_,  nullptr,	// (4) コンパレーターB1
-		(void*)comp_.itask,  nullptr,	// (5) コンパレーターB3
+		(void*)comp_.itask1, nullptr,	// (4) コンパレーターB1
+		(void*)comp_.itask3, nullptr,	// (5) コンパレーターB3
 		(void*)null_task_,  nullptr,	// (6)
 		(void*)null_task_,  nullptr,	// (7) タイマＲＣ
 
