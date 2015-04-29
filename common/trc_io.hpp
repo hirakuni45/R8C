@@ -13,7 +13,7 @@
 
 /// F_CLK はタイマー周期計算で必要で、設定が無いとエラーにします。
 #ifndef F_CLK
-#  error "trb_io.hpp requires F_CLK to be defined"
+#  error "trc_io.hpp requires F_CLK to be defined"
 #endif
 
 namespace device {

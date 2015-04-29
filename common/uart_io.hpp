@@ -36,7 +36,7 @@ namespace device {
 
 		bool	crlf_;
 
-public:
+	public:
 		static INTERRUPT_FUNC void recv_task() {
 			uint16_t ch = UART::URB();
 			///< フレーミングエラー/パリティエラー状態確認
