@@ -156,39 +156,10 @@ namespace device {
 		using pml1_io::operator |=;
 		using pml1_io::operator &=;
 
-		enum class P10TYPE {
-			PORT = 0,
-			AN0 = 0,
-			TRCIOD = 1,
-			KI0 = 2,
-		};
-
-		enum class P11TYPE {
-			PORT = 0,
-			AN1 = 0,
-			TRCIOA = 1,
-			TRCTRG = 1,
-			KI1 = 2,
-		};
-
-		enum class P12TYPE {
-			PORT = 0,
-			AN2 = 0,
-			TRCIOB = 1,
-			KI2 = 2,
-		};
-
-		enum class P13TYPE {
-			PORT = 0,
-			AN3 = 0,
-			TRCIOC = 1,
-			KI3 = 2,
-		};
-
-		bits_t<pml1_io, 0, 2, P10TYPE> P10SEL;
-		bits_t<pml1_io, 2, 2, P11TYPE> P11SEL;
-		bits_t<pml1_io, 4, 2, P12TYPE> P12SEL;
-		bits_t<pml1_io, 6, 2, P13TYPE> P13SEL;
+		bits_t<pml1_io, 0, 2> P10SEL;
+		bits_t<pml1_io, 2, 2> P11SEL;
+		bits_t<pml1_io, 4, 2> P12SEL;
+		bits_t<pml1_io, 6, 2> P13SEL;
 	};
 	static pml1_t PML1;
 
@@ -205,43 +176,10 @@ namespace device {
 		using pmh1_io::operator |=;
 		using pmh1_io::operator &=;
 
-		enum class P14TYPE {
-			PORT = 0,
-			AN4 = 0,
-			TXD0 = 1,
-			RXD0 = 2,
-			INT0 = 3,
-			TRCIOB = 0,
-		};
-
-		enum class P15TYPE {
-			PORT = 0,
-			RXD0 = 1,
-			TRJIO = 2,
-			INT1 = 3,
-			VCOUT1 = 0,
-		};
-
-		enum class P16TYPE {
-			PORT = 0,
-			IVREF1 = 0,
-			CLK0 = 1,
-			TRJO = 2,
-			TRCIOB = 3,
-		};
-
-		enum class P17TYPE {
-			PORT = 0,
-			IVCMP1 = 0,
-			INT0 = 1,
-			TRJIO = 2,
-			TRCCLK = 3,
-		};
-
-		bits_t<pmh1_io, 0, 2, P14TYPE> P14SEL;
-		bits_t<pmh1_io, 2, 2, P15TYPE> P15SEL;
-		bits_t<pmh1_io, 4, 2, P16TYPE> P16SEL;
-		bits_t<pmh1_io, 6, 2, P17TYPE> P17SEL;
+		bits_t<pmh1_io, 0, 2> P14SEL;
+		bits_t<pmh1_io, 2, 2> P15SEL;
+		bits_t<pmh1_io, 4, 2> P16SEL;
+		bits_t<pmh1_io, 6, 2> P17SEL;
 	};
 	static pmh1_t PMH1;
 
@@ -258,8 +196,8 @@ namespace device {
 		using pmh1e_io::operator |=;
 		using pmh1e_io::operator &=;
 
-		bit_t<pmh1e_io, 0> P14SEL2;
-		bit_t<pmh1e_io, 2> P15SEL2;
+		bit_t<pmh1e_io, 0> P14SEL;
+		bit_t<pmh1e_io, 2> P15SEL;
 	};
 	static pmh1e_t PMH1E;
 
