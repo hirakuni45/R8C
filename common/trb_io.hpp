@@ -1,7 +1,7 @@
 #pragma once
 //=====================================================================//
 /*!	@file
-	@brief	R8C グループ・TimerRB I/O 制御 @n
+	@brief	R8C グループ・タイマー RB I/O 制御 @n
 			Copyright 2015 Kunihito Hiramatsu
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
@@ -16,30 +16,25 @@
 #  error "trb_io.hpp requires F_CLK to be defined"
 #endif
 
-/// 割り込みタスクへの関数登録を有効にする場合
-/// ※これを有効にすると、ハードウェアースタックを大量に消費する場合がある。
-// #define INTR_TASK
-
 namespace device {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
-		@brief  TimerRB I/O 制御クラス
+		@brief  タイマー RB I/O 制御クラス
+		@param[in]	TASK 割り込み内で実行されるクラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	template <class TASK>
 	class trb_io {
+
+		static TASK task_;
 
 	public:
 		static volatile uint16_t	count_;
-#ifdef INTR_TASK
-		static void (*task_)(void);
-#endif
 
-		static INTERRUPT_FUNC void trb_task() {
+		static INTERRUPT_FUNC void itask() {
 			++count_;
-#ifdef INTR_TASK
-			if(task_) (*task_)();
-#endif
+			task_();
 			// IR 関係フラグは必ず mov 命令で・・
 			volatile uint8_t r = TRBIR();
 			TRBIR = TRBIR.TRBIF.b(false) | (r & TRBIR.TRBIE.b());
@@ -106,9 +101,6 @@ namespace device {
 
 			ILVLC.B01 = ir_lvl;
 			if(ir_lvl) {
-#ifdef INTR_TASK
-				task_ = nullptr;
-#endif
 				TRBIR = TRBIR.TRBIE.b();				
 			} else {
 				TRBIR = TRBIR.TRBIE.b(false);
@@ -119,17 +111,6 @@ namespace device {
 			return true;
 		}
 
-#ifdef INTR_TASK
-		//-----------------------------------------------------------------//
-		/*!
-			@brief  割り込みタスクの登録
-			@param[in]	task	割り込みタスク
-		*/
-		//-----------------------------------------------------------------//
-		void set_task(void (*task)(void)) {
-			task_ = task;
-		}
-#endif
 
 		//-----------------------------------------------------------------//
 		/*!
@@ -182,4 +163,8 @@ namespace device {
 		}
 
 	};
+
+	template<class TASK>
+	volatile uint16_t trb_io<TASK>::count_;
+
 }
