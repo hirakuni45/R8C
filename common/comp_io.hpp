@@ -23,8 +23,15 @@ namespace device {
 		@brief  コンパレーター I/O 制御クラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	template <class TASK>
 	class comp_io {
 
+		static TASK task_;
+
+	public:
+		static INTERRUPT_FUNC void itask() {
+			task_();
+		}
 
 	public:
 		//-----------------------------------------------------------------//
@@ -33,8 +40,6 @@ namespace device {
 		*/
 		//-----------------------------------------------------------------//
 		comp_io() { }
-
-
 
 	};
 
