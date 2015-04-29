@@ -1,16 +1,16 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C ADC メイン
+	@brief	R8C メイン
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
-#include "main.hpp"
+#include "common/vect.h"
 #include "system.hpp"
 #include "clock.hpp"
 #include "port.hpp"
-#include "common/chout.hpp"
-#include "common/format.hpp"
-
+#include "intr.hpp"
+#include "common/trb_io.hpp"
+#include "common/comp_io.hpp"
 
 static void wait_(uint16_t n)
 {
@@ -20,30 +20,9 @@ static void wait_(uint16_t n)
 	}
 }
 
-static timer_b timer_b_;
-static uart0 uart0_;
+static device::trb_io timer_b_;
 
-extern "C" {
-	void sci_putch(char ch) {
-		uart0_.putch(ch);
-	}
-
-	char sci_getch(void) {
-		return uart0_.getch();
-	}
-
-	uint16_t sci_length() {
-		return uart0_.length();
-	}
-
-	void sci_puts(const char* str) {
-		uart0_.puts(str);
-	}
-}
-
-static adc adc_;
-
-static utils::chout chout_;
+static device::comp_io comp_;
 
 extern "C" {
 	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
@@ -68,8 +47,8 @@ extern "C" {
 		(void*)null_task_,  nullptr,	// (15)
 
 		(void*)null_task_,  nullptr,	// (16)
-		(void*)uart0_.send_task, nullptr,   // (17) UART0 送信
-		(void*)uart0_.recv_task, nullptr,   // (18) UART0 受信
+		(void*)null_task_,  nullptr,   // (17) UART0 送信
+		(void*)null_task_,  nullptr,   // (18) UART0 受信
 		(void*)null_task_,  nullptr,	// (19)
 
 		(void*)null_task_,  nullptr,	// (20)
@@ -103,62 +82,16 @@ int main(int argc, char *argv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
-	// タイマーＢ初期化
-	{
-		uint8_t ir_level = 2;
-		timer_b_.start_timer(60, ir_level);
-	}
+	timer_b_.start_timer(60, 1);
 
-	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
-	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
-	{
-		PMH1E.P14SEL2 = 0;
-		PMH1.P14SEL = pmh1_t::P14TYPE::TXD0;
-		PMH1E.P15SEL2 = 0;
-		PMH1.P15SEL = pmh1_t::P15TYPE::RXD0;
-		uint8_t ir_level = 1;
-		uart0_.start(19200, ir_level);
-	}
-
-	uart0_.puts("Start R8C ADC\n");
-
-	// ADC の設定（CH1のサイクルモード）
-	// port1.b1 の A/D 変換
-	{
-		PD1.B1 = 0;
-		adc_.setup(true, device::adc_io::cnv_type::chanel1, 0);
-		adc_.start();
-	}
-
-	using namespace utils;
-
-	// L チカ・メイン
+	// メイン
 	PD1.B0 = 1;
-	uint8_t cnt = 0;
-	uint32_t nnn = 0;
+	uint8_t n = 0;
 	while(1) {
+		if(n < 20) P1.B0 = 0; 
+		else P1.B0 = 1;
 		timer_b_.sync();
-		++cnt;
-		if(cnt >= 30) {
-			cnt = 0;
-			if(adc_.get_state()) {
-				int v = adc_.get_value(1);
-				chout_ << hex << v << chout::endl;
-//				utils::format("(%d): %1.2:8y[V], %d\n")
-//					% static_cast<uint32_t>(nnn)
-//					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
-//					% static_cast<uint32_t>(v);
-				adc_.start();
-			}
-			++nnn;
-		}
-
-		if(cnt < 10) P1.B0 = 1;
-		else P1.B0 = 0;
-
-		if(uart0_.length()) {  // UART のレシーブデータがあるか？
-			char ch = uart0_.getch();
-			uart0_.putch(ch);
-		}
+		++n;
+		if(n >= 60) n = 0;
 	}
 }
