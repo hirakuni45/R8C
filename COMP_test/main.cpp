@@ -9,8 +9,7 @@
 #include "clock.hpp"
 #include "port.hpp"
 #include "intr.hpp"
-#include "common/trb_io.hpp"
-#include "common/comp_io.hpp"
+#include "main.hpp"
 
 static void wait_(uint16_t n)
 {
@@ -20,9 +19,8 @@ static void wait_(uint16_t n)
 	}
 }
 
-static device::trb_io timer_b_;
-
-static device::comp_io comp_;
+static timer_b timer_b_;
+static comp comp_;
 
 extern "C" {
 	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
@@ -32,7 +30,7 @@ extern "C" {
 		(void*)null_task_,  nullptr,	// (3)
 
 		(void*)null_task_,  nullptr,	// (4) コンパレーターB1
-		(void*)null_task_,  nullptr,	// (5) コンパレーターB3
+		(void*)comp_.itask,  nullptr,	// (5) コンパレーターB3
 		(void*)null_task_,  nullptr,	// (6)
 		(void*)null_task_,  nullptr,	// (7) タイマＲＣ
 
@@ -56,7 +54,7 @@ extern "C" {
 		(void*)null_task_,  nullptr,	// (22) タイマＲＪ２
 		(void*)null_task_,  nullptr,	// (23) 周期タイマ
 
-		(void*)timer_b_.trb_task,  nullptr,	// (24) タイマＲＢ２
+		(void*)timer_b_.itask,  nullptr,	// (24) タイマＲＢ２
 		(void*)null_task_,  nullptr,	// (25) /INT1
 		(void*)null_task_,  nullptr,	// (26) /INT3
 		(void*)null_task_,  nullptr,	// (27)
