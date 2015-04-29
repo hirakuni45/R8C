@@ -18,7 +18,8 @@
 /// エラーのメッセージ出力
 // #define ERROR_MESSAGE
 
-void putch_(char ch);
+void sci_putch(char ch);
+void sci_puts(const char* str);
 
 namespace utils {
 
@@ -195,7 +196,7 @@ namespace utils {
 						return;
 #endif
 					} else if(ch == '%') {
-						putch_(ch);
+						sci_putch(ch);
 						fm = false;
 					} else {
 #ifdef ERROR_MESSAGE
@@ -206,15 +207,8 @@ namespace utils {
 				} else if(ch == '%') {
 					fm = true;
 				} else {
-					putch_(ch);
+					sci_putch(ch);
 				}
-			}
-		}
-
-		void out_s_(const char* str) {
-			char ch;
-			while((ch = *str++) != 0) {
-				putch_(ch);
 			}
 		}
 
@@ -224,11 +218,11 @@ namespace utils {
 				uint8_t spc = real_ - n;
 				while(spc) {
 					--spc;
-					if(zerosupp_) putch_('0');
-					else putch_(' ');
+					if(zerosupp_) sci_putch('0');
+					else sci_putch(' ');
 				}
 			}
-			out_s_(str);
+			sci_puts(str);
 		}
 
 		void out_bin_(INT v) {
@@ -329,7 +323,7 @@ namespace utils {
 		void out_fixed_point_(INT v, uint8_t fixpoi) {
 
 			out_dec_(v >> fixpoi);
-			putch_('.');
+			sci_putch('.');
 
 			uint32_t d;
 			if(v < 0) { d = -v; } else { d = v; }
@@ -351,7 +345,7 @@ namespace utils {
 				++l;
 			}
 			buff[l] = 0;
-			out_s_(buff);
+			sci_puts(buff);
 		}
 
 #if 0
@@ -440,7 +434,7 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 		//-----------------------------------------------------------------//
 		format& operator % (char val) {
 			if(mode_ == mode::CHA) {
-				putch_(val);
+				sci_putch(val);
 			} else {
 #ifdef ERROR_MESSAGE
 				err_(error_case::DIFFERENT_TYPE);
