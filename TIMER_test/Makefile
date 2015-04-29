@@ -14,9 +14,7 @@ ASOURCES	=	common/start.s
 CSOURCES	=	common/vect.c \
 				common/init.c
 
-PSOURCES	=	main.cpp \
-				common/trb_io.cpp
-
+PSOURCES	=	main.cpp
 
 USER_LIBS	=	stdc++
 

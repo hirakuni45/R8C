@@ -15,7 +15,6 @@ CSOURCES	=	common/vect.c \
 				common/init.c
 
 PSOURCES	=	main.cpp \
-				common/trb_io.cpp \
 				common/adc_io.cpp
 
 

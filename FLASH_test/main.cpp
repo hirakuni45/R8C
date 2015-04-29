@@ -76,7 +76,7 @@ extern "C" {
 		(void*)null_task_,  nullptr,	// (22) タイマＲＪ２
 		(void*)null_task_,  nullptr,	// (23) 周期タイマ
 
-		(void*)timer_b_.trb_task,  nullptr,	// (24) タイマＲＢ２
+		(void*)timer_b_.itask,  nullptr,	// (24) タイマＲＢ２
 		(void*)null_task_,  nullptr,	// (25) /INT1
 		(void*)null_task_,  nullptr,	// (26) /INT3
 		(void*)null_task_,  nullptr,	// (27)

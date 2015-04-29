@@ -77,7 +77,7 @@ extern "C" {
 		(void*)null_task_,  nullptr,	// (22) タイマＲＪ２
 		(void*)null_task_,  nullptr,	// (23) 周期タイマ
 
-		(void*)timer_b_.trb_task,  nullptr,	// (24) タイマＲＢ２
+		(void*)timer_b_.itask,  nullptr,	// (24) タイマＲＢ２
 		(void*)null_task_,  nullptr,	// (25) /INT1
 		(void*)null_task_,  nullptr,	// (26) /INT3
 		(void*)null_task_,  nullptr,	// (27)
@@ -143,11 +143,11 @@ int main(int argc, char *argv[])
 			cnt = 0;
 			if(adc_.get_state()) {
 				int v = adc_.get_value(1);
-				chout_ << hex << v << chout::endl;
-//				utils::format("(%d): %1.2:8y[V], %d\n")
-//					% static_cast<uint32_t>(nnn)
-//					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
-//					% static_cast<uint32_t>(v);
+//				chout_ << hex << v << chout::endl;
+				utils::format("(%d): %1.2:8y[V], %d\n")
+					% static_cast<uint32_t>(nnn)
+					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
+					% static_cast<uint32_t>(v);
 				adc_.start();
 			}
 			++nnn;
