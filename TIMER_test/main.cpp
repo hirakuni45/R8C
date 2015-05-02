@@ -92,7 +92,10 @@ int main(int argc, char *argv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
-	timer_b_.start_timer(60, 1);
+	{
+		uint8_t ir_lvl = 1;
+		timer_b_.start_timer(60, ir_lvl);
+	}
 
 	// L チカ・メイン
 	PD1.B0 = 1;
