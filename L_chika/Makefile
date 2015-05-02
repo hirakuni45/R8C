@@ -42,9 +42,9 @@ CC_OPT		=	-Wall -Werror \
 
 SYSINCS		=	$(addprefix -I, $(INC_SYS))
 APPINCS		=	$(addprefix -I, $(INC_APP))
-AINCS		=	$(INC_SYS) $(APPINCS)
-CINCS		=	$(INC_SYS) $(APPINCS)
-PINCS		=	$(INC_SYS) $(APPINCS)
+AINCS		=	$(SYSINCS) $(APPINCS)
+CINCS		=	$(SYSINCS) $(APPINCS)
+PINCS		=	$(SYSINCS) $(APPINCS)
 LIBINCS		=	$(addprefix -L, $(LIB_ROOT))
 DEFS		=	$(addprefix -D, $(USER_DEFS))
 LIBS		=	$(addprefix -l, $(USER_LIBS))

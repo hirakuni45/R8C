@@ -24,7 +24,7 @@ USER_DEFS	=	F_CLK=20000000
 
 MCU_TARGET	=	-mcpu=r8c
 
-#INC_SYS		=	/usr/boost_1_53_0
+#INC_SYS		=	/usr/local/boost_1_54_0
 INC_SYS		=
 
 INC_APP		=	. ../ ../M120AN
@@ -41,9 +41,9 @@ CC_OPT		=	-Wall -Werror \
 
 SYSINCS		=	$(addprefix -I, $(INC_SYS))
 APPINCS		=	$(addprefix -I, $(INC_APP))
-AINCS		=	$(INC_SYS) $(APPINCS)
-CINCS		=	$(INC_SYS) $(APPINCS)
-PINCS		=	$(INC_SYS) $(APPINCS)
+AINCS		=	$(SYSINCS) $(APPINCS)
+CINCS		=	$(SYSINCS) $(APPINCS)
+PINCS		=	$(SYSINCS) $(APPINCS)
 LIBINCS		=	$(addprefix -L, $(LIB_ROOT))
 DEFS		=	$(addprefix -D, $(USER_DEFS))
 LIBS		=	$(addprefix -l, $(USER_LIBS))

@@ -7,7 +7,7 @@
 #include "main.hpp"
 #include "system.hpp"
 #include "clock.hpp"
-#include "port.hpp"
+#include "common/port_map.hpp"
 #include "common/format.hpp"
 
 static void wait_(uint16_t n)
@@ -65,7 +65,7 @@ extern "C" {
 		(void*)null_task_,  nullptr,	// (22) タイマＲＪ２
 		(void*)null_task_,  nullptr,	// (23) 周期タイマ
 
-		(void*)timer_b_.trb_task,  nullptr,	// (24) タイマＲＢ２
+		(void*)timer_b_.itask,  nullptr,	// (24) タイマＲＢ２
 		(void*)null_task_,  nullptr,	// (25) /INT1
 		(void*)null_task_,  nullptr,	// (26) /INT3
 		(void*)null_task_,  nullptr,	// (27)
@@ -100,10 +100,8 @@ int main(int argc, char *ragv[])
 	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
 	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
 	{
-		PMH1E.P14SEL2 = 0;
-		PMH1.P14SEL = pmh1_t::P14TYPE::TXD0;
-		PMH1E.P15SEL2 = 0;
-		PMH1.P15SEL = pmh1_t::P15TYPE::RXD0;
+		utils::PORT_MAP(utils::port_map::P14::TXD0);
+		utils::PORT_MAP(utils::port_map::P15::RXD0);
 		uint8_t ir_level = 1;
 		uart0_.start(19200, ir_level);
 	}
