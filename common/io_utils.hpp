@@ -123,6 +123,22 @@ namespace device {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
+		@brief  8 bits アクセス・テンプレート(WO)
+		@param[in]	adr	アドレス
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	template <address_type adr>
+	struct io8_wo {
+		typedef uint8_t value_type;
+
+		static void write(uint8_t data) { wr8_(adr, data); }
+
+		void operator = (value_type data) const { write(data); }
+	};
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
 		@brief  16 bits アクセス・テンプレート
 		@param[in]	adr	アドレス
 	*/
@@ -154,6 +170,22 @@ namespace device {
 		static uint16_t read() { return rd16_(adr); }
 
 		value_type operator () () const { return read(); }
+	};
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  16 bits アクセス・テンプレート(WO)
+		@param[in]	adr	アドレス
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	template <address_type adr>
+	struct io16_wo {
+		typedef uint16_t value_type;
+
+		static void write(uint16_t data) { wr16_(adr, data); }
+
+		void operator = (value_type data) const { write(data); }
 	};
 
 
