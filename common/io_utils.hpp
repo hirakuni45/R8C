@@ -91,11 +91,11 @@ namespace device {
 		@param[in]	adr	アドレス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <address_type adr>
+	template <address_type adr, uint8_t with_data = 0>
 	struct io8 {
 		typedef uint8_t value_type;
 
-		static void write(uint8_t data) { wr8_(adr, data); }
+		static void write(uint8_t data) { wr8_(adr, data | with_data); }
 		static uint8_t read() { return rd8_(adr); }
 
 		void operator = (value_type data) const { write(data); }
