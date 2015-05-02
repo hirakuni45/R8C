@@ -11,16 +11,13 @@
 #include "intr.hpp"
 #include "comp.hpp"
 
-/// F_CLK はタイマー周期計算で必要で、設定が無いとエラーにします。
-#ifndef F_CLK
-#  error "comp_io.hpp requires F_CLK to be defined"
-#endif
-
 namespace device {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  コンパレーター I/O 制御クラス
+		@param[in]	TASK1	コンパレーター１割り込み処理
+		@param[in]	TASK3	コンパレーター３割り込み処理
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <class TASK1, class TASK3>
