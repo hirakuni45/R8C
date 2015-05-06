@@ -89,6 +89,7 @@ namespace utils {
 
 		enum class P34 {
 			PORT = 0,
+			IVREF3 = 0,
 			TRCIOC = 1,
 			INT3 = 2,
 		};
