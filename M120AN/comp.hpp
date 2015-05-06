@@ -25,7 +25,7 @@ namespace device {
 		bit_t<wcmpr_io, 0> WCB1M0;
 		bit_t<wcmpr_io, 3> WCB1OUT;
 		bit_t<wcmpr_io, 4> WCB3M0;
-		bit_t<wcmpr_io, 0> WCB3OUT;
+		bit_t<wcmpr_io, 7> WCB3OUT;
 	};
 	static wcmpr_t WCMPR;
 
