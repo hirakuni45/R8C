@@ -5,19 +5,14 @@
 */
 //=====================================================================//
 #include "common/vect.h"
+#include "common/delay.hpp"
+#include "common/port_map.hpp"
 #include "system.hpp"
 #include "clock.hpp"
 #include "port.hpp"
 #include "intr.hpp"
 #include "main.hpp"
-
-static void wait_(uint16_t n)
-{
-	while(n > 0) {
-		asm("nop");
-		--n;
-	}
-}
+#include "vdetect.hpp"
 
 static timer_b timer_b_;
 static comp comp_;
@@ -76,20 +71,41 @@ int main(int argc, char *argv[])
 // 高速オンチップオシレーターへ切り替え(20MHz)
 // ※ F_CLK を設定する事（Makefile内）
 	OCOCR.HOCOE = 1;
-	wait_(1000);
+	utils::delay::micro_second(1000); // 125Khz(0.16s)
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
-	timer_b_.start_timer(60, 1);
+	// 外部に出力
+//	EXCKCR.CKPT = 2;
+
+	// タイマー割り込み設定
+	{
+		uint8_t ir_lvl = 1;
+		timer_b_.start_timer(60, ir_lvl);
+	}
+
+	// コンパレーター３設定
+	{
+		comp_.start3();
+		utils::PORT_MAP(utils::port_map::P33::IVCMP3);
+		utils::PORT_MAP(utils::port_map::P34::IVREF3);
+	}
 
 	// メイン
 	PD1.B0 = 1;
+
 	uint8_t n = 0;
+	uint8_t c = 60;
 	while(1) {
-		if(n < 20) P1.B0 = 0; 
-		else P1.B0 = 1;
 		timer_b_.sync();
+		if(n < (c / 3)) P1.B0 = 0; 
+		else P1.B0 = 1;
+		if(comp_.get_value3()) {
+			c = 60;
+		} else {
+			c = 30;
+		}
 		++n;
-		if(n >= 60) n = 0;
+		if(n >= c) n = 0;
 	}
 }
