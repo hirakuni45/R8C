@@ -51,7 +51,8 @@ namespace utils {
 	private:
 		int    fd_;
 
-		termios    attr_back_;
+		termios		attr_back_;
+		termios		attr_;
 
 		void close_() {
 			tcsetattr(fd_, TCSANOW, &attr_back_);
@@ -88,9 +89,6 @@ namespace utils {
 				::close(fd_);
 				fd_ = -1;
 			}
-
-			termios attr;
-			memset(&attr, 0, sizeof(attr));
 
 			int cpar = 0;
 			int ipar = IGNPAR;
@@ -131,29 +129,42 @@ namespace utils {
 				break;
 			}
 
-			attr.c_cflag = cbits | cpar | bstop | CLOCAL | CREAD;
-			attr.c_iflag = ipar;
-			attr.c_oflag = 0;
-			attr.c_lflag = 0;
-			attr.c_cc[VMIN]  = 1;     // block untill n bytes are received
-			attr.c_cc[VTIME] = 0;     // block untill a timer expires (n * 100 mSec.)
+			memset(&attr_, 0, sizeof(attr_));
+			attr_.c_cflag = cbits | cpar | bstop | CLOCAL | CREAD;
+			attr_.c_iflag = ipar;
+			attr_.c_oflag = 0;
+			attr_.c_lflag = 0;
+			attr_.c_cc[VMIN]  = 1;     // block untill n bytes are received
+			attr_.c_cc[VTIME] = 0;     // block untill a timer expires (n * 100 mSec.)
 
-			if(cfsetispeed(&attr, brate) == -1) {
-				close_();
-				return false;
-			}
-			if(cfsetospeed(&attr, brate) == -1) {
+			if(cfsetspeed(&attr_, brate) == -1) {
 				close_();
 				return false;
 			}
 
-			if(tcsetattr(fd_, TCSANOW, &attr) == -1) {
+			if(tcsetattr(fd_, TCSANOW, &attr_) == -1) {
 				close_();
 				return false;
 			}
 
 			int status;
 			if(ioctl(fd_, TIOCMGET, &status) == -1) {
+				close_();
+				return false;
+			}
+
+			return true;
+		}
+
+
+		bool change_speed(speed_t brate) {
+			if(fd_ < 0) return false;
+
+			if(cfsetspeed(&attr_, brate) == -1) {
+				close_();
+				return false;
+			}
+			if(tcsetattr(fd_, TCSANOW, &attr_) == -1) {
 				close_();
 				return false;
 			}
@@ -213,7 +224,7 @@ namespace utils {
 			@return 受信した長さ
 		*/
 		//-----------------------------------------------------------------//
-		size_t recv(char* dst, size_t len) {
+		size_t recv(void* dst, size_t len) {
 			if(fd_ < 0) return 0;
 
 			return ::read(fd_, dst, len);
@@ -229,7 +240,7 @@ namespace utils {
 			@return 受信した長さ
 		*/
 		//-----------------------------------------------------------------//
-		size_t recv(char* dst, size_t len, const timeval& tv) {
+		size_t recv(void* dst, size_t len, const timeval& tv) {
 			if(fd_ < 0) return 0;
 
 			fd_set fds;
@@ -251,6 +262,15 @@ namespace utils {
 		}
 
 
+		int recv(const timeval& tv) {
+			uint8_t buff[1];
+			if(recv(buff, 1, tv) != 1) {
+				return EOF;
+			}
+			return static_cast<int>(buff[0]);
+		}
+
+
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	送信
@@ -259,10 +279,19 @@ namespace utils {
 			@return 送信した長さ
 		*/
 		//-----------------------------------------------------------------//
-		size_t send(const char* src, size_t len) {
+		size_t send(const void* src, size_t len) {
 			if(fd_ < 0) return 0;
 
 			return ::write(fd_, src, len);
+		}
+
+
+		bool send(char ch) {
+			if(fd_ < 0) return false;
+
+			char buff[1];
+			buff[0] = ch;
+			return send(buff, 1) == 1;
 		}
 
 

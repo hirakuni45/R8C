@@ -1,49 +1,67 @@
-#include "rs232c.hpp"
+#include "r8c_protocol.hpp"
 #include <iostream>
 
-utils::rs232c rs232c_;
+r8c::protocol proto_;
 
 int main(int argc, char* argv[])
 {
+	using namespace r8c;
+
+	// 開始
 	std::string path = "/dev/tty.usbserial-A600e0xq";
-	bool f = rs232c_.open(path, B19200);
-	if(!f) {
+	if(!proto_.start(path)) {
 		std::cerr << "Can't open path: '" << path << "'" << std::endl;
 		return -1;
 	}
 
-	f = rs232c_.enable_RTS(false);
-	if(!f) {
+	// コネクション
+	if(!proto_.connection()) {
+		proto_.end();
+		std::cerr << "Connection device error..." << std::endl;
 		return -1;
 	}
+	std::cout << "Connection OK." << std::endl;
 
-	f = rs232c_.enable_DTR(false);
-	if(!f) {
+	// ボーレート変更
+	if(!proto_.change_speed(B57600)) {
+		proto_.end();
+		std::cerr << "Change speed error: " << std::endl;
 		return -1;
 	}
+	std::cout << "Change speed OK. (57600)" << std::endl;
 
-	timeval tv;
-	tv.tv_sec = 1;
-	tv.tv_usec = 0;
-	for(int i = 0; i < 1000; ++i) {
-		char buff[1];
-		size_t n = rs232c_.recv(buff, 1, tv);
-		if(n == 1) {
-			std::cout << buff[0] << std::flush;
+	// バージョンの取得
+	std::string ver = proto_.get_version();
+	if(ver.empty()) {
+		std::cerr << "Get version error..." << std::endl;
+		return -1;
+	}
+	std::cout << "Version: '" << ver << "'" << std::endl;
+
+	// ID チェック
+	protocol::id_t id;
+	id.fill();
+	if(!proto_.id_inspection(id)) {
+		std::cerr << "ID error: ";
+		for(int i = 0; i < 7; ++i) {
+			std::cerr << std::hex << static_cast<int>(id.buff[i]) << ' ';
 		}
-	}
-
-#if 0
-	size_t n = rs232c_.send("ASDFGH", 6);
-	if(n != 6) {
+		std::cerr << std::dec << std::endl;
 		return -1;
 	}
-#endif
+	std::cout << "ID OK." << std::endl;
 
-//	rs232c_.sync_send();
-
-	f = rs232c_.close();
-	if(!f) {
+	// ステートの取得
+	protocol::status st;
+	if(!proto_.get_status(st)) {
+		std::cerr << "Get status error..." << std::endl;
 		return -1;
 	}
+	std::cout << "ID state: " << st.get_id_state() << std::endl;
+
+
+
+
+
+	proto_.end();
 }
