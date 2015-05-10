@@ -115,7 +115,7 @@ $(BUILD)/%.d : %.cpp
 	[ -s $@ ] || rm -f $@
 
 run:
-	./$(TARGET)
+	./$(TARGET) led_chika.mot
 
 clean:
 	rm -rf $(BUILD) $(TARGET)
@@ -134,5 +134,8 @@ bin_zip:
 	$(LK) $(LFLAGS) $(LIBS) $(OBJECTS) $(ICON_OBJ) $(LIBN) -mwindows -o $(TARGET) 
 	rm -f $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H)_bin.zip
 	zip $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H)_bin.zip *.exe *.dll
+
+install:
+	cp $(TARGET) /usr/local/bin/.
 
 -include $(DEPENDS)

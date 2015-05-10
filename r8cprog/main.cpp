@@ -271,17 +271,53 @@ static bool verify_(r8c_prog& prog, utils::motsx_io& motf)
 }
 
 
-static void title_(const char* cmd)
-{
-}
-
 struct options {
 	bool verbose;
 	std::string	inp_file;
-	uint32_t	brate;
+	std::string	device;
+	bool	dv;
+	uint32_t	baud_rate;
+	bool	br;
+	std::string dev_path;
+	bool	dp;
 
-	options() : verbose(false), brate(57600) { }
+	bool	erase;
+	bool	write;
+	bool	verify;
+
+	options() : verbose(false),
+				inp_file(),
+				device(), dv(false),
+				baud_rate(57600), br(false),
+				dev_path(), dp(false),
+				erase(false), write(false), verify(false) { }
+
+	void set_str(const std::string& t) {
+		if(br) {
+			int val;
+			if(utils::string_to_int(t, val)) {
+				baud_rate = val;
+			} else {
+				std::cerr << "Options error: baud rate: " << t << std::endl;
+			}
+			br = false;
+		} else if(dv) {
+			device = t;
+			dv = false;
+		} else if(dp) {
+			dev_path = t;
+			dp = false;
+		} else {
+			inp_file = t;
+		}
+	}
 };
+
+static void title_(const std::string& cmd)
+{
+	std::cout << "R8C programmer" << std::endl;
+	std::cout << cmd << std::endl;
+}
 
 
 int main(int argc, char* argv[])
@@ -292,13 +328,18 @@ int main(int argc, char* argv[])
 	}
 
 	options opt;
-
 	for(int i = 1; i < argc; ++i) {
 		const std::string p = argv[i];
 		if(p[0] == '-') {
 			if(p == "-verbose") opt.verbose = true;
+			else if(p == "-s") opt.br = true;
+			else if(p == "-d") opt.dv = true;
+			else if(p == "-P") opt.dp = true;
+			else if(p == "-e") opt.erase = true;
+			else if(p == "-w") opt.write = true;
+			else if(p == "-v") opt.verify = true;
 		} else {
-			opt.inp_file = p;
+			opt.set_str(p);
 		}
 	}
 
@@ -316,26 +357,31 @@ int main(int argc, char* argv[])
 				  << std::dec << std::endl;
 	}
 
-	std::string ser_path = "/dev/tty.usbserial-A600e0xq";
+	// test
+	if(opt.dev_path.empty()) {
+		opt.dev_path = "/dev/tty.usbserial-A600e0xq";
+	}
 	r8c_prog prog(opt.verbose);
-	if(!prog.start(ser_path, opt.brate)) {
+	if(!prog.start(opt.dev_path, opt.baud_rate)) {
 		return -1;
 	}
 
-
-	if(!erase_(prog, motf)) {
-		return -1;
+	if(opt.erase) {
+		if(!erase_(prog, motf)) {
+			return -1;
+		}
 	}
 
-
-	if(!write_(prog, motf)) {
-		return -1;
+	if(opt.write) {
+		if(!write_(prog, motf)) {
+			return -1;
+		}
 	}
 
-
-	if(!verify_(prog, motf)) {
-		return -1;
+	if(opt.verify) {
+		if(!verify_(prog, motf)) {
+			return -1;
+		}
 	}
-
 
 }
