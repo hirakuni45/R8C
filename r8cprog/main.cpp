@@ -10,6 +10,8 @@
 #include <random>
 #include "motsx_io.hpp"
 
+static const std::string version_ = "0.20b";
+
 void dump_(const uint8_t* top, uint32_t len, uint32_t ofs, uint32_t w = 16)
 {
 	using namespace std;
@@ -292,14 +294,18 @@ struct options {
 				dev_path(), dp(false),
 				erase(false), write(false), verify(false) { }
 
+	void set_speed(const std::string& t) {
+		int val;
+	   	if(utils::string_to_int(t, val)) {
+	   		baud_rate = val;
+	   	} else {
+	   		std::cerr << "Options error: baud rate speed: " << t << std::endl;
+	   	}
+	}
+
 	void set_str(const std::string& t) {
 		if(br) {
-			int val;
-			if(utils::string_to_int(t, val)) {
-				baud_rate = val;
-			} else {
-				std::cerr << "Options error: baud rate: " << t << std::endl;
-			}
+			set_speed(t);
 			br = false;
 		} else if(dv) {
 			device = t;
@@ -315,8 +321,34 @@ struct options {
 
 static void title_(const std::string& cmd)
 {
-	std::cout << "R8C programmer" << std::endl;
-	std::cout << cmd << std::endl;
+	using namespace std;
+
+	std::string c = utils::get_file_base(cmd);
+
+	cout << "Renesas R8C Series Programmer Version" << version_ << endl;
+	cout << "Copyright (C) 2015, Hiramatsu Kunihito (hira@rvf-rc45.net)" << endl;
+	cout << "usage:" << endl;
+	cout << c << "[options] [mot/id/conf file] ..." << endl;
+	cout << endl;
+	cout << "Options :" << endl;
+	cout << "-d, --device=DEVICE\t\tSpecify device name" << endl;
+	cout << "-e, --erase\t\t\tPerform a device erase to a minimum" << endl;
+//	cout << "-E, --erase-all, --erase-chip\tPerform rom and data flash erase" << endl;
+//	cout << "    --erase-rom\t\t\tPerform rom flash erase" << endl;
+//	cout << "    --erase-data\t\tPerform data flash erase" << endl;
+//	cout << "-i, --id=xx:xx:xx:xx:xx:xx:xx\tSpecify protect ID" << endl;
+	cout << "-p, --programmer=PROGRAMMER\tSpecify programmer name" << endl;
+	cout << "-P, --port=PORT\t\t\tSpecify serial port" << endl;
+//	cout << "-q\t\t\t\tQuell progress output" << endl;
+//	cout << "-r, --read\t\t\tPerform data read" << endl;
+	cout << "-s, --speed=SPEED\t\tSpecify serial speed" << endl;
+	cout << "-v, --verify\t\t\tPerform data verify" << endl;
+//	cout << "    --device-list\t\tDisplay device list" << endl;
+//	cout << "    --programmer-list\t\tDisplay programmer list" << endl;
+	cout << "-V, --verbose\t\t\tVerbose output" << endl;
+	cout << "-w, --write\t\t\tPerform data write" << endl;
+//	cout << "-h, --help\t\t\tDisplay this" << endl;
+//	cout << "    --version\t\t\tDisplay version No." << endl;
 }
 
 
@@ -331,13 +363,13 @@ int main(int argc, char* argv[])
 	for(int i = 1; i < argc; ++i) {
 		const std::string p = argv[i];
 		if(p[0] == '-') {
-			if(p == "-verbose") opt.verbose = true;
+			if(p == "-V" || p == "-verbose") opt.verbose = true;
 			else if(p == "-s") opt.br = true;
 			else if(p == "-d") opt.dv = true;
 			else if(p == "-P") opt.dp = true;
-			else if(p == "-e") opt.erase = true;
-			else if(p == "-w") opt.write = true;
-			else if(p == "-v") opt.verify = true;
+			else if(p == "-e" || p == "--erase") opt.erase = true;
+			else if(p == "-w" || p == "--write") opt.write = true;
+			else if(p == "-v" || p == "--verify") opt.verify = true;
 		} else {
 			opt.set_str(p);
 		}
