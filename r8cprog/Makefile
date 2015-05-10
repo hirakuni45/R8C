@@ -11,7 +11,10 @@ BUILD		=	release
 VPATH		=
 
 CSOURCES	=
-PSOURCES	=	main.cpp
+PSOURCES	=	main.cpp \
+				file_io.cpp \
+				string_utils.cpp \
+				sjis_utf16.cpp
 
 STDLIBS		=
 OPTLIBS		=

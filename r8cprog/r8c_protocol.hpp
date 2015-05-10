@@ -5,7 +5,7 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
-#include "rs232c.hpp"
+#include "rs232c_io.hpp"
 #include <iostream>
 
 namespace r8c {
@@ -17,8 +17,6 @@ namespace r8c {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class protocol {
 	public:
-
-
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
 			@brief	status 構造体
@@ -29,6 +27,8 @@ namespace r8c {
 			uint8_t SRD1;
 			status() : SRD(0), SRD1(0) { }
 			int get_id_state() const { return (SRD1 >> 2) & 3; }
+			bool get_SR4() const { return (SRD >> 4) & 1; }
+			bool get_SR5() const { return (SRD >> 5) & 1; }
 		};
 
 
@@ -51,8 +51,8 @@ namespace r8c {
 
 
 	private:
-		utils::rs232c	rs232c_;
-		timeval 		tv_;
+		utils::rs232c_io	rs232c_;
+		timeval 			tv_;
 
 		bool			connection_;
 		bool			verification_;
@@ -286,14 +286,106 @@ namespace r8c {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief	ID 検査
+			@brief	リード・ページ
+			@param[in]	address	アドレス
+			@param[out]	dst	リード・データ
 			@return エラー無ければ「true」
 		*/
 		//-----------------------------------------------------------------//
-		bool erase_block(uint16_t address) {
+		bool read_page(uint16_t address, uint8_t* dst) {
 			if(!connection_) return false;
+			if(!verification_) return false;
+
+			uint8_t buff[3];
+			buff[0] = 0xFF;
+			buff[1] = (address >> 8) & 0xff;
+			buff[2] = (address >> 16) & 0xff;
+			if(rs232c_.send(buff, 3) != 3) {
+				return false;
+			}
+			rs232c_.sync_send();
+
+			for(int i = 0; i < 256; ++i) {
+				int ch = rs232c_.recv(tv_);
+				if(ch >= 0 && ch < 256) {
+					*dst++ = ch;
+				} else {
+					return false;
+				}
+			}
+			return true;
+		}
 
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	ライト・ページ
+			@param[in]	address	アドレス
+			@param[in]	src	ライト・データ
+			@return エラー無ければ「true」
+		*/
+		//-----------------------------------------------------------------//
+		bool write_page(uint16_t address, const uint8_t* src) {
+			if(!connection_) return false;
+			if(!verification_) return false;
+
+			char buff[3];
+			buff[0] = 0x41;
+			buff[1] = (address >> 8) & 0xff;
+			buff[2] = (address >> 16) & 0xff;
+			if(rs232c_.send(buff, 3) != 3) {
+				return false;
+			}
+			rs232c_.sync_send();
+
+			for(int i = 0; i < 256; ++i) {
+				uint8_t ch = *src++;
+				if(!rs232c_.send(ch)) {
+					return false;
+				}
+				rs232c_.sync_send();
+			}
+
+			status st;
+			if(!get_status(st)) {
+				return false;
+			}
+			if(st.get_SR4() != 0) {
+				return false;
+			}
+
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	イレース・ページ
+			@param[in]	address	アドレス
+			@return エラー無ければ「true」
+		*/
+		//-----------------------------------------------------------------//
+		bool erase_page(uint16_t address) {
+			if(!connection_) return false;
+			if(!verification_) return false;
+
+			char buff[4];
+			buff[0] = 0x20;
+			buff[1] = (address >> 8) & 0xff;
+			buff[2] = (address >> 16) & 0xff;
+			buff[3] = 0xD0;
+			if(rs232c_.send(buff, 4) != 4) {
+				return false;
+			}
+			rs232c_.sync_send();
+
+			status st;
+			if(!get_status(st)) {
+				return false;
+			}
+			if(st.get_SR5() != 0) {
+				return false;
+			}
 
 			return true;
 		}
