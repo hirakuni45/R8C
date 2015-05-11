@@ -1,6 +1,6 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C Flash Programmer
+	@brief	Renesas R8C Series Programmer (Flash Writer)
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
