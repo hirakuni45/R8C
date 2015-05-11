@@ -57,11 +57,30 @@ namespace r8c {
 		bool			connection_;
 		bool			verification_;
 
+		uint32_t	baud_rate_;
 
 		bool command_(uint8_t cmd) {
 			bool f = rs232c_.send(static_cast<char>(cmd));
 			rs232c_.sync_send();
 			return f;
+		}
+
+
+		bool read_(void* dst, uint32_t length) {
+			uint32_t total = 0;
+			int zerocnt = 0;
+			do {
+				timeval tv;
+				tv.tv_sec  = 1;
+				tv.tv_usec = 0;
+				uint32_t len = rs232c_.recv(static_cast<uint8_t*>(dst) + total, length - total, tv);
+				if(len == 0) {
+					++zerocnt;
+					if(zerocnt >= 10) return false;
+				}
+				total += len;
+			} while(total < length) ;
+			return true;
 		}
 
 	public:
@@ -70,7 +89,7 @@ namespace r8c {
 			@brief	コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		protocol() : connection_(false), verification_(false) { }
+		protocol() : connection_(false), verification_(false), baud_rate_(0) { }
 
 
 		//-----------------------------------------------------------------//
@@ -114,7 +133,7 @@ namespace r8c {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief	コネクションの確率
+			@brief	コネクションの確立
 			@return エラー無ければ「true」
 		*/
 		//-----------------------------------------------------------------//
@@ -154,18 +173,23 @@ namespace r8c {
 			switch(brate) {
 			case B9600:
 				cmd = 0xB0;
+				baud_rate_ = 9600;
 				break;
 			case B19200:
 				cmd = 0xB1;
+				baud_rate_ = 19200;
 				break;
 			case B38400:
 				cmd = 0xB2;
+				baud_rate_ = 38400;
 				break;
 			case B57600:
 				cmd = 0xB3;
+				baud_rate_ = 57600;
 				break;
 			case B115200:
 				cmd = 0xB4;
+				baud_rate_ = 115200;
 				break;
 			default:
 				return false;
@@ -199,7 +223,7 @@ namespace r8c {
 				return std::string();
 			}
 			char buff[9];
-			if(rs232c_.recv(buff, 8, tv_) != 8) {
+			if(!read_(buff, 8)) {
 				return std::string();
 			}
 			buff[8] = 0;
@@ -221,7 +245,7 @@ namespace r8c {
 			}
 
 			char buff[2];
-			if(rs232c_.recv(buff, 2, tv_) != 2) {
+			if(!read_(buff, 2)) {
 				return false;
 			}
 
@@ -305,15 +329,9 @@ namespace r8c {
 			}
 			rs232c_.sync_send();
 
-			for(int i = 0; i < 256; ++i) {
-				int ch = rs232c_.recv(tv_);
-				if(ch >= 0 && ch < 256) {
-					*dst++ = ch;
-				} else {
-					return false;
-				}
-			}
-			return true;
+			// ボーレートから想定される実時間の２倍
+			// 1.0f / static_cast<float>(baud_rate) * 10.0f * 256.0f / 1e-6 * 2.0f;
+			return read_(dst, 256);
 		}
 
 
@@ -338,13 +356,15 @@ namespace r8c {
 			}
 			rs232c_.sync_send();
 
-			for(int i = 0; i < 256; ++i) {
-				uint8_t ch = *src++;
-				if(!rs232c_.send(ch)) {
-					return false;
-				}
-				rs232c_.sync_send();
+//			for(int i = 0; i < 256; ++i) {
+//				uint8_t ch = *src++;
+//				if(!rs232c_.send(ch)) {
+//					return false;
+//				}
+			if(rs232c_.send(src, 256) != 256) {
+				return false;
 			}
+			rs232c_.sync_send();
 
 			status st;
 			if(!get_status(st)) {
@@ -354,7 +374,7 @@ namespace r8c {
 				return false;
 			}
 
-			return true;
+			return clear_status();
 		}
 
 
@@ -387,7 +407,7 @@ namespace r8c {
 				return false;
 			}
 
-			return true;
+			return clear_status();
 		}
 
 

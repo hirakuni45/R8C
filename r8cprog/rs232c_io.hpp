@@ -14,6 +14,8 @@
 #include <sys/ioctl.h>
 #include <string>
 #include <iostream>
+#include <cstring>
+#include <cstdio>
 
 namespace utils {
 
@@ -248,14 +250,15 @@ namespace utils {
 			FD_SET(fd_, &fds);
 
 			timeval t;
-			t.tv_sec  = tv.tv_sec;
-			t.tv_usec = tv.tv_usec;
+			t = tv;
 			int ret = select(fd_ + 1, &fds, NULL, NULL, &t);
 			if(ret == -1) {
 				// error..
 				return 0;
 			} else if(ret > 0) {
-				return ::read(fd_, dst, len);
+				// if(FD_ISSET(fd_, fds)) {
+					return ::read(fd_, dst, len);
+				// }
 			}
 
 			return 0;
