@@ -6,9 +6,13 @@
 */
 //=====================================================================//
 #include <vector>
+#include <map>
 #include <string>
+#include <array>
 #include "file_io.hpp"
 #include <iomanip>
+#include <boost/foreach.hpp>
+#include <boost/format.hpp>
 
 namespace utils {
 
@@ -18,20 +22,33 @@ namespace utils {
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class motsx_io {
+	public:
+		typedef std::array<uint8_t, 256>	array;
 
+	private:
 		uint32_t	amin_;
 		uint32_t	amax_;
 
-		std::vector<uint8_t>	memory_;
+		typedef std::map<uint32_t, array>	memory_map;
 
-		bool write_byte_(uint32_t address, uint8_t val) {
-			if(address < memory_.size()) {
-				memory_[address] = val;
-				return true;
+		memory_map	memory_map_;
+
+		array		fill_array_;
+
+		void write_byte_(uint32_t address, uint8_t val) {
+			uint32_t base = address & 0xffff00;
+			memory_map::iterator it = memory_map_.find(base);
+			if(it == memory_map_.end()) {
+				array ar;
+				ar.fill(0xff);
+				ar[address & 255] = val;
+				memory_map_.emplace(base, ar);
 			} else {
-				return false;
+				array& ar = it->second;
+				ar[address & 255] = val;
 			}
 		}
+
 
 		bool load_(utils::file_io& fio) {
 			amin_ = 0xffffffff;
@@ -182,7 +199,9 @@ namespace utils {
 			@brief	コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		motsx_io() : amin_(0xffffffff), amax_(0x00000000) { }
+		motsx_io() : amin_(0xffffffff), amax_(0x00000000) {
+			fill_array_.fill(0xff);
+		}
 
 
 		//-----------------------------------------------------------------//
@@ -198,9 +217,7 @@ namespace utils {
 				return false;
 			}
 
-			for(int i = 0; i < 65536; ++i) {
-				memory_.push_back(0xff);
-			}
+			memory_map_.clear();
 
 			if(!load_(fio)) {
 				return false;
@@ -224,12 +241,77 @@ namespace utils {
 		}
 
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	総ページ数の取得
+			@return 総ページ数
+		*/
+		//-----------------------------------------------------------------//
+		uint32_t get_total_page() const {
+			return memory_map_.size();
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	メモリーマップの表示
+		*/
+		//-----------------------------------------------------------------//
+		void list_memory_map() const {
+			uint32_t org = 0;
+			uint32_t fin = 0;
+			bool first = true;
+			BOOST_FOREACH(const memory_map::value_type& m, memory_map_) {
+				if(first) {
+					std::cout << boost::format("0x%06X to ") % m.first;
+					org = fin = m.first;
+					first = false;
+				}
+				if(m.first != fin) {
+					std::cout << boost::format("0x%06X (%d bytes)\n") %
+						(fin - 1) % (fin - org);
+					first = true;
+				}
+				fin += 256;
+			}
+			std::cout << boost::format("0x%06X (%d bytes)\n") %
+				(fin - 1) % (fin - org);
+			std::cout << std::flush;
+		}
+
+
 		uint32_t get_min() const { return amin_; }
+
 
 		uint32_t get_max() const { return amax_; }
 
-		const std::vector<uint8_t>& get_memory() const { return memory_; }
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	利用されているページを探す（有効なページ）
+			@param[in]	address	アドレス
+			@return 有効なページがあれば「true」
+		*/
+		//-----------------------------------------------------------------//
+		bool find_page(uint32_t address) const {
+			return memory_map_.find(address & 0xffff00) != memory_map_.end();
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	ページメモリーの取得
+			@param[in]	address	ベースとなるアドレス
+			@return ページメモリー @n
+					無効なページの場合、内部データは全て 0xff となっている。
+		*/
+		//-----------------------------------------------------------------//
+		const array& get_memory(uint32_t address) const {
+			memory_map::const_iterator cit = memory_map_.find(address & 0xffff00);
+			if(cit == memory_map_.end()) {
+				return fill_array_;
+			}
+			return cit->second;
+		}
 	};
 }
-
