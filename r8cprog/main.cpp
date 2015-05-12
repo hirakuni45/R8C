@@ -10,7 +10,9 @@
 #include <random>
 #include "motsx_io.hpp"
 
-static const std::string version_ = "0.20b";
+static const std::string version_ = "0.30b";
+static const uint32_t progress_num_ = 50;
+static const char progress_cha_ = '#';
 
 void dump_(const uint8_t* top, uint32_t len, uint32_t ofs, uint32_t w = 16)
 {
@@ -38,6 +40,14 @@ void dump_(const uint8_t* top, uint32_t len, uint32_t ofs, uint32_t w = 16)
 	cout << dec;
 }
 
+#if 0
+   		std::mt19937 mt(0x1234);
+   		protocol::array_type ar;
+   		for(int i = 0; i < 256; ++i) {
+   			ar.push_back(mt() & 255);
+   		}
+   		dump_(&ar[0], 256, 0x8000);
+#endif
 
 class r8c_prog {
 	bool	verbose_;
@@ -176,16 +186,6 @@ public:
 		return true;
 	}
 
-
-#if 0
-   		std::mt19937 mt(0x1234);
-   		protocol::array_type ar;
-   		for(int i = 0; i < 256; ++i) {
-   			ar.push_back(mt() & 255);
-   		}
-   		dump_(&ar[0], 256, 0x8000);
-#endif
-
 	void end() {
 		proto_.end();
 	}
@@ -194,26 +194,25 @@ public:
 
 static bool erase_(r8c_prog& prog, utils::motsx_io& motf)
 {
-	std::cout << "Erase:  ";
 	bool noerr = true;
+	std::cout << "Erase:  ";
+	uint32_t pcn = 0;
+	uint32_t n = 0;
 	for(uint32_t a = motf.get_min(); a <= motf.get_max(); a += 256) {
-		const std::vector<uint8_t>& mem = motf.get_memory();
-		bool erase = false;
-		for(int i = 0; i < 256; ++i) {
-			if(mem[a + i] != 0xff) {
-				erase = true;
-				break;
-			}
-		}
-		if(erase) {
-			if(!prog.erase(a)) {
-				noerr = false;
-				break;
-			}
-			std::cout << '#' << std::flush;
-		}
+		if(!motf.find_page(a)) continue;
+
+   		if(!prog.erase(a)) {
+   			noerr = false;
+   			break;
+   		}
+   		++n;
+   		uint32_t pos = progress_num_ * n / motf.get_total_page();
+   		for(int i = 0; i < (pos - pcn); ++i) {
+   			std::cout << progress_cha_ << std::flush;
+   		}
+   		pcn = pos;
 	}
-	std::cout << std::endl;
+	std::cout << std::endl << std::flush;
 
 	return noerr;
 }
@@ -223,24 +222,23 @@ static bool write_(r8c_prog& prog, utils::motsx_io& motf)
 {
 	bool noerr = true;
 	std::cout << "Write:  ";
+	uint32_t pcn = 0;
+	uint32_t n = 0;
 	for(uint32_t a = motf.get_min(); a <= motf.get_max(); a += 256) {
-		const std::vector<uint8_t>& mem = motf.get_memory();
-		bool skip = true;
-		for(int i = 0; i < 256; ++i) {
-			if(mem[a + i] != 0xff) {
-				skip = false;
-				break;
-			}
-		}
-		if(skip) continue;
+		if(!motf.find_page(a)) continue;
 
-		if(!prog.write(a, &mem[a])) {
+		if(!prog.write(a, motf.get_memory(a).data())) {
 			noerr = false;
 			break;
 		}
-		std::cout << '#' << std::flush;
+   		++n;
+   		uint32_t pos = progress_num_ * n / motf.get_total_page();
+   		for(int i = 0; i < (pos - pcn); ++i) {
+   			std::cout << progress_cha_ << std::flush;
+   		}
+   		pcn = pos;
 	}
-	std::cout << std::endl;
+	std::cout << std::endl << std::flush;
 
 	return noerr;
 }
@@ -250,24 +248,23 @@ static bool verify_(r8c_prog& prog, utils::motsx_io& motf)
 {
 	bool noerr = true;
 	std::cout << "Verify: ";
+	uint32_t pcn = 0;
+	uint32_t n = 0;
 	for(uint32_t a = motf.get_min(); a <= motf.get_max(); a += 256) {
-		const std::vector<uint8_t>& mem = motf.get_memory();
-		bool skip = true;
-		for(int i = 0; i < 256; ++i) {
-			if(mem[a + i] != 0xff) {
-				skip = false;
-				break;
-			}
-		}
-		if(skip) continue;
+		if(!motf.find_page(a)) continue;
 
-		if(!prog.verify(a, &mem[a])) {
+		if(!prog.verify(a, motf.get_memory(a).data())) {
 			noerr = false;
 			break;
 		}
-		std::cout << '#' << std::flush;
+   		++n;
+   		uint32_t pos = progress_num_ * n / motf.get_total_page();
+   		for(int i = 0; i < (pos - pcn); ++i) {
+   			std::cout << progress_cha_ << std::flush;
+   		}
+   		pcn = pos;
 	}
-	std::cout << std::endl;
+	std::cout << std::endl << std::flush;
 
 	return noerr;
 }
@@ -318,6 +315,7 @@ struct options {
 		}
 	}
 };
+
 
 static void title_(const std::string& cmd)
 {
@@ -375,24 +373,23 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	
+	// モトローラーSフォーマットファイルの読み込み
 	utils::motsx_io motf;
-	if(!motf.load(opt.inp_file)) {
-		std::cerr << "Can't load input file: '" << opt.inp_file << "'" << std::endl; 
-		return -1;
-	}
-	if(opt.verbose) {
-		std::cout << "Load data: ";
-		std::cout << std::hex << std::uppercase << std::setfill('0')
-				  << std::setw(6) << static_cast<int>(motf.get_min()) << " to "
-				  << std::setw(6) << static_cast<int>(motf.get_max())
-				  << std::dec << std::endl;
+	if(!opt.inp_file.empty()) {
+		if(!motf.load(opt.inp_file)) {
+			std::cerr << "Can't load input file: '" << opt.inp_file << "'" << std::endl; 
+			return -1;
+		}
+		if(opt.verbose) {
+			motf.list_memory_map();
+		}
 	}
 
 	// test
 	if(opt.dev_path.empty()) {
 		opt.dev_path = "/dev/tty.usbserial-A600e0xq";
 	}
+
 	r8c_prog prog(opt.verbose);
 	if(!prog.start(opt.dev_path, opt.baud_rate)) {
 		return -1;
@@ -415,5 +412,4 @@ int main(int argc, char* argv[])
 			return -1;
 		}
 	}
-
 }
