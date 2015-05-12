@@ -192,6 +192,16 @@ public:
 };
 
 
+static void progress_(utils::motsx_io& motf, uint32_t n, uint32_t& pcn)
+{
+	uint32_t pos = progress_num_ * n / motf.get_total_page();
+	for(int i = 0; i < (pos - pcn); ++i) {
+		std::cout << progress_cha_ << std::flush;
+	}
+	pcn = pos;
+}
+
+
 static bool erase_(r8c_prog& prog, utils::motsx_io& motf)
 {
 	bool noerr = true;
@@ -206,11 +216,7 @@ static bool erase_(r8c_prog& prog, utils::motsx_io& motf)
    			break;
    		}
    		++n;
-   		uint32_t pos = progress_num_ * n / motf.get_total_page();
-   		for(int i = 0; i < (pos - pcn); ++i) {
-   			std::cout << progress_cha_ << std::flush;
-   		}
-   		pcn = pos;
+		progress_(motf, n, pcn);
 	}
 	std::cout << std::endl << std::flush;
 
@@ -232,11 +238,7 @@ static bool write_(r8c_prog& prog, utils::motsx_io& motf)
 			break;
 		}
    		++n;
-   		uint32_t pos = progress_num_ * n / motf.get_total_page();
-   		for(int i = 0; i < (pos - pcn); ++i) {
-   			std::cout << progress_cha_ << std::flush;
-   		}
-   		pcn = pos;
+		progress_(motf, n, pcn);
 	}
 	std::cout << std::endl << std::flush;
 
@@ -258,11 +260,7 @@ static bool verify_(r8c_prog& prog, utils::motsx_io& motf)
 			break;
 		}
    		++n;
-   		uint32_t pos = progress_num_ * n / motf.get_total_page();
-   		for(int i = 0; i < (pos - pcn); ++i) {
-   			std::cout << progress_cha_ << std::flush;
-   		}
-   		pcn = pos;
+		progress_(motf, n, pcn);
 	}
 	std::cout << std::endl << std::flush;
 
