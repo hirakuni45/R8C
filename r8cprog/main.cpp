@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <random>
 #include "motsx_io.hpp"
+#include "conf_in.hpp"
 
 static const std::string version_ = "0.30b";
 static const uint32_t progress_num_ = 50;
@@ -270,6 +271,7 @@ static bool verify_(r8c_prog& prog, utils::motsx_io& motf)
 
 struct options {
 	bool verbose;
+
 	std::string	inp_file;
 	std::string	device;
 	bool	dv;
@@ -278,6 +280,7 @@ struct options {
 	std::string dev_path;
 	bool	dp;
 
+	bool	read;
 	bool	erase;
 	bool	write;
 	bool	verify;
@@ -287,7 +290,7 @@ struct options {
 				device(), dv(false),
 				baud_rate(57600), br(false),
 				dev_path(), dp(false),
-				erase(false), write(false), verify(false) { }
+				read(false), erase(false), write(false), verify(false) { }
 
 	void set_speed(const std::string& t) {
 		int val;
@@ -371,6 +374,11 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	// 設定ファイルの読み込み
+	utils::conf_in conf;
+	conf.load("r8c_prog.conf");
+
+
 	// モトローラーSフォーマットファイルの読み込み
 	utils::motsx_io motf;
 	if(!opt.inp_file.empty()) {
@@ -383,7 +391,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// test
+	// device path
 	if(opt.dev_path.empty()) {
 		opt.dev_path = "/dev/tty.usbserial-A600e0xq";
 	}
@@ -393,18 +401,24 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
+	if(opt.read) {
+	}
+
+	// イレース
 	if(opt.erase) {
 		if(!erase_(prog, motf)) {
 			return -1;
 		}
 	}
 
+	// 書き込み
 	if(opt.write) {
 		if(!write_(prog, motf)) {
 			return -1;
 		}
 	}
 
+	// verify
 	if(opt.verify) {
 		if(!verify_(prog, motf)) {
 			return -1;
