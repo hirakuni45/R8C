@@ -35,8 +35,17 @@ namespace utils {
 		conf_in() { }
 
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	conf ファイルの読み込みとパース
+			@param[in]	file	ファイル名
+			@return 読み込み成功なら「true」
+		*/
+		//-----------------------------------------------------------------//
 		bool load(const std::string& file) {
 			utils::file_io fio;
+
+			std::cout << "Conf: '" << file << "'" << std::endl;
 
 			if(!fio.open(file, "rb")) {
 				return false;
@@ -47,30 +56,23 @@ namespace utils {
 			uint32_t lno = 0;
 			while(fio.get_line(line)) {
 				++lno;
-//				std::cout << line << std::endl;
-
-				strings ss = split_text(line, " \t", 1);
 				std::string org = line;
 				line.clear();
 
-				if(ss.size() == 0) {
-					continue;
-				}
+				if(org.empty()) continue;
 
-				const std::string& s = ss[0];
-				if(s.empty()) {
+				std::string cmd;
+				utils::strip_char(org, std::string(" \t"), cmd);
+				if(cmd.empty()) ;
+				else if(cmd[0] == '#') {
 					continue;
-				}
-
-				if(s[0] == '#') {
-					continue;
-				} else if(s == "[DEFAULT]") {
+				} else if(cmd == "[DEFAULT]") {
 					mode = 0;
 					std::cout << "DEFAULT: " << lno << std::endl;
-				} else if(s == "[PROGRAMMER]") {
+				} else if(cmd == "[PROGRAMMER]") {
 					mode = 1;
 					std::cout << "PROGRAMMER: " << lno << std::endl;
-				} else if(s == "[DEVICE]") {
+				} else if(cmd == "[DEVICE]") {
 					mode = 2;
 					std::cout << "DEVICE: " << lno << std::endl;
 				}
