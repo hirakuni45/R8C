@@ -10,6 +10,7 @@
 #include <random>
 #include "motsx_io.hpp"
 #include "conf_in.hpp"
+#include <boost/format.hpp>
 
 static const std::string version_ = "0.30b";
 static const uint32_t progress_num_ = 50;
@@ -394,6 +395,19 @@ int main(int argc, char* argv[])
 	// device path
 	if(opt.dev_path.empty()) {
 		opt.dev_path = "/dev/tty.usbserial-A600e0xq";
+	}
+	// Windwos系シリアル・デバイスの変換
+	if(!opt.dev_path.empty() && opt.dev_path[0] != '/') {
+		std::string s = utils::to_lower_text(opt.dev_path);
+		if(s.size() > 3 && s[0] == 'c' && s[1] == 'o' && s[2] == 'm') {
+			int val;
+			if(utils::string_to_int(&s[3], val)) {
+				if(val >= 1 ) {
+					--val;
+					opt.dev_path = "/dev/ttyS" + (boost::format("%d") % val).str();
+				}
+			}
+		}
 	}
 
 	r8c_prog prog(opt.verbose);
