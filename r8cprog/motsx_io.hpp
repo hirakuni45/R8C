@@ -25,11 +25,23 @@ namespace utils {
 	public:
 		typedef std::array<uint8_t, 256>	array;
 
+		struct array_t {
+			array	array_;
+			uint32_t	min_;
+			uint32_t	max_;
+			array_t() : array_(), min_(0xffffffff), max_(0) { array_.fill(0xff); }
+			void set(uint32_t adr, uint8_t data) {
+				if(min_ > adr) min_ = adr;
+				if(max_ < adr) max_ = adr;
+				array_[adr & 0xff] = data;
+			}
+		};
+
 	private:
 		uint32_t	amin_;
 		uint32_t	amax_;
 
-		typedef std::map<uint32_t, array>	memory_map;
+		typedef std::map<uint32_t, array_t>	memory_map;
 
 		memory_map	memory_map_;
 
@@ -39,13 +51,12 @@ namespace utils {
 			uint32_t base = address & 0xffff00;
 			memory_map::iterator it = memory_map_.find(base);
 			if(it == memory_map_.end()) {
-				array ar;
-				ar.fill(0xff);
-				ar[address & 255] = val;
-				memory_map_.emplace(base, ar);
+				array_t t;
+				t.set(address, val);
+				memory_map_.emplace(base, t);
 			} else {
-				array& ar = it->second;
-				ar[address & 255] = val;
+				array_t& t = it->second;
+				t.set(address, val);
 			}
 		}
 
@@ -261,22 +272,25 @@ namespace utils {
 			uint32_t org = 0;
 			uint32_t fin = 0;
 			bool first = true;
+			uint32_t total = 0;
 			BOOST_FOREACH(const memory_map::value_type& m, memory_map_) {
 				if(first) {
-					std::cout << boost::format("0x%06X to ") % m.first;
-					org = fin = m.first;
+					std::cout << boost::format("0x%06X to ") % m.second.min_;
+					org = fin = m.second.min_;
 					first = false;
 				}
-				if(m.first != fin) {
+				if(m.second.min_ != fin) {
 					std::cout << boost::format("0x%06X (%d bytes)\n") %
 						(fin - 1) % (fin - org);
 					first = true;
+					total += fin - org;
 				}
-				fin += 256;
+				fin = m.second.max_ + 1;
 			}
 			std::cout << boost::format("0x%06X (%d bytes)\n") %
 				(fin - 1) % (fin - org);
-			std::cout << std::flush;
+			total += fin - org;
+			std::cout << boost::format("Total (%d bytes)\n") % total << std::flush;
 		}
 
 
@@ -311,7 +325,7 @@ namespace utils {
 			if(cit == memory_map_.end()) {
 				return fill_array_;
 			}
-			return cit->second;
+			return cit->second.array_;
 		}
 	};
 }
