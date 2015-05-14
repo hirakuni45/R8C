@@ -116,7 +116,7 @@ $(BUILD)/%.d : %.cpp
 	[ -s $@ ] || rm -f $@
 
 run:
-	./$(TARGET) led_chika.mot
+	./$(TARGET) flash_test.mot
 
 clean:
 	rm -rf $(BUILD) $(TARGET)
@@ -138,5 +138,6 @@ bin_zip:
 
 install:
 	cp $(TARGET) /usr/local/bin/.
+	cp $(TARGET).conf /usr/local/bin/.
 
 -include $(DEPENDS)
