@@ -11,10 +11,14 @@
 #include "motsx_io.hpp"
 #include "conf_in.hpp"
 #include <boost/format.hpp>
+#include <boost/foreach.hpp>
+#include <cstdlib>
 
-static const std::string version_ = "0.30b";
+static const std::string version_ = "0.35b";
 static const uint32_t progress_num_ = 50;
 static const char progress_cha_ = '#';
+
+static const std::string conf_file = "r8c_prog.conf";
 
 void dump_(const uint8_t* top, uint32_t len, uint32_t ofs, uint32_t w = 16)
 {
@@ -351,6 +355,42 @@ static void title_(const std::string& cmd)
 //	cout << "    --version\t\t\tDisplay version No." << endl;
 }
 
+static std::string get_current_path_(const std::string& exec)
+{
+	std::string exec_path;
+#ifdef WIN32
+	{
+		std::string tmp;
+		utils::sjis_to_utf8(exec, tmp);
+		utils::convert_delimiter(tmp, '\\', '/', exec_path);
+	}
+#else
+	exec_path = exec;
+#endif
+	std::string spch;
+	std::string base = utils::get_file_name(exec_path);
+	std::string env;
+	{
+#ifdef WIN32
+		std::string tmp;
+		sjis_to_utf8(getenv("PATH"), tmp);
+		utils::convert_delimiter(tmp, '\\', '/', env);
+		spch = ";";
+#else
+		env = getenv("PATH");
+		spch = ":";
+#endif
+	}
+	utils::strings ss = utils::split_text(env, spch); 
+	BOOST_FOREACH(const std::string& s, ss) {
+		std::string path = s + '/' + base;
+		if(utils::probe_file(path)) {
+			return s;
+		}
+	}
+
+	return std::string("");
+}
 
 int main(int argc, char* argv[])
 {
@@ -376,9 +416,14 @@ int main(int argc, char* argv[])
 	}
 
 	// 設定ファイルの読み込み
+	std::string conf_path;
+	if(utils::probe_file(conf_file)) {  // カレントにあるか？
+		conf_path = conf_file;
+	} else {  // コマンド、カレントから読んでみる
+		conf_path = get_current_path_(argv[0]) + '/' + conf_file;
+	}
 	utils::conf_in conf;
-	conf.load("r8c_prog.conf");
-
+	conf.load(conf_path);
 
 	// モトローラーSフォーマットファイルの読み込み
 	utils::motsx_io motf;
