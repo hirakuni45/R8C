@@ -16,14 +16,33 @@ namespace utils {
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class conf_in {
+	public:
+		struct default_t {
+			std::string	programmer_;
+			std::string	device_;
+			std::string port_;
+			std::string speed_;
+		};
 
-		void default_(const std::string& org) {
+	private:
+		default_t	default_;
+
+
+		void default_analize_(const std::string& org, const std::string& cmd) {
+			utils::strings ss = utils::split_text(cmd, "=");
+			if(ss.size() == 2) {
+//				std::cout << ss[0] << " : " << ss[1] << std::endl;
+				if(ss[0] == "programmer") default_.programmer_ = ss[1];
+				else if(ss[0] == "device") default_.device_ = ss[1];
+				else if(ss[0] == "port") default_.port_ = ss[1];
+				else if(ss[0] == "speed") default_.speed_ = ss[1];
+			}
 		}
 
-		void programmer_(const std::string& org) {
+		void programmer_analize_(const std::string& org, const std::string& cmd) {
 		}
 
-		void device_(const std::string& org) {
+		void device_analize_(const std::string& org, const std::string& cmd) {
 		}
 
 	public:
@@ -45,7 +64,7 @@ namespace utils {
 		bool load(const std::string& file) {
 			utils::file_io fio;
 
-			std::cout << "Conf: '" << file << "'" << std::endl;
+//			std::cout << "Conf: '" << file << "'" << std::endl;
 
 			if(!fio.open(file, "rb")) {
 				return false;
@@ -68,28 +87,31 @@ namespace utils {
 					continue;
 				} else if(cmd == "[DEFAULT]") {
 					mode = 0;
-					std::cout << "DEFAULT: " << lno << std::endl;
+//					std::cout << "DEFAULT: " << lno << std::endl;
+					continue;
 				} else if(cmd == "[PROGRAMMER]") {
 					mode = 1;
-					std::cout << "PROGRAMMER: " << lno << std::endl;
+//					std::cout << "PROGRAMMER: " << lno << std::endl;
+					continue;
 				} else if(cmd == "[DEVICE]") {
 					mode = 2;
-					std::cout << "DEVICE: " << lno << std::endl;
+//					std::cout << "DEVICE: " << lno << std::endl;
+					continue;
 				}
 
 				if(mode == 0) {
-					default_(org);
+					default_analize_(org, cmd);
 				} else if(mode == 1) {
-					programmer_(org);
+					programmer_analize_(org, cmd);
 				} else if(mode == 2) {
-					device_(org);
+					device_analize_(org, cmd);
 				}
-
-				line.clear();
 			}
 			fio.close();
 
 			return true;
 		}
+
+		const default_t& get_default() const { return default_; }
 	};
 }
