@@ -269,13 +269,14 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		void list_memory_map() const {
+			std::cout << "Motolola Sx format load map:" << std::endl;
 			uint32_t org = 0;
 			uint32_t fin = 0;
 			bool first = true;
 			uint32_t total = 0;
 			BOOST_FOREACH(const memory_map::value_type& m, memory_map_) {
 				if(first) {
-					std::cout << boost::format("0x%06X to ") % m.second.min_;
+					std::cout << boost::format("  0x%06X to ") % m.second.min_;
 					org = fin = m.second.min_;
 					first = false;
 				}
@@ -290,7 +291,7 @@ namespace utils {
 			std::cout << boost::format("0x%06X (%d bytes)\n") %
 				(fin - 1) % (fin - org);
 			total += fin - org;
-			std::cout << boost::format("Total (%d bytes)\n") % total << std::flush;
+			std::cout << boost::format("  Total (%d bytes)\n") % total << std::flush;
 		}
 
 

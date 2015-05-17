@@ -66,8 +66,37 @@ public:
 		id_.fill();
 	}
 
+	const r8c::protocol::id_t& get_id() const { return id_; }
 
-	bool start(const std::string& path, uint32_t brate) {
+	bool set_id(const std::string& text) {
+		utils::strings ss = utils::split_text(text, ":, \t");
+		bool err = false;
+		if(ss.size() != 7) {
+			err = true;
+		} else {
+			for(int i = 0; i < 7; ++i) {
+				int val;
+				if(utils::string_to_int(ss[i], val)) {
+					if(val >= 0 && val <= 255) {
+						id_.buff[i] = val;
+					} else {
+						err = true;
+						break;
+					}
+				} else {
+					err = true;
+					break;
+				}
+			}
+		}
+		if(err) {
+			return false;
+		}
+		return true;
+	}
+
+
+	bool start(const std::string& path, const std::string& brate) {
 		using namespace r8c;
 
 		// 開始
@@ -87,8 +116,13 @@ public:
 		}
 
 		// ボーレート変更
+		int val;
+		if(!utils::string_to_int(brate, val)) {
+			std::cerr << "Baud rate conversion error: '" << brate << std::endl;
+			return false;
+		}
 		speed_t speed;
-		switch(brate) {
+		switch(val) {
 		case 9600:   speed = B9600;   break;
 		case 19200:  speed = B19200;  break;
 		case 38400:  speed = B38400;  break;
@@ -278,12 +312,18 @@ struct options {
 	bool verbose;
 
 	std::string	inp_file;
+
 	std::string	device;
 	bool	dv;
-	uint32_t	baud_rate;
+
+	std::string	speed;
 	bool	br;
+
 	std::string dev_path;
 	bool	dp;
+
+	std::string id_val;
+	bool	id;
 
 	bool	read;
 	bool	erase;
@@ -293,22 +333,14 @@ struct options {
 	options() : verbose(false),
 				inp_file(),
 				device(), dv(false),
-				baud_rate(57600), br(false),
+				speed("57600"), br(false),
 				dev_path(), dp(false),
+				id_val("ff:ff:ff:ff:ff:ff:ff"), id(false),
 				read(false), erase(false), write(false), verify(false) { }
-
-	void set_speed(const std::string& t) {
-		int val;
-	   	if(utils::string_to_int(t, val)) {
-	   		baud_rate = val;
-	   	} else {
-	   		std::cerr << "Options error: baud rate speed: " << t << std::endl;
-	   	}
-	}
 
 	void set_str(const std::string& t) {
 		if(br) {
-			set_speed(t);
+			speed = t;
 			br = false;
 		} else if(dv) {
 			device = t;
@@ -316,6 +348,9 @@ struct options {
 		} else if(dp) {
 			dev_path = t;
 			dp = false;
+		} else if(id) {
+			id_val = t;
+			id = false;
 		} else {
 			inp_file = t;
 		}
@@ -340,7 +375,7 @@ static void title_(const std::string& cmd)
 //	cout << "-E, --erase-all, --erase-chip\tPerform rom and data flash erase" << endl;
 //	cout << "    --erase-rom\t\t\tPerform rom flash erase" << endl;
 //	cout << "    --erase-data\t\tPerform data flash erase" << endl;
-//	cout << "-i, --id=xx:xx:xx:xx:xx:xx:xx\tSpecify protect ID" << endl;
+	cout << "-i, --id=xx:xx:xx:xx:xx:xx:xx\tSpecify protect ID" << endl;
 	cout << "-p, --programmer=PROGRAMMER\tSpecify programmer name" << endl;
 	cout << "-P, --port=PORT\t\t\tSpecify serial port" << endl;
 //	cout << "-q\t\t\t\tQuell progress output" << endl;
@@ -392,6 +427,7 @@ static std::string get_current_path_(const std::string& exec)
 	return std::string("");
 }
 
+
 int main(int argc, char* argv[])
 {
 	if(argc == 1) {
@@ -400,20 +436,6 @@ int main(int argc, char* argv[])
 	}
 
 	options opt;
-	for(int i = 1; i < argc; ++i) {
-		const std::string p = argv[i];
-		if(p[0] == '-') {
-			if(p == "-V" || p == "-verbose") opt.verbose = true;
-			else if(p == "-s") opt.br = true;
-			else if(p == "-d") opt.dv = true;
-			else if(p == "-P") opt.dp = true;
-			else if(p == "-e" || p == "--erase") opt.erase = true;
-			else if(p == "-w" || p == "--write") opt.write = true;
-			else if(p == "-v" || p == "--verify") opt.verify = true;
-		} else {
-			opt.set_str(p);
-		}
-	}
 
 	// 設定ファイルの読み込み
 	std::string conf_path;
@@ -422,26 +444,34 @@ int main(int argc, char* argv[])
 	} else {  // コマンド、カレントから読んでみる
 		conf_path = get_current_path_(argv[0]) + '/' + conf_file;
 	}
+
 	utils::conf_in conf;
-	conf.load(conf_path);
+	if(conf.load(conf_path)) {
+		const utils::conf_in::default_t& dt = conf.get_default();
+		opt.speed = dt.speed_;
+		opt.dev_path = dt.port_;
+		opt.device = dt.device_;
+		opt.id_val = dt.id_;
+	}
 
-	// モトローラーSフォーマットファイルの読み込み
-	utils::motsx_io motf;
-	if(!opt.inp_file.empty()) {
-		if(!motf.load(opt.inp_file)) {
-			std::cerr << "Can't load input file: '" << opt.inp_file << "'" << std::endl; 
-			return -1;
-		}
-		if(opt.verbose) {
-			motf.list_memory_map();
+	// コマンドラインの解析
+	for(int i = 1; i < argc; ++i) {
+		const std::string p = argv[i];
+		if(p[0] == '-') {
+			if(p == "-V" || p == "-verbose") opt.verbose = true;
+			else if(p == "-s") opt.br = true;
+			else if(p == "-d") opt.dv = true;
+			else if(p == "-P") opt.dp = true;
+			else if(p == "-e" || p == "--erase") opt.erase = true;
+			else if(p == "-i") opt.id = true;
+			else if(p == "-w" || p == "--write") opt.write = true;
+			else if(p == "-v" || p == "--verify") opt.verify = true;
+		} else {
+			opt.set_str(p);
 		}
 	}
 
-	// device path
-	if(opt.dev_path.empty()) {
-		opt.dev_path = "/dev/tty.usbserial-A600e0xq";
-	}
-	// Windwos系シリアル・デバイスの変換
+	// Windwos系シリアル・ポート（COMx）の変換
 	if(!opt.dev_path.empty() && opt.dev_path[0] != '/') {
 		std::string s = utils::to_lower_text(opt.dev_path);
 		if(s.size() > 3 && s[0] == 'c' && s[1] == 'o' && s[2] == 'm') {
@@ -456,7 +486,34 @@ int main(int argc, char* argv[])
 	}
 
 	r8c_prog prog(opt.verbose);
-	if(!prog.start(opt.dev_path, opt.baud_rate)) {
+
+	if(opt.verbose) {
+		std::cout << "Configuration file path: '" << conf_path << "'" << std::endl;
+		std::cout << "Serial device file path: '" << opt.dev_path << "'" << std::endl;
+		std::cout << "Serial device speed: " << opt.speed << " [bps]" << std::endl;
+		std::cout << "Target device type: '" << opt.device << "'" << std::endl;
+		std::cout << "Target device id:";
+		for(int i = 0; i < 7; ++i) {
+			int v = static_cast<int>(prog.get_id().buff[i]);
+			std::cout << (boost::format(" %02X") % v).str();
+		}
+		std::cout << std::endl;
+		std::cout << "Input file path: '" << opt.inp_file << "'" << std::endl;
+	}
+
+	// モトローラーSフォーマットファイルの読み込み
+	utils::motsx_io motf;
+	if(!opt.inp_file.empty()) {
+		if(!motf.load(opt.inp_file)) {
+			std::cerr << "Can't load input file: '" << opt.inp_file << "'" << std::endl; 
+			return -1;
+		}
+		if(opt.verbose) {
+			motf.list_memory_map();
+		}
+	}
+
+	if(!prog.start(opt.dev_path, opt.speed)) {
 		return -1;
 	}
 
