@@ -116,7 +116,7 @@ $(BUILD)/%.d : %.cpp
 	[ -s $@ ] || rm -f $@
 
 run:
-	./$(TARGET) flash_test.mot
+	./$(TARGET) -V flash_test.mot
 
 clean:
 	rm -rf $(BUILD) $(TARGET)
