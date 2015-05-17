@@ -22,11 +22,13 @@ namespace utils {
 			std::string	device_;
 			std::string port_;
 			std::string speed_;
+			std::string id_;
 		};
 
 	private:
 		default_t	default_;
 
+//		std::string	key_;
 
 		void default_analize_(const std::string& org, const std::string& cmd) {
 			utils::strings ss = utils::split_text(cmd, "=");
@@ -36,10 +38,15 @@ namespace utils {
 				else if(ss[0] == "device") default_.device_ = ss[1];
 				else if(ss[0] == "port") default_.port_ = ss[1];
 				else if(ss[0] == "speed") default_.speed_ = ss[1];
+				else if(ss[0] == "id") default_.id_ = ss[1];
+				else ;
+			} else {
+
 			}
 		}
 
 		void programmer_analize_(const std::string& org, const std::string& cmd) {
+			
 		}
 
 		void device_analize_(const std::string& org, const std::string& cmd) {
@@ -112,6 +119,13 @@ namespace utils {
 			return true;
 		}
 
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	[DEFAULT]の取得
+			@return [DEFAULT]情報
+		*/
+		//-----------------------------------------------------------------//
 		const default_t& get_default() const { return default_; }
 	};
 }
