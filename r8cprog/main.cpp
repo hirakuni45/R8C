@@ -492,7 +492,7 @@ int main(int argc, char* argv[])
 		std::cout << "Serial device file path: '" << opt.dev_path << "'" << std::endl;
 		std::cout << "Serial device speed: " << opt.speed << " [bps]" << std::endl;
 		std::cout << "Target device type: '" << opt.device << "'" << std::endl;
-		std::cout << "Target device id:";
+		std::cout << "Device id:";
 		for(int i = 0; i < 7; ++i) {
 			int v = static_cast<int>(prog.get_id().buff[i]);
 			std::cout << (boost::format(" %02X") % v).str();
