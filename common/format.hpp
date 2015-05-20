@@ -96,11 +96,12 @@ namespace utils {
 			NONE_		///< 不明
 		};
 
-//		OUT			out_;	///< 出力関数クラス
 #ifdef ERROR_MESSAGE
 		ERR			err_;	///< エラー関数クラス
 #endif
 		const char*	form_;
+
+		char		buff_[34];
 
 		uint8_t		real_;
 		uint8_t		decimal_;
@@ -215,7 +216,6 @@ namespace utils {
 		}
 
 		void out_str_(const char* str, uint8_t n = 0) {
-			char ch;
 			if(n && n < real_) {
 				uint8_t spc = real_ - n;
 				while(spc) {
@@ -228,8 +228,7 @@ namespace utils {
 		}
 
 		void out_bin_(INT v) {
-			char tmp[34];
-			char* p = &tmp[sizeof(tmp) - 1];
+			char* p = &buff_[sizeof(buff_) - 1];
 			*p = 0;
 			uint8_t n = 0;
 			do {
@@ -244,8 +243,7 @@ namespace utils {
 
 #ifdef WITH_OCTAL_FORMAT
 		void out_oct_(INT v) {
-			char tmp[14];
-			char* p = &tmp[sizeof(tmp) - 1];
+			char* p = &buff_[sizeof(buff_) - 1];
 			*p = 0;
 			uint8_t n = 0;
 			do {
@@ -259,28 +257,8 @@ namespace utils {
 		}
 #endif
 
-		void out_dec_(UINT v) {
-			char tmp[12];
-			char* p = &tmp[sizeof(tmp) - 1];
-			*p = 0;
-			uint8_t n = 0;
-			do {
-				--p;
-				*p = (v % 10) + '0';
-				v /= 10;
-				++n;
-			} while(v != 0) ;
-			if(sign_) { --p; ++n; *p = '+'; }
-			out_str_(p, n);
-		}
-
-
-		void out_dec_(INT v) {
-			char sign = 0;
-			if(v < 0) { v = -v; sign = '-'; }
-			else if(sign_) { sign = '+'; }
-			char tmp[12];
-			char* p = &tmp[sizeof(tmp) - 1];
+		void out_udec_(UINT v, char sign) {
+			char* p = &buff_[sizeof(buff_) - 1];
 			*p = 0;
 			uint8_t n = 0;
 			do {
@@ -294,9 +272,16 @@ namespace utils {
 		}
 
 
+		void out_dec_(INT v) {
+			char sign = 0;
+			if(v < 0) { v = -v; sign = '-'; }
+			else if(sign_) { sign = '+'; }
+			out_udec_(v, sign);
+		}
+
+
 		void out_hex_(UINT v, char top) {
-			char tmp[10];
-			char* p = &tmp[sizeof(tmp) - 1];
+			char* p = &buff_[sizeof(buff_) - 1];
 			*p = 0;
 			uint8_t n = 0;
 			do {
@@ -492,9 +477,9 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 			} else if(mode_ == mode::DECIMAL) {
 				out_dec_(val);
 			} else if(mode_ == mode::HEX) {
-				out_hex_(static_cast<unsigned int>(val), 'a');
+				out_hex_(static_cast<uint32_t>(val), 'a');
 			} else if(mode_ == mode::HEX_CAPS) {
-				out_hex_(static_cast<unsigned int>(val), 'A');
+				out_hex_(static_cast<uint32_t>(val), 'A');
 			} else if(mode_ == mode::FIXED_REAL) {
 				if(decimal_ == 0) decimal_ = 3;
 				out_fixed_point_(val, ppos_);
@@ -526,7 +511,9 @@ std::cout << "P: " << static_cast<int>(val) << std::endl;
 			} else if(mode_ == mode::DECIMAL) {
 				out_dec_(val);
 			} else if(mode_ == mode::U_DECIMAL) {
-				out_dec_(val);
+				char sign = 0;
+				if(sign_) sign = '+';
+				out_udec_(val, sign);
 			} else if(mode_ == mode::HEX) {
 				out_hex_(val, 'a');
 			} else if(mode_ == mode::HEX_CAPS) {
