@@ -33,7 +33,7 @@ namespace device {
 
 		static utils::fifo<recv_size>	recv_;
 		static utils::fifo<send_size>	send_;
-
+		static volatile bool	send_stall_;
 		bool	crlf_;
 
 	public:
@@ -58,6 +58,7 @@ namespace device {
 			if(send_.length()) {
 				UART::UTBL = send_.get();
 			} else {
+				send_stall_ = true;
 			}
 			volatile uint8_t r = UART::UIR();
 			UART::UIR = UART::UIR.URIF.b() | UART::UIR.UTIF.b(false)
@@ -81,8 +82,11 @@ private:
 					}
 				}
 				send_.put(ch);
-				if(UART::UC1.TI()) {
-					UART::UTBL = send_.get();
+				if(send_stall_) {
+					while(UART::UC1.TI() == 0) sleep_();
+					char c = send_.get();
+					send_stall_ = false;
+					UART::UTBL = c;
 				}
 			} else {
 				while(UART::UC1.TI() == 0) sleep_();
@@ -137,6 +141,8 @@ private:
 			} else {
 				UART::UIR = UART::UIR.URIE.b(false) | UART::UIR.UTIE.b(false);
 			}
+
+			send_stall_ = true;
 
 			return true;
 		}
@@ -230,4 +236,6 @@ private:
 	utils::fifo<recv_size> uart_io<UART, recv_size, send_size>::recv_;
 	template<class UART, uint16_t recv_size, uint16_t send_size>
 	utils::fifo<send_size> uart_io<UART, recv_size, send_size>::send_;
+	template<class UART, uint16_t recv_size, uint16_t send_size>
+	volatile bool uart_io<UART, recv_size, send_size>::send_stall_ = true; 
 }
