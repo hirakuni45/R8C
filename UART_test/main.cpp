@@ -95,11 +95,6 @@ int main(int argc, char *argv[])
 	uart0_.start(19200, 0);
 #endif
 
-	for(char ch = 0x20; ch < 0x7f; ++ch) {
-		uart0_.putch(ch);
-	} 
-	uart0_.putch('\n');
-
 	// L チカ・メイン
 	PD1.B0 = 1;
 	uint8_t v = 0;
@@ -111,6 +106,10 @@ int main(int argc, char *argv[])
 				uart0_.putch(ch);
 			}
 		}
+		for(char ch = 0x20; ch < 0x7f; ++ch) {
+			uart0_.putch(ch);
+		} 
+		uart0_.putch('\n');
 		v ^= 1;
 	}
 }
