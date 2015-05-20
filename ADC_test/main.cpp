@@ -9,7 +9,7 @@
 #include "clock.hpp"
 #include "port.hpp"
 #include "common/port_map.hpp"
-#include "common/chout.hpp"
+// #include "common/chout.hpp"
 #include "common/format.hpp"
 
 static void wait_(uint16_t n)
@@ -43,7 +43,7 @@ extern "C" {
 
 static adc adc_;
 
-static utils::chout chout_;
+// static utils::chout chout_;
 
 extern "C" {
 	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
