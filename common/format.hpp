@@ -18,8 +18,10 @@
 /// エラーのメッセージ出力
 // #define ERROR_MESSAGE
 
-void sci_putch(char ch);
-void sci_puts(const char* str);
+extern "C" {
+	void sci_putch(char ch);
+	void sci_puts(const char* str);
+};
 
 namespace utils {
 
