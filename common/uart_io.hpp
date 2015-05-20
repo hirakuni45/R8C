@@ -41,7 +41,6 @@ namespace device {
 			uint16_t ch = UART::URB();
 			///< フレーミングエラー/パリティエラー状態確認
 			if(ch & (UART::URB.OER.b() | UART::URB.FER.b() | UART::URB.PER.b() | UART::URB.SUM.b())) {
-//				++recv_err_;
 				// 強制的にエラーフラグを除去する
 				UART::UC1.RE = 0;
 				UART::UC1.RE = 1;
@@ -51,7 +50,6 @@ namespace device {
 			volatile uint8_t r = UART::UIR();
 			UART::UIR = UART::UIR.URIF.b(false) | UART::UIR.UTIF.b()
 				| (r & (UART::UIR.UTIE.b() | UART::UIR.URIE.b()));
-// (NG)		UART::UIR.URIF = 0;
 		}
 
 		static INTERRUPT_FUNC void send_task() {
@@ -63,7 +61,6 @@ namespace device {
 			volatile uint8_t r = UART::UIR();
 			UART::UIR = UART::UIR.URIF.b() | UART::UIR.UTIF.b(false)
 				| (r & (UART::UIR.UTIE.b() | UART::UIR.URIE.b()));
-// (NG)		UART::UIR.UTIF = 0;
 		}
 
 private:
@@ -72,22 +69,27 @@ private:
 			asm("nop");
 		}
 
+		void send_restart_() {
+			if(send_stall_ && send_.length() > 0) {
+				while(UART::UC1.TI() == 0) sleep_();
+				char ch = send_.get();
+				send_stall_ = false;
+				UART::UTBL = ch;
+			}
+		}
+
 		void putch_(char ch) {
 			if(UART::UIR.UTIE()) {
 				/// ７／８ を超えてた場合は、バッファが空になるまで待つ。
 				/// ※ヒステリシス動作
 				if(send_.length() >= (send_.size() * 7 / 8)) {
+					send_restart_();
 					while(send_.length() != 0) {
 						sleep_();
 					}
 				}
 				send_.put(ch);
-				if(send_stall_) {
-					while(UART::UC1.TI() == 0) sleep_();
-					char c = send_.get();
-					send_stall_ = false;
-					UART::UTBL = c;
-				}
+				send_restart_();
 			} else {
 				while(UART::UC1.TI() == 0) sleep_();
 				UART::UTBL = ch;
