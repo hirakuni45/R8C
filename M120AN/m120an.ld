@@ -16,10 +16,11 @@ INPUT(-lm32cgloss)
 /* Do we need any of these for elf?
    __DYNAMIC = 0;    */
 MEMORY {
-	RAM (w)  : ORIGIN = 0x0300, LENGTH = 0x0400
-	ROM (r)  : ORIGIN = 0x8000, LENGTH = 0x7FD8
-	VVEC (r) : ORIGIN = 0xFED8, LENGTH = 256
-	FVEC (r) : ORIGIN = 0xFFD8, LENGTH = 40
+	RAM (w)  : ORIGIN = 0x00300, LENGTH = 0x00400
+	ROM (r)  : ORIGIN = 0x08000, LENGTH = 0x07FD8
+	EXT (r)  : ORIGIN = 0x10000, LENGTH = 0x17FFF
+	VVEC (r) : ORIGIN = 0x0FED8, LENGTH = 256
+	FVEC (r) : ORIGIN = 0x0FFD8, LENGTH = 40
 }
 SECTIONS
 {
@@ -47,6 +48,16 @@ SECTIONS
     PROVIDE (etext = .);
     . = ALIGN(2);
   } > ROM =0
+
+  .exttext   :
+  {
+    *(.exttext .stub .exttext.* .gnu.linkonce.t.*)
+    KEEP (*(.exttext.*personality*))
+    /* .gnu.warning sections are handled specially by elf32.em.  */
+    *(.gnu.warning)
+    *(.interp .hash .dynsym .dynstr .gnu.version*)
+  } > EXT =0
+
 
   /* rodata will either be part of data, or will be in low rom.  So we
      might be spanning it, or we might not.  This lets us include it
