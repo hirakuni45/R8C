@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iomanip>
 #include <random>
+#include <utility>
 #include "motsx_io.hpp"
 #include "conf_in.hpp"
 #include <boost/format.hpp>
@@ -178,6 +179,17 @@ public:
 	}
 
 
+	bool read(uint32_t top, uint8_t* data) {
+		if(!proto_.read_page(top, data)) {
+			std::cerr << "Read error: " << std::hex << std::setw(6)
+					  << static_cast<int>(top) << " to " << static_cast<int>(top + 255)
+					  << std::endl;
+			return false;
+		}
+		return true;
+	}
+
+
 	bool erase(uint32_t top) {
 		// イレース
 		if(!proto_.erase_page(top)) {
@@ -232,13 +244,38 @@ public:
 };
 
 
-static void progress_(utils::motsx_io& motf, uint32_t n, uint32_t& pcn)
+static void progress_(uint32_t page, uint32_t n, uint32_t& pcn)
 {
-	uint32_t pos = progress_num_ * n / motf.get_total_page();
+	uint32_t pos = progress_num_ * n / page;
 	for(int i = 0; i < (pos - pcn); ++i) {
 		std::cout << progress_cha_ << std::flush;
 	}
 	pcn = pos;
+}
+
+
+static bool read_(r8c_prog& prog)
+{
+	uint32_t sadr = 0x8000;
+	uint32_t eadr = 0xffff;
+
+	bool noerr = true;
+	std::cout << "Read:   ";
+	uint32_t pcn = 0;
+	uint32_t n = 0;
+	uint32_t tpage = ((eadr + 1) - sadr) >> 8;
+	for(uint32_t a = sadr; a <= eadr; a += 256) {
+		uint8_t tmp[256];
+   		if(!prog.read(a, tmp)) {
+   			noerr = false;
+   			break;
+   		}
+   		++n;
+		progress_(tpage, n, pcn);
+	}
+	std::cout << std::endl << std::flush;
+
+	return noerr;
 }
 
 
@@ -256,7 +293,7 @@ static bool erase_(r8c_prog& prog, utils::motsx_io& motf)
    			break;
    		}
    		++n;
-		progress_(motf, n, pcn);
+		progress_(motf.get_total_page(), n, pcn);
 	}
 	std::cout << std::endl << std::flush;
 
@@ -278,7 +315,7 @@ static bool write_(r8c_prog& prog, utils::motsx_io& motf)
 			break;
 		}
    		++n;
-		progress_(motf, n, pcn);
+		progress_(motf.get_total_page(), n, pcn);
 	}
 	std::cout << std::endl << std::flush;
 
@@ -300,7 +337,7 @@ static bool verify_(r8c_prog& prog, utils::motsx_io& motf)
 			break;
 		}
    		++n;
-		progress_(motf, n, pcn);
+		progress_(motf.get_total_page(), n, pcn);
 	}
 	std::cout << std::endl << std::flush;
 
@@ -320,6 +357,7 @@ struct options {
 	bool	br;
 
 	std::string dev_path;
+	std::string dev_comx;
 	bool	dp;
 
 	std::string id_val;
@@ -376,10 +414,10 @@ static void title_(const std::string& cmd)
 //	cout << "    --erase-rom\t\t\tPerform rom flash erase" << endl;
 //	cout << "    --erase-data\t\tPerform data flash erase" << endl;
 	cout << "-i, --id=xx:xx:xx:xx:xx:xx:xx\tSpecify protect ID" << endl;
-	cout << "-p, --programmer=PROGRAMMER\tSpecify programmer name" << endl;
+//	cout << "-p, --programmer=PROGRAMMER\tSpecify programmer name" << endl;
 	cout << "-P, --port=PORT\t\t\tSpecify serial port" << endl;
 //	cout << "-q\t\t\t\tQuell progress output" << endl;
-//	cout << "-r, --read\t\t\tPerform data read" << endl;
+	cout << "-r, --read\t\t\tPerform data read" << endl;
 	cout << "-s, --speed=SPEED\t\tSpecify serial speed" << endl;
 	cout << "-v, --verify\t\t\tPerform data verify" << endl;
 //	cout << "    --device-list\t\tDisplay device list" << endl;
@@ -390,7 +428,7 @@ static void title_(const std::string& cmd)
 //	cout << "    --version\t\t\tDisplay version No." << endl;
 }
 
-static std::string get_current_path_(const std::string& exec)
+static const std::string get_current_path_(const std::string& exec)
 {
 	std::string exec_path;
 #ifdef WIN32
@@ -420,7 +458,7 @@ static std::string get_current_path_(const std::string& exec)
 	BOOST_FOREACH(const std::string& s, ss) {
 		std::string path = s + '/' + base;
 		if(utils::probe_file(path)) {
-			return s;
+			return std::move(s);
 		}
 	}
 
@@ -445,13 +483,14 @@ int main(int argc, char* argv[])
 		conf_path = get_current_path_(argv[0]) + '/' + conf_file;
 	}
 
+	// 設定ファイルの読み込み及びパース
 	utils::conf_in conf;
 	if(conf.load(conf_path)) {
 		const utils::conf_in::default_t& dt = conf.get_default();
-		opt.speed = dt.speed_;
+		opt.speed    = dt.speed_;
 		opt.dev_path = dt.port_;
-		opt.device = dt.device_;
-		opt.id_val = dt.id_;
+		opt.device   = dt.device_;
+		opt.id_val   = dt.id_;
 	}
 
 	// コマンドラインの解析
@@ -460,10 +499,15 @@ int main(int argc, char* argv[])
 		if(p[0] == '-') {
 			if(p == "-V" || p == "-verbose") opt.verbose = true;
 			else if(p == "-s") opt.br = true;
+			else if(utils::string_strncmp(p, "--speed=", 8) == 0) { opt.speed = &p[8]; }
 			else if(p == "-d") opt.dv = true;
+			else if(utils::string_strncmp(p, "--device=", 9) == 0) { opt.device = &p[9]; }
 			else if(p == "-P") opt.dp = true;
+			else if(utils::string_strncmp(p, "--port=", 7) == 0) { opt.dev_path = &p[7]; }
+			else if(p == "-r" || p == "--read") opt.read = true;
 			else if(p == "-e" || p == "--erase") opt.erase = true;
 			else if(p == "-i") opt.id = true;
+			else if(utils::string_strncmp(p, "--id=", 5) == 0) { opt.id_val = &p[5]; }
 			else if(p == "-w" || p == "--write") opt.write = true;
 			else if(p == "-v" || p == "--verify") opt.verify = true;
 		} else {
@@ -479,6 +523,7 @@ int main(int argc, char* argv[])
 			if(utils::string_to_int(&s[3], val)) {
 				if(val >= 1 ) {
 					--val;
+					opt.dev_comx = opt.dev_path;
 					opt.dev_path = "/dev/ttyS" + (boost::format("%d") % val).str();
 				}
 			}
@@ -489,16 +534,25 @@ int main(int argc, char* argv[])
 
 	if(opt.verbose) {
 		std::cout << "Configuration file path: '" << conf_path << "'" << std::endl;
-		std::cout << "Serial device file path: '" << opt.dev_path << "'" << std::endl;
+		std::cout << "Serial device file path: '" << opt.dev_path << "'";
+		if(!opt.dev_comx.empty()) {
+			std::cout << "(" << opt.dev_comx << ")";
+		}
+		std::cout << std::endl;
 		std::cout << "Serial device speed: " << opt.speed << " [bps]" << std::endl;
 		std::cout << "Target device type: '" << opt.device << "'" << std::endl;
 		std::cout << "Device id:";
 		for(int i = 0; i < 7; ++i) {
 			int v = static_cast<int>(prog.get_id().buff[i]);
-			std::cout << (boost::format(" %02X") % v).str();
+			std::cout << (boost::format(":%02X") % v).str();
 		}
 		std::cout << std::endl;
-		std::cout << "Input file path: '" << opt.inp_file << "'" << std::endl;
+		std::cout << "Input file path: ";
+		if(opt.inp_file.empty()) {
+			std::cout << "-----" << std::endl;
+		} else {
+			std::cout << "'" << opt.inp_file << "'" << std::endl;
+		}
 	}
 
 	// モトローラーSフォーマットファイルの読み込み
@@ -517,7 +571,11 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
+	// リード
 	if(opt.read) {
+		if(!read_(prog)) {
+			return -1;
+		}
 	}
 
 	// イレース

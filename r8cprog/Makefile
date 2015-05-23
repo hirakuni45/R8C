@@ -116,7 +116,7 @@ $(BUILD)/%.d : %.cpp
 	[ -s $@ ] || rm -f $@
 
 run:
-	./$(TARGET) -V flash_test.mot
+	./$(TARGET) -V -P /dev/tty.usbserial-A600e0xq -e -w -v flash_test.mot
 
 clean:
 	rm -rf $(BUILD) $(TARGET)
