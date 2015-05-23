@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 			if(adc_.get_state()) {
 				int v = adc_.get_value(1);
 //				chout_ << hex << v << chout::endl;
-				utils::format("(%d): %1.2:8y[V], %d\n")
+				utils::format("(%5d): %1.2:8y[V], %d\n")
 					% static_cast<uint32_t>(nnn)
 					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
 					% static_cast<uint32_t>(v);
