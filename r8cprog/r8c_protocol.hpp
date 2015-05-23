@@ -316,7 +316,7 @@ namespace r8c {
 			@return エラー無ければ「true」
 		*/
 		//-----------------------------------------------------------------//
-		bool read_page(uint16_t address, uint8_t* dst) {
+		bool read_page(uint32_t address, uint8_t* dst) {
 			if(!connection_) return false;
 			if(!verification_) return false;
 
@@ -343,7 +343,7 @@ namespace r8c {
 			@return エラー無ければ「true」
 		*/
 		//-----------------------------------------------------------------//
-		bool write_page(uint16_t address, const uint8_t* src) {
+		bool write_page(uint32_t address, const uint8_t* src) {
 			if(!connection_) return false;
 			if(!verification_) return false;
 
@@ -356,11 +356,6 @@ namespace r8c {
 			}
 			rs232c_.sync_send();
 
-//			for(int i = 0; i < 256; ++i) {
-//				uint8_t ch = *src++;
-//				if(!rs232c_.send(ch)) {
-//					return false;
-//				}
 			if(rs232c_.send(src, 256) != 256) {
 				return false;
 			}
@@ -385,7 +380,7 @@ namespace r8c {
 			@return エラー無ければ「true」
 		*/
 		//-----------------------------------------------------------------//
-		bool erase_page(uint16_t address) {
+		bool erase_page(uint32_t address) {
 			if(!connection_) return false;
 			if(!verification_) return false;
 
