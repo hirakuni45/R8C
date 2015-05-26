@@ -40,6 +40,7 @@ namespace utils {
 	private:
 		uint32_t	amin_;
 		uint32_t	amax_;
+		uint32_t	exec_;
 
 		typedef std::map<uint32_t, array_t>	memory_map;
 
@@ -100,8 +101,7 @@ namespace utils {
 			   		if(ch >= 0x20 && ch <= 0x7f) {
 						std::cerr << ch;
 			   		} else {
-						std::cerr << std::hex << std::setw(2)
-								  << static_cast<int>(ch) << std::dec;
+						std::cerr << boost::format("0x%02X") % static_cast<int>(ch);
 			   		}
 					std::cerr << "'" << std::endl;
 			   		return false;
@@ -141,6 +141,7 @@ namespace utils {
 			   		} else {
 			   			return false;
 			   		}
+
 			   		if(vcnt == alen) {
 			   			address = value;
 			   			if(type >= 1 && type <= 3) {
@@ -149,7 +150,6 @@ namespace utils {
 			   			alen >>= 1;
 			   			length -= alen;
 			   			length -= 1;	// SUM の分サイズを引く
-			   			// ('.');
 			   			while(alen > 0) {
 			   				sum += value;
 			   				value >>= 8;
@@ -158,6 +158,7 @@ namespace utils {
 				   		if(type >= 1 && type <= 3) {
 				   			mode = 4;
 				   		} else if(type >= 7 && type <= 9) {
+							exec_ = value;
 				   			mode = 5;
 				   		} else {
 				   			mode = 4;
@@ -185,11 +186,10 @@ namespace utils {
 			   			sum &= 0xff;
 			   			if(sum != value) {	// SUM エラー
 							std::cerr << "S format SUM error: ";
-							std::cerr << std::hex << std::setw(2)
-									  << static_cast<int>(value)
-									  << " -> "
-									  << static_cast<int>(sum)
-									  << std::dec << std::endl;
+							std::cerr << boost::format("0x%02X -> %02X")
+							    % static_cast<int>(value)
+								% static_cast<int>(sum)
+								<< std::endl;
 			   				return false;
 			   			} else {
 			   				if(type >= 7 && type <= 9) {
@@ -204,13 +204,20 @@ namespace utils {
 		   	return true;
 		}
 
+
+		bool save_(utils::file_io& fio, const memory_map::value_type& m) {
+
+			return false;
+		}
+
+
 	public:
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		motsx_io() : amin_(0xffffffff), amax_(0x00000000) {
+		motsx_io() : amin_(0xffffffff), amax_(0x000000), exec_(0x000000) {
 			fill_array_.fill(0xff);
 		}
 
@@ -248,7 +255,22 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		bool save(const std::string& path) {
-			return false;
+			if(memory_map_.empty()) return false;
+
+			utils::file_io fio;
+			if(!fio.open(path, "wb")) {
+				return false;
+			}
+
+			BOOST_FOREACH(const memory_map::value_type& m, memory_map_) {
+				if(!save_(fio, m)) {
+					return false;
+				}
+			}
+
+			fio.close();
+
+			return true;
 		}
 
 
@@ -295,10 +317,31 @@ namespace utils {
 		}
 
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	最小アドレスの取得
+			@return 最小アドレス
+		*/
+		//-----------------------------------------------------------------//
 		uint32_t get_min() const { return amin_; }
 
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	最大アドレスの取得
+			@return 最大アドレス
+		*/
+		//-----------------------------------------------------------------//
 		uint32_t get_max() const { return amax_; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	実行アドレスの取得
+			@return 実行アドレス
+		*/
+		//-----------------------------------------------------------------//
+		uint32_t get_exec() const { return exec_; }
 
 
 		//-----------------------------------------------------------------//
