@@ -15,6 +15,21 @@ namespace utils {
 
 	using namespace std;
 
+	bool string_to_hex(const std::string& src, uint32_t& dst)
+	{
+		uint32_t v = 0;
+		BOOST_FOREACH(char ch, src) {
+			v <<= 4;
+			if(ch >= '0' && ch <= '9') v |= ch - '0';
+			else if(ch >= 'A' && ch <= 'F') v |= ch - 'A' + 10;
+			else if(ch >= 'a' && ch <= 'f') v |= ch - 'a' + 10;
+			else return false;
+		}
+		dst = v;
+		return true;
+	}
+
+
 	bool string_to_int(const std::string& src, int& dst)
 	{
 		try {
