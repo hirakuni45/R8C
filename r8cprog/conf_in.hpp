@@ -86,24 +86,58 @@ namespace utils {
 
 
 		struct device_t {
+			struct area {
+				uint32_t	top_;
+				uint32_t	end_;
+				area(uint32_t t = 0, uint32_t e = 0) : top_(t), end_(e) { }
+			};
+			typedef std::vector<area>	areas;
+
 			std::string	group_;
 			std::string ram_;
 			std::string data_;
 			std::string	rom_;
 			std::string	comment_;
-			std::string	rom_area_;
-			std::string ram_area_;
+			areas		rom_area_;
+			areas		ram_area_;
+
+			bool parse_area_(const std::string& s, areas& a) {
+				utils::strings ss = utils::split_text(s, ",");
+				if(ss.size() & 1) return false;  // odd size error..
+				for(int i = 0; i < ss.size() / 2; ++i) {
+					uint32_t adr_top = 0;
+					if(!utils::string_to_hex(ss[i * 2 + 0], adr_top)) {
+						return false;
+					}
+					uint32_t adr_end = 0;
+					if(!utils::string_to_hex(ss[i * 2 + 1], adr_end)) {
+						return false;
+					}
+					a.emplace_back(adr_top, adr_end);
+				}
+				return true;
+			}
 
 			bool analize(const units& us) {
+				bool err = false;
 				BOOST_FOREACH(const unit& u, us) {
 					if(u.symbol_ == "group") group_ = u.body_;
 					else if(u.symbol_ == "rom") rom_ = u.body_;
 					else if(u.symbol_ == "data") data_ = u.body_;
 					else if(u.symbol_ == "ram") ram_ = u.body_;
 					else if(u.symbol_ == "comment") comment_ = u.body_;
-					else if(u.symbol_ == "rom-area") rom_area_ = u.body_;
-					else if(u.symbol_ == "data-area") ram_area_ = u.body_;
-					else {
+					else if(u.symbol_ == "rom-area") {
+						if(!parse_area_(u.body_, rom_area_)) {
+							err = true;
+						}
+					} else if(u.symbol_ == "data-area") {
+						if(!parse_area_(u.body_, ram_area_)) {
+							err = true;
+						}
+					} else {
+						err = true;
+					}
+					if(err) {
 						std::cerr << boost::format("(%d) Device error: '") % u.lno_;
 						std::cerr << u.symbol_ << "', '" << u.body_ << "'" << std::endl;
 						return false;
