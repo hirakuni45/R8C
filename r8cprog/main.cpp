@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <random>
 #include <utility>
+#include <set>
 #include "motsx_io.hpp"
 #include "conf_in.hpp"
 #include <boost/format.hpp>
@@ -61,6 +62,7 @@ class r8c_prog {
 	r8c::protocol	proto_;
 	std::string		ver_;
 	r8c::protocol::id_t	id_;
+	std::set<uint32_t>	set_;
 
 public:
 	r8c_prog(bool verbose) : verbose_(verbose) {
@@ -175,6 +177,8 @@ public:
 			std::cout << std::endl;
 		}
 
+		set_.clear();
+
 		return true;
 	}
 
@@ -191,6 +195,15 @@ public:
 
 
 	bool erase(uint32_t top) {
+		uint32_t area = 1024;
+		if(top >= 0x8000) area = 4096;
+
+		uint32_t adr = top & ~(area - 1);
+		if(set_.find(adr) != set_.end()) {
+			return true;
+		}
+		set_.insert(adr);
+
 		// イレース
 		if(!proto_.erase_page(top)) {
 			std::cerr << "Erase error: " << std::hex << std::setw(6)
@@ -292,6 +305,7 @@ static bool erase_(r8c_prog& prog, utils::motsx_io& motf)
    			noerr = false;
    			break;
    		}
+
    		++n;
 		progress_(motf.get_total_page(), n, pcn);
 	}
@@ -491,9 +505,23 @@ int main(int argc, char* argv[])
 		opt.dev_path = dt.port_;
 		opt.device   = dt.device_;
 		opt.id_val   = dt.id_;
+		if(0) {
+			const utils::conf_in::programmer_t& pt = conf.get_programmer();
+			std::cout << pt.comment_ << std::endl;
+		}
+		if(0) {
+			const utils::conf_in::device_t& dt = conf.get_device();
+			std::cout << dt.group_ << std::endl;
+			std::cout << dt.ram_ << std::endl;
+			std::cout << dt.rom_ << std::endl;
+			std::cout << dt.data_ << std::endl;
+			std::cout << dt.comment_ << std::endl;
+			std::cout << dt.rom_area_ << std::endl;
+			std::cout << dt.ram_area_ << std::endl;
+		}
 	}
 
-	// コマンドラインの解析
+   	// コマンドラインの解析
 	for(int i = 1; i < argc; ++i) {
 		const std::string p = argv[i];
 		if(p[0] == '-') {
