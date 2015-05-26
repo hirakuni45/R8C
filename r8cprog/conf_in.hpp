@@ -18,7 +18,32 @@ namespace utils {
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class conf_in {
+
+		static std::string strip_space_(const std::string& in) {
+			int first = 0;
+			while(in[first] == ' ' || in[first] == '\t') {
+				++first;
+			}
+			int last = in.size();
+			do {
+				--last;
+			} while(in[last] == ' ' || in[last] == '\t') ;
+			std::string out = in.substr(first, last - first + 1);
+			return std::move(out);
+		}
+
 	public:
+		struct unit {
+			std::string	symbol_;
+			std::string body_;
+			uint32_t	lno_;
+			unit() : lno_(0) { }
+			explicit unit(const std::string& symbol, const std::string& body, uint32_t lno) :
+				symbol_(symbol), body_(body), lno_(lno) { }
+		};
+
+		typedef std::vector<unit>	units;
+
 		struct default_t {
 			std::string	programmer_;
 			std::string	device_;
@@ -43,103 +68,160 @@ namespace utils {
 			}
 		};
 
-
-		static std::string strip_space_(const std::string& in) {
-			int first = 0;
-			while(in[first] == ' ' || in[first] == '\t') {
-				++first;
-			}
-			int last = in.size();
-			do {
-				--last;
-			} while(in[last] == ' ' || in[last] == '\t') ;
-			std::string out = in.substr(first, last - first + 1);
-			return std::move(out);
-		}
-
 		struct programmer_t {
 			std::string comment_;
 
-			bool analize(const std::string& s) {
-				bool ok = true;
-				utils::strings ss = utils::split_text(s, "=");
-				if(ss.size() == 2) {
-					std::string cmd;
-					utils::strip_char(ss[0], std::string(" \t"), cmd);
-					if(cmd == "comment") comment_ = strip_space_(ss[1]);
-					else ok = false;
-				} else {
-					ok = false;
+			bool analize(const units& us) {
+				BOOST_FOREACH(const unit& u, us) {
+					if(u.symbol_ == "comment") comment_ = u.body_;
+					else {
+						std::cerr << boost::format("(%d) Programmer error: '") % u.lno_;
+						std::cerr << u.symbol_ << "', '" << u.body_ << "'" << std::endl;
+						return false;
+					}
 				}
-				return ok;
+				return true;
 			}
 		};
 
 
 		struct device_t {
 			std::string	group_;
-			std::string	rom_;
 			std::string ram_;
+			std::string data_;
+			std::string	rom_;
 			std::string	comment_;
 			std::string	rom_area_;
 			std::string ram_area_;
 
-			bool analize(const std::string& s) {
-				bool ok = true;
-				utils::strings ss = utils::split_text(s, "=");
-				if(ss.size() == 2) {
-					std::string cmd;
-					utils::strip_char(ss[0], std::string(" \t"), cmd);
-					if(cmd == "group") group_ = strip_space_(ss[1]);
-					else if(cmd == "rom") rom_ = strip_space_(ss[1]);
-					else if(cmd == "ram") ram_ = strip_space_(ss[1]);
-					else if(cmd == "comment") comment_ = strip_space_(ss[1]);
-					else if(cmd == "rom-area") rom_area_ = strip_space_(ss[1]);
-					else if(cmd == "data-area") ram_area_ = strip_space_(ss[1]);
-					else ok = false;
-				} else {
-					ok = false;
+			bool analize(const units& us) {
+				BOOST_FOREACH(const unit& u, us) {
+					if(u.symbol_ == "group") group_ = u.body_;
+					else if(u.symbol_ == "rom") rom_ = u.body_;
+					else if(u.symbol_ == "data") data_ = u.body_;
+					else if(u.symbol_ == "ram") ram_ = u.body_;
+					else if(u.symbol_ == "comment") comment_ = u.body_;
+					else if(u.symbol_ == "rom-area") rom_area_ = u.body_;
+					else if(u.symbol_ == "data-area") ram_area_ = u.body_;
+					else {
+						std::cerr << boost::format("(%d) Device error: '") % u.lno_;
+						std::cerr << u.symbol_ << "', '" << u.body_ << "'" << std::endl;
+						return false;
+					}
 				}
-				return ok;
+				return true;
 			}
 		};
 
 	private:
-		default_t	default_;
+		default_t		default_;
 		programmer_t	programmer_;
-		device_t	device_;
+		device_t		device_;
 
-		int			ana_mode_;
+		enum class ana_mode {
+			name,
+			symbol,
+			body,
+			text,
+			fin
+		};
+
+		ana_mode	ana_mode_;
 		std::string	name_;
+		std::string symbol_;
 		std::string body_;
+
+		units		units_;
+
+		void reset_ana_() {
+			ana_mode_ = ana_mode::name;
+			name_.clear();
+			symbol_.clear();
+			body_.clear();
+
+			units_.clear();
+		}
+
 
 		bool check_symbol_(char ch) {
 			if(ch >= '0' && ch <= '9') return true;
 			if(ch >= 'A' && ch <= 'Z') return true;
 			if(ch >= 'a' && ch <= 'z') return true;
-			if(ch == '_') return true;
+			if(ch == '_' || ch == '-') return true;
 			return false;
 		}
 
-		bool symbol_analize_(const std::string& org) {
+
+		bool analize_(const std::string& org, uint32_t lno) {
+			if(org.empty()) return true;
+
 			BOOST_FOREACH(char ch, org) {
-				if(ch == '\n' || ch == '\r') continue;
-				if(ana_mode_ == 0) {
-					if(ch == ' ' || ch == '\t') continue;
-					if(ch == '{') {
-						++ana_mode_;
+				switch(ana_mode_) {
+				case ana_mode::name:
+					if(ch == ' ' || ch == '\t') ;
+					else if(ch == '{') {
+						ana_mode_ = ana_mode::symbol;
 					} else if(check_symbol_(ch)) {
-						name_ += ch;
-					} else {
+ 						name_ += ch;
+					} else {  // error name character
 						return false;
 					}
-				} else if(ana_mode_ == 1) {
-					if(ch == '}') {
-						++ana_mode_;
+					break;
+				case ana_mode::symbol:
+					if(ch == ' ' || ch == '\t') ;
+					else if(ch == '}') {
+						ana_mode_ = ana_mode::fin;
+					} else if(ch == '=') {
+						ana_mode_ = ana_mode::body;
+					} else if(check_symbol_(ch)) {
+						symbol_ += ch;
+					} else {
+						return false; // error symbol character
+					}
+					break;
+				case ana_mode::body:
+					if(ch == ' ' || ch == '\t') ;  // TAB, Sp を無視
+					else if(ch == '}') {
+						ana_mode_ = ana_mode::fin;
+					} else {
+						if(ch == '"') {
+							ana_mode_ = ana_mode::text;
+						} else if(ch >= ' ') {
+							body_ += ch;
+						}
+					}
+					break;
+				case ana_mode::text:
+					if(ch == '"') {
+						ana_mode_ = ana_mode::body;
 					} else {
 						body_ += ch;
 					}
+					break;
+				default:
+					break;
 				}
+			}
+
+			if(ana_mode_ == ana_mode::symbol) ;
+			else if(ana_mode_ == ana_mode::body || ana_mode_ == ana_mode::fin) {
+				char back = 0;
+				if(!body_.empty()) back = body_.back();
+				if(back == 0) ;
+				else if(back != ',') {  // ',' 以外なら完了
+
+					if(!symbol_.empty() && !body_.empty()) {
+///						std::cout << symbol_ << ": '" << body_ << "'" << std::endl;
+						units_.emplace_back(symbol_, body_, lno);
+						symbol_.clear();
+						body_.clear();
+						if(ana_mode_ == ana_mode::body) {
+							ana_mode_ = ana_mode::symbol;
+						}
+					}
+				}
+			} else {
+				return false;
 			}
 			return true;
 		}
@@ -151,7 +233,7 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		conf_in() :
-			ana_mode_(0) { }
+			ana_mode_(ana_mode::name) { }
 
 
 		//-----------------------------------------------------------------//
@@ -189,15 +271,11 @@ namespace utils {
 					continue;
 				} else if(cmd == "[PROGRAMMER]") {
 					mode = 1;
-					name_.clear();
-					body_.clear();
-					ana_mode_ = 0;
+					reset_ana_();
 					continue;
 				} else if(cmd == "[DEVICE]") {
 					mode = 2;
-					name_.clear();
-					body_.clear();
-					ana_mode_ = 0;
+					reset_ana_();
 					continue;
 				} else if(cmd[0] == '[') {
 					++err;
@@ -212,50 +290,32 @@ namespace utils {
 						break;
 					}
 				} else if(mode == 1) {
-					if(!symbol_analize_(org)) {
+					if(!analize_(org, lno)) {
 						std::cerr << "(" << lno << ") ";
-						std::cerr << "Programmer section error: " << org << "'" << std::endl; 
+						std::cerr << "Programmer section error: '" << org << "'" << std::endl; 
 						break;
 					}
-					if(ana_mode_ == 2) {
+					if(ana_mode_ == ana_mode::fin) {
 						if(default_.programmer_ == name_) {
-							if(!programmer_.analize(body_)) {
-								std::cerr << "(" << lno << ") ";
-								std::cerr << "Programmer body error: '" << org << "'";
-								std::cerr << std::endl; 
+							if(!programmer_.analize(units_)) {
 								break;
 							}
-///							std::cout << name_ << ": " << std::endl;
-///							std::cout <<  programmer_.comment_ << std::endl;
 						}
-						ana_mode_ = 0;
-						name_.clear();
-						body_.clear();
+						reset_ana_();
 					}
 				} else if(mode == 2) {
-#if 0
-					if(!symbol_analize_(org)) {
+					if(!analize_(org, lno)) {
 						std::cerr << "(" << lno << ") ";
-						std::cerr << "Device section error: " << org << "'" << std::endl; 
+						std::cerr << "Device section error: '" << org << "'" << std::endl; 
 					}
-					if(ana_mode_ == 2) {
+					if(ana_mode_ == ana_mode::fin) {
 						if(default_.device_ == name_) {
-							std::cout << name_ << std::endl;
-							std::cout << body_ << std::endl;
-							if(!device_.analize(body_)) {
-								std::cerr << "(" << lno << ") ";
-								std::cerr << "Device body error: '" << org << "'";
-								std::cerr << std::endl; 
+							if(!device_.analize(units_)) {
 								break;
 							}
-							std::cout << name_ << ": " << std::endl;
-							std::cout << device_.comment_ << std::endl;
 						}
-						ana_mode_ = 0;
-						name_.clear();
-						body_.clear();
+						reset_ana_();
 					}
-#endif
 				}
 			}
 			fio.close();
@@ -271,5 +331,24 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		const default_t& get_default() const { return default_; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	[PROGRAMMER]の取得
+			@return [PROGRAMMER]情報
+		*/
+		//-----------------------------------------------------------------//
+		const programmer_t& get_programmer() const { return programmer_; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	[DEVICE]の取得
+			@return [DEVICE]情報
+		*/
+		//-----------------------------------------------------------------//
+		const device_t& get_device() const { return device_; }
+
 	};
 }
