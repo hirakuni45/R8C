@@ -516,8 +516,8 @@ int main(int argc, char* argv[])
 			std::cout << dt.rom_ << std::endl;
 			std::cout << dt.data_ << std::endl;
 			std::cout << dt.comment_ << std::endl;
-			std::cout << dt.rom_area_ << std::endl;
-			std::cout << dt.ram_area_ << std::endl;
+			std::cout << dt.rom_area_.size() << std::endl;
+			std::cout << dt.ram_area_.size() << std::endl;
 		}
 	}
 
