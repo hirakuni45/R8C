@@ -22,31 +22,6 @@ static const char progress_cha_ = '#';
 
 static const std::string conf_file = "r8c_prog.conf";
 
-void dump_(const uint8_t* top, uint32_t len, uint32_t ofs, uint32_t w = 16)
-{
-	using namespace std;
-	cout << hex;
-
-	uint32_t l = 0;
-	for(uint32_t i = 0; i < len; ++i) {
-		if(l == 0) {
-			cout << uppercase << setw(4) << setfill('0') << ofs << "- ";
-		}
-		int d = static_cast<int>(*top);
-		++top;
-		cout << uppercase << setw(2) << setfill('0') << d;
-		++l;
-		++ofs;
-		if(l >= w) {
-			cout << endl;
-			l = 0;
-		} else {
-			cout << ' ';
-		}
-	}
-
-	cout << dec;
-}
 
 #if 0
    		std::mt19937 mt(0x1234);
@@ -56,6 +31,31 @@ void dump_(const uint8_t* top, uint32_t len, uint32_t ofs, uint32_t w = 16)
    		}
    		dump_(&ar[0], 256, 0x8000);
 #endif
+
+
+void dump_(uint32_t adr, uint32_t len, const uint8_t* top, uint32_t w = 16)
+{
+	using namespace std;
+
+	uint32_t l = 0;
+	for(uint32_t i = 0; i < len; ++i) {
+		if(l == 0) {
+			cout << boost::format("%06X: ") % adr;
+		}
+		int d = static_cast<int>(*top);
+		++top;
+		cout << boost::format("%02X") % d;
+		++l;
+		++adr;
+		if(l >= w) {
+			cout << endl;
+			l = 0;
+		} else {
+			cout << ' ';
+		}
+	}
+}
+
 
 class r8c_prog {
 	bool	verbose_;
@@ -267,7 +267,7 @@ static void progress_(uint32_t page, uint32_t n, uint32_t& pcn)
 }
 
 
-static bool read_(r8c_prog& prog)
+static bool read_(r8c_prog& prog, utils::motsx_io& motr)
 {
 	uint32_t sadr = 0x8000;
 	uint32_t eadr = 0xffff;
@@ -283,6 +283,7 @@ static bool read_(r8c_prog& prog)
    			noerr = false;
    			break;
    		}
+		motr.write(a, tmp, 256);
    		++n;
 		progress_(tpage, n, pcn);
 	}
@@ -381,6 +382,7 @@ struct options {
 	bool	erase;
 	bool	write;
 	bool	verify;
+	bool	device_list;
 
 	options() : verbose(false),
 				inp_file(),
@@ -388,7 +390,8 @@ struct options {
 				speed("57600"), br(false),
 				dev_path(), dp(false),
 				id_val("ff:ff:ff:ff:ff:ff:ff"), id(false),
-				read(false), erase(false), write(false), verify(false) { }
+				read(false), erase(false), write(false), verify(false),
+				device_list(false) { }
 
 	void set_str(const std::string& t) {
 		if(br) {
@@ -434,7 +437,7 @@ static void title_(const std::string& cmd)
 	cout << "-r, --read\t\t\tPerform data read" << endl;
 	cout << "-s, --speed=SPEED\t\tSpecify serial speed" << endl;
 	cout << "-v, --verify\t\t\tPerform data verify" << endl;
-//	cout << "    --device-list\t\tDisplay device list" << endl;
+	cout << "    --device-list\t\tDisplay device list" << endl;
 //	cout << "    --programmer-list\t\tDisplay programmer list" << endl;
 	cout << "-V, --verbose\t\t\tVerbose output" << endl;
 	cout << "-w, --write\t\t\tPerform data write" << endl;
@@ -538,8 +541,16 @@ int main(int argc, char* argv[])
 			else if(utils::string_strncmp(p, "--id=", 5) == 0) { opt.id_val = &p[5]; }
 			else if(p == "-w" || p == "--write") opt.write = true;
 			else if(p == "-v" || p == "--verify") opt.verify = true;
+			else if(p == "--device-list") opt.device_list = true;
 		} else {
 			opt.set_str(p);
+		}
+	}
+
+	// デバイス・リスト表示
+	if(opt.device_list) {
+		BOOST_FOREACH(const std::string& s, conf.get_device_list()) {
+			std::cout << s << std::endl;
 		}
 	}
 
@@ -601,9 +612,11 @@ int main(int argc, char* argv[])
 
 	// リード
 	if(opt.read) {
-		if(!read_(prog)) {
+		utils::motsx_io motr;
+		if(!read_(prog, motr)) {
 			return -1;
 		}
+
 	}
 
 	// イレース

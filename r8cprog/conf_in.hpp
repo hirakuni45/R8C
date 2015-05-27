@@ -167,6 +167,8 @@ namespace utils {
 
 		units		units_;
 
+		utils::strings	device_list_;
+
 		void reset_ana_() {
 			ana_mode_ = ana_mode::name;
 			name_.clear();
@@ -343,11 +345,24 @@ namespace utils {
 						std::cerr << "Device section error: '" << org << "'" << std::endl; 
 					}
 					if(ana_mode_ == ana_mode::fin) {
+						std::string ins;
 						if(default_.device_ == name_) {
 							if(!device_.analize(units_)) {
 								break;
 							}
+							ins += " (RAM: " + device_.ram_;
+							ins += ", Program-Flash: " + device_.rom_;
+							if(!device_.data_.empty()) ins += ", Data-Flash: " + device_.data_;
+						} else {
+							device_t device;
+							if(!device.analize(units_)) {
+								break;
+							}
+							ins += " (RAM: " + device.ram_;
+							ins += ", Program-Flash: " + device.rom_;
+							if(!device.data_.empty()) ins += ", Data-Flash: " + device.data_;
 						}
+						device_list_.push_back(name_ + ins + ")");
 						reset_ana_();
 					}
 				}
@@ -384,5 +399,13 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		const device_t& get_device() const { return device_; }
 
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	デバイス・リストの取得
+			@return デバイス・リスト
+		*/
+		//-----------------------------------------------------------------//
+		const utils::strings& get_device_list() const { return device_list_; }
 	};
 }
