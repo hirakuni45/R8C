@@ -276,6 +276,21 @@ namespace utils {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief	メモリーへの書き込み
+			@param[in]	address	アドレス
+			@param[in]	data	データポインター
+			@param[in]	len		長さ
+		*/
+		//-----------------------------------------------------------------//
+		void write(uint32_t address, const uint8_t* data, uint32_t len) {
+			for(uint32_t i = 0; i < len; ++i) {
+				write_byte_(address + i, data[i]);
+			}
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief	総ページ数の取得
 			@return 総ページ数
 		*/
@@ -291,7 +306,8 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		void list_memory_map() const {
-			std::cout << "Motolola Sx format load map:" << std::endl;
+			std::cout << boost::format("Motolola Sx format load map: (exec: 0x%06X)") % exec_;
+			std::cout << std::endl;
 			uint32_t org = 0;
 			uint32_t fin = 0;
 			bool first = true;
