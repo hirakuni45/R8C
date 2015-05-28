@@ -99,7 +99,7 @@ namespace utils {
 			std::string	rom_;
 			std::string	comment_;
 			areas		rom_area_;
-			areas		ram_area_;
+			areas		data_area_;
 
 			bool parse_area_(const std::string& s, areas& a) {
 				utils::strings ss = utils::split_text(s, ",");
@@ -131,7 +131,7 @@ namespace utils {
 							err = true;
 						}
 					} else if(u.symbol_ == "data-area") {
-						if(!parse_area_(u.body_, ram_area_)) {
+						if(!parse_area_(u.body_, data_area_)) {
 							err = true;
 						}
 					} else {
