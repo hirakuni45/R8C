@@ -30,10 +30,38 @@ namespace utils {
 	}
 
 
-	bool string_to_int(const std::string& src, int& dst)
+	bool string_to_hex(const std::string& src, std::vector<uint32_t>& dst, const std::string& spc)
+	{
+		string s;
+		BOOST_FOREACH(char ch, src) {
+			if(string_strchr(spc, ch) != nullptr) {
+				uint32_t v;
+				if(string_to_hex(s, v)) {
+					dst.push_back(v);
+					s.clear();
+				} else {
+					return false;
+				}
+			} else {
+				s += ch;
+			}
+		}
+		if(!s.empty()) {
+			uint32_t v;
+			if(string_to_hex(s, v)) {
+				dst.push_back(v);
+			} else {
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+	bool string_to_int(const std::string& src, int32_t& dst)
 	{
 		try {
-			dst = boost::lexical_cast<int>(src);
+			dst = boost::lexical_cast<int32_t>(src);
 		} catch(boost::bad_lexical_cast& bad) {
 			return false;
 		}
@@ -41,21 +69,21 @@ namespace utils {
 	}
 
 
-	bool string_to_int(const std::string& src, std::vector<int>& dst)
+	bool string_to_int(const std::string& src, std::vector<int32_t>& dst, const std::string& spc)
 	{
 		try {
 			string s;
 			BOOST_FOREACH(char ch, src) {
-				if(ch == ' ') {
-					int v = boost::lexical_cast<int>(s);
-					dst.push_back(v);  
+				if(string_strchr(spc, ch) != nullptr) {
+					int32_t v = boost::lexical_cast<int32_t>(s);
+					dst.push_back(v);
 					s.clear();
 				} else {
 					s += ch;
 				}
 			}
 			if(!s.empty()) {
-				int v = boost::lexical_cast<int>(s);
+				int32_t v = boost::lexical_cast<int32_t>(s);
 				dst.push_back(v);
 			}
 		} catch(boost::bad_lexical_cast& bad) {
@@ -76,14 +104,14 @@ namespace utils {
 	}
 
 
-	bool string_to_float(const std::string& src, std::vector<float>& dst)
+	bool string_to_float(const std::string& src, std::vector<float>& dst, const std::string& spc)
 	{
 		try {
 			string s;
 			BOOST_FOREACH(char ch, src) {
-				if(ch == ' ') {
+				if(string_strchr(spc, ch) != nullptr) {
 					float v = boost::lexical_cast<float>(s);
-					dst.push_back(v);  
+					dst.push_back(v);
 					s.clear();
 				} else {
 					s += ch;
@@ -517,25 +545,25 @@ namespace utils {
 		@brief	パスを追加
 		@param[in]	src	ソースパス
 		@param[in]	add	追加パス
-		@param[out]	dst	出力パス
-		@return エラーなら「false」
+		@return 合成パス（エラーならempty）
 	*/
 	//-----------------------------------------------------------------//
-	bool append_path(const std::string& src, const std::string& add, std::string& dst)
+	std::string append_path(const std::string& src, const std::string& add)
 	{
-		if(src.empty() || add.empty()) return false;
+		if(src.empty() || add.empty()) return std::string();
+		std::string dst;
 		if(add[0] == '/') {	// 新規パスとなる
 			if(add.size() > 1) {
 				dst = add;
 			} else {
-				return false;
+				return std::string();
 			}
 		} else {
 			std::string tmp;
 			strip_last_of_delimita_path(src, tmp);
 			dst = tmp + '/' + add;
 		}
-		return true;
+		return std::move(dst);
 	}
 
 
@@ -545,13 +573,13 @@ namespace utils {
 		@param[in]	src	ソースパス
 		@param[in]	org_ch 元のキャラクター
 		@param[in]	cnv_ch  変換後のキャラクター
-		@param[out]	dst	出力パス
-		@return エラーなら「false」
+		@return 出力パス
 	*/
 	//-----------------------------------------------------------------//
-	bool convert_delimiter(const std::string& src, char org_ch, char cnv_ch, std::string& dst)
+	std::string convert_delimiter(const std::string& src, char org_ch, char cnv_ch)
 	{
 		char back = 0;
+		std::string dst;
 		BOOST_FOREACH(char ch, src) {
 			if(ch == org_ch) {
 				if(back != 0 && back != cnv_ch) ch = cnv_ch;
@@ -561,7 +589,7 @@ namespace utils {
 		}
 		if(back) dst += back;
 
-		return true;
+		return std::move(dst);
 	}
 
 
