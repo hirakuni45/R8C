@@ -4,22 +4,21 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
-#include "r8c_protocol.hpp"
 #include <iostream>
 #include <iomanip>
 #include <random>
 #include <utility>
 #include <set>
-#include "motsx_io.hpp"
-#include "conf_in.hpp"
+#include <cstdlib>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
-#include <cstdlib>
+#include "r8c_protocol.hpp"
+#include "motsx_io.hpp"
+#include "conf_in.hpp"
 
-static const std::string version_ = "0.35b";
+static const std::string version_ = "0.50b";
 static const uint32_t progress_num_ = 50;
 static const char progress_cha_ = '#';
-
 static const std::string conf_file = "r8c_prog.conf";
 
 
@@ -33,13 +32,13 @@ static const std::string conf_file = "r8c_prog.conf";
 #endif
 
 
-void dump_(uint32_t adr, uint32_t len, const uint8_t* top, uint32_t w = 16)
+static void dump_(uint32_t adr, uint32_t len, const uint8_t* top, uint32_t w = 16)
 {
 	using namespace std;
 
-	uint32_t l = 0;
+	uint32_t l = adr % w;
 	for(uint32_t i = 0; i < len; ++i) {
-		if(l == 0) {
+		if(l == 0 || i ==0) {
 			cout << boost::format("%06X: ") % adr;
 		}
 		int d = static_cast<int>(*top);
@@ -57,17 +56,26 @@ void dump_(uint32_t adr, uint32_t len, const uint8_t* top, uint32_t w = 16)
 }
 
 
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+/*!
+	@brief	r8c_prog クラス
+ */
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 class r8c_prog {
 	bool	verbose_;
+	bool	progress_;
+
 	r8c::protocol	proto_;
 	std::string		ver_;
 	r8c::protocol::id_t	id_;
 	std::set<uint32_t>	set_;
 
 public:
-	r8c_prog(bool verbose) : verbose_(verbose) {
+	r8c_prog(bool verbose, bool progress) : verbose_(verbose), progress_(progress) {
 		id_.fill();
 	}
+
+	bool get_progress() const { return progress_; }
 
 	const r8c::protocol::id_t& get_id() const { return id_; }
 
@@ -267,27 +275,46 @@ static void progress_(uint32_t page, uint32_t n, uint32_t& pcn)
 }
 
 
-static bool read_(r8c_prog& prog, utils::motsx_io& motr)
+static bool read_(r8c_prog& prog, utils::motsx_io& motr, uint32_t sadr, uint32_t eadr)
 {
-	uint32_t sadr = 0x8000;
-	uint32_t eadr = 0xffff;
-
 	bool noerr = true;
-	std::cout << "Read:   ";
+	if(prog.get_progress()) std::cout << "Read:   ";
 	uint32_t pcn = 0;
 	uint32_t n = 0;
-	uint32_t tpage = ((eadr + 1) - sadr) >> 8;
-	for(uint32_t a = sadr; a <= eadr; a += 256) {
+	uint32_t tpage = ((eadr | 0xff) + 1 - (sadr & 0xffff00)) >> 8;
+	while(sadr <= eadr) {
 		uint8_t tmp[256];
-   		if(!prog.read(a, tmp)) {
+   		if(!prog.read(sadr & 0xffff00, tmp)) {
    			noerr = false;
    			break;
    		}
-		motr.write(a, tmp, 256);
+		uint32_t ofs = sadr & 255;
+		motr.write(sadr, &tmp[ofs], 256 - ofs);
+		sadr |= 255;
+		++sadr;
    		++n;
-		progress_(tpage, n, pcn);
+		if(prog.get_progress()) progress_(tpage, n, pcn);
 	}
-	std::cout << std::endl << std::flush;
+	if(prog.get_progress()) std::cout << std::endl << std::flush;
+
+	return noerr;
+}
+
+
+static bool erase_(r8c_prog& prog, const utils::conf_in::device_t::areas& as)
+{
+	bool noerr = true;
+	uint32_t pcn = 0;
+	uint32_t n = 0;
+	BOOST_FOREACH(const utils::conf_in::device_t::area a, as) {
+   		if(!prog.erase(a.top_)) {
+   			noerr = false;
+   			break;
+   		}
+   		++n;
+		if(prog.get_progress()) progress_(as.size(), n, pcn);
+	}
+	if(prog.get_progress()) std::cout << std::endl << std::flush;
 
 	return noerr;
 }
@@ -296,7 +323,7 @@ static bool read_(r8c_prog& prog, utils::motsx_io& motr)
 static bool erase_(r8c_prog& prog, utils::motsx_io& motf)
 {
 	bool noerr = true;
-	std::cout << "Erase:  ";
+	if(prog.get_progress()) std::cout << "Erase:  ";
 	uint32_t pcn = 0;
 	uint32_t n = 0;
 	for(uint32_t a = motf.get_min(); a <= motf.get_max(); a += 256) {
@@ -308,9 +335,9 @@ static bool erase_(r8c_prog& prog, utils::motsx_io& motf)
    		}
 
    		++n;
-		progress_(motf.get_total_page(), n, pcn);
+		if(prog.get_progress()) progress_(motf.get_total_page(), n, pcn);
 	}
-	std::cout << std::endl << std::flush;
+	if(prog.get_progress()) std::cout << std::endl << std::flush;
 
 	return noerr;
 }
@@ -319,7 +346,7 @@ static bool erase_(r8c_prog& prog, utils::motsx_io& motf)
 static bool write_(r8c_prog& prog, utils::motsx_io& motf)
 {
 	bool noerr = true;
-	std::cout << "Write:  ";
+	if(prog.get_progress()) std::cout << "Write:  ";
 	uint32_t pcn = 0;
 	uint32_t n = 0;
 	for(uint32_t a = motf.get_min(); a <= motf.get_max(); a += 256) {
@@ -330,9 +357,9 @@ static bool write_(r8c_prog& prog, utils::motsx_io& motf)
 			break;
 		}
    		++n;
-		progress_(motf.get_total_page(), n, pcn);
+		if(prog.get_progress()) progress_(motf.get_total_page(), n, pcn);
 	}
-	std::cout << std::endl << std::flush;
+	if(prog.get_progress()) std::cout << std::endl << std::flush;
 
 	return noerr;
 }
@@ -341,7 +368,7 @@ static bool write_(r8c_prog& prog, utils::motsx_io& motf)
 static bool verify_(r8c_prog& prog, utils::motsx_io& motf)
 {
 	bool noerr = true;
-	std::cout << "Verify: ";
+	if(prog.get_progress()) std::cout << "Verify: ";
 	uint32_t pcn = 0;
 	uint32_t n = 0;
 	for(uint32_t a = motf.get_min(); a <= motf.get_max(); a += 256) {
@@ -352,9 +379,9 @@ static bool verify_(r8c_prog& prog, utils::motsx_io& motf)
 			break;
 		}
    		++n;
-		progress_(motf.get_total_page(), n, pcn);
+		if(prog.get_progress()) progress_(motf.get_total_page(), n, pcn);
 	}
-	std::cout << std::endl << std::flush;
+	if(prog.get_progress()) std::cout << std::endl << std::flush;
 
 	return noerr;
 }
@@ -378,11 +405,17 @@ struct options {
 	std::string id_val;
 	bool	id;
 
+	std::string	area_val;
+	bool	area;
+
 	bool	read;
 	bool	erase;
 	bool	write;
 	bool	verify;
 	bool	device_list;
+	bool	progress;
+	bool	erase_data;
+	bool	erase_rom;
 
 	options() : verbose(false),
 				inp_file(),
@@ -390,8 +423,11 @@ struct options {
 				speed("57600"), br(false),
 				dev_path(), dp(false),
 				id_val("ff:ff:ff:ff:ff:ff:ff"), id(false),
+				area_val(), area(false),
 				read(false), erase(false), write(false), verify(false),
-				device_list(false) { }
+				device_list(false),
+				progress(false),
+				erase_data(false), erase_rom(false) { }
 
 	void set_str(const std::string& t) {
 		if(br) {
@@ -406,6 +442,9 @@ struct options {
 		} else if(id) {
 			id_val = t;
 			id = false;
+		} else if(area) {
+			area_val = t;
+			area = false;
 		} else {
 			inp_file = t;
 		}
@@ -422,18 +461,19 @@ static void title_(const std::string& cmd)
 	cout << "Renesas R8C Series Programmer Version" << version_ << endl;
 	cout << "Copyright (C) 2015, Hiramatsu Kunihito (hira@rvf-rc45.net)" << endl;
 	cout << "usage:" << endl;
-	cout << c << "[options] [mot/id/conf file] ..." << endl;
+	cout << c << "[options] [mot file] ..." << endl;
 	cout << endl;
 	cout << "Options :" << endl;
 	cout << "-d, --device=DEVICE\t\tSpecify device name" << endl;
 	cout << "-e, --erase\t\t\tPerform a device erase to a minimum" << endl;
-//	cout << "-E, --erase-all, --erase-chip\tPerform rom and data flash erase" << endl;
-//	cout << "    --erase-rom\t\t\tPerform rom flash erase" << endl;
-//	cout << "    --erase-data\t\tPerform data flash erase" << endl;
+	cout << "    --erase-all, --erase-chip\tPerform rom and data flash erase" << endl;
+	cout << "    --erase-rom\t\t\tPerform rom flash erase" << endl;
+	cout << "    --erase-data\t\tPerform data flash erase" << endl;
 	cout << "-i, --id=xx:xx:xx:xx:xx:xx:xx\tSpecify protect ID" << endl;
 //	cout << "-p, --programmer=PROGRAMMER\tSpecify programmer name" << endl;
 	cout << "-P, --port=PORT\t\t\tSpecify serial port" << endl;
 //	cout << "-q\t\t\t\tQuell progress output" << endl;
+	cout << "-A, --area=ORG,END\t\tSpecify read area" << endl;
 	cout << "-r, --read\t\t\tPerform data read" << endl;
 	cout << "-s, --speed=SPEED\t\tSpecify serial speed" << endl;
 	cout << "-v, --verify\t\t\tPerform data verify" << endl;
@@ -441,6 +481,7 @@ static void title_(const std::string& cmd)
 //	cout << "    --programmer-list\t\tDisplay programmer list" << endl;
 	cout << "-V, --verbose\t\t\tVerbose output" << endl;
 	cout << "-w, --write\t\t\tPerform data write" << endl;
+	cout << "    --progress\t\t\tdisplay Progress output" << endl;
 //	cout << "-h, --help\t\t\tDisplay this" << endl;
 //	cout << "    --version\t\t\tDisplay version No." << endl;
 }
@@ -520,7 +561,7 @@ int main(int argc, char* argv[])
 			std::cout << dt.data_ << std::endl;
 			std::cout << dt.comment_ << std::endl;
 			std::cout << dt.rom_area_.size() << std::endl;
-			std::cout << dt.ram_area_.size() << std::endl;
+			std::cout << dt.data_area_.size() << std::endl;
 		}
 	}
 
@@ -535,6 +576,8 @@ int main(int argc, char* argv[])
 			else if(utils::string_strncmp(p, "--device=", 9) == 0) { opt.device = &p[9]; }
 			else if(p == "-P") opt.dp = true;
 			else if(utils::string_strncmp(p, "--port=", 7) == 0) { opt.dev_path = &p[7]; }
+			else if(p == "-A") opt.area = true;
+			else if(utils::string_strncmp(p, "--area=", 7) == 0) { opt.area_val = &p[7]; }
 			else if(p == "-r" || p == "--read") opt.read = true;
 			else if(p == "-e" || p == "--erase") opt.erase = true;
 			else if(p == "-i") opt.id = true;
@@ -542,6 +585,13 @@ int main(int argc, char* argv[])
 			else if(p == "-w" || p == "--write") opt.write = true;
 			else if(p == "-v" || p == "--verify") opt.verify = true;
 			else if(p == "--device-list") opt.device_list = true;
+			else if(p == "--progress") opt.progress = true;
+			else if(p == "--erase-rom") opt.erase_rom = true;
+			else if(p == "--erase-data") opt.erase_data = true;
+			else if(p == "--erase-all" || p == "--erase-chip") {
+				opt.erase_rom = true;
+				opt.erase_data = true;
+			}
 		} else {
 			opt.set_str(p);
 		}
@@ -569,7 +619,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	r8c_prog prog(opt.verbose);
+	r8c_prog prog(opt.verbose, opt.progress);
 
 	if(opt.verbose) {
 		std::cout << "Configuration file path: '" << conf_path << "'" << std::endl;
@@ -610,17 +660,48 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
+	const utils::conf_in::device_t& devt = conf.get_device();
+
 	// リード
 	if(opt.read) {
+		uint32_t adr = 0x17002;
+		uint32_t end = 0x173fc;
+
 		utils::motsx_io motr;
-		if(!read_(prog, motr)) {
+		if(!read_(prog, motr, adr, end)) {
 			return -1;
 		}
 
+		while(adr <= end) {
+			const utils::motsx_io::array& a = motr.get_memory(adr);
+			uint32_t len = 256 - (adr & 255);
+			bool cr = false;
+			if((adr + len) > end) {
+				len = end - adr;
+				cr = true;
+			}
+			dump_(adr, len, &a[adr & 255]);
+			if(cr) std::cout << std::endl;
+			adr |= 0xff;
+			++adr;
+		}
 	}
 
 	// イレース
-	if(opt.erase) {
+	if(opt.erase_data || opt.erase_rom) {
+		if(opt.erase_data) {
+			if(opt.progress) std::cout << "Erase-data: ";
+			if(!erase_(prog, devt.data_area_)) {
+				return -1;
+			}
+		}
+		if(opt.erase_rom) {
+			if(opt.progress) std::cout << "Erase-rom:  ";
+			if(!erase_(prog, devt.rom_area_)) {
+				return -1;
+			}
+		}
+	} else if(opt.erase) {
 		if(!erase_(prog, motf)) {
 			return -1;
 		}
