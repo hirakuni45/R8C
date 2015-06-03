@@ -7,6 +7,7 @@
 //=====================================================================//
 #include "string_utils.hpp"
 #include "file_io.hpp"
+#include "area.hpp"
 #include <boost/foreach.hpp>
 #include <utility>
 
@@ -86,22 +87,15 @@ namespace utils {
 
 
 		struct device_t {
-			struct area {
-				uint32_t	top_;
-				uint32_t	end_;
-				area(uint32_t t = 0, uint32_t e = 0) : top_(t), end_(e) { }
-			};
-			typedef std::vector<area>	areas;
-
 			std::string	group_;
 			std::string ram_;
 			std::string data_;
 			std::string	rom_;
 			std::string	comment_;
-			areas		rom_area_;
-			areas		data_area_;
+			utils::areas	rom_area_;
+			utils::areas	data_area_;
 
-			bool parse_area_(const std::string& s, areas& a) {
+			bool parse_area_(const std::string& s, utils::areas& a) {
 				utils::strings ss = utils::split_text(s, ",");
 				if(ss.size() & 1) return false;  // odd size error..
 				for(int i = 0; i < ss.size() / 2; ++i) {

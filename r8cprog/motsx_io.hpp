@@ -206,7 +206,33 @@ namespace utils {
 
 
 		bool save_(utils::file_io& fio, const memory_map::value_type& m) {
+			const array_t& a = m.second;
+			fio.put_char('S');
 
+			uint8_t sum = 0;
+			uint32_t len = (a.max_ - a.min_ + 1) * 2;
+			std::string adr;
+			if(a.max_ <= 0xffff) {
+				adr = (boost::format("1%04X") % a.max_).str();
+				len += 4;
+			} else if(a.max_ <= 0xffffff) {
+				adr = (boost::format("2%06X") % a.max_).str();
+				len += 6;
+			} else {
+				adr = (boost::format("3%08X") % a.max_).str();
+				len += 8;
+			}
+			len += 2; // for check sum
+			fio.put((boost::format("%02X") % len).str());
+			fio.put(adr);
+
+			for(uint32_t i = a.min_; i <= a.max_; ++i) {
+				uint8_t data = a.array_[i & 255];
+				fio.put((boost::format("%02X") % data).str());
+				sum += data;
+			}
+
+			fio.put_char('\n');
 			return false;
 		}
 

@@ -8,29 +8,18 @@
 #include <iomanip>
 #include <random>
 #include <utility>
-#include <set>
 #include <cstdlib>
-#include <boost/format.hpp>
-#include <boost/foreach.hpp>
-#include "r8c_protocol.hpp"
+#include "r8c_prog.hpp"
 #include "motsx_io.hpp"
 #include "conf_in.hpp"
+#include "area.hpp"
+#include <boost/format.hpp>
+#include <boost/foreach.hpp>
 
-static const std::string version_ = "0.50b";
+static const std::string version_ = "0.60b";
 static const uint32_t progress_num_ = 50;
 static const char progress_cha_ = '#';
 static const std::string conf_file = "r8c_prog.conf";
-
-
-#if 0
-   		std::mt19937 mt(0x1234);
-   		protocol::array_type ar;
-   		for(int i = 0; i < 256; ++i) {
-   			ar.push_back(mt() & 255);
-   		}
-   		dump_(&ar[0], 256, 0x8000);
-#endif
-
 
 static void dump_(uint32_t adr, uint32_t len, const uint8_t* top, uint32_t w = 16)
 {
@@ -55,214 +44,14 @@ static void dump_(uint32_t adr, uint32_t len, const uint8_t* top, uint32_t w = 1
 	}
 }
 
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-/*!
-	@brief	r8c_prog クラス
- */
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-class r8c_prog {
-	bool	verbose_;
-	bool	progress_;
-
-	r8c::protocol	proto_;
-	std::string		ver_;
-	r8c::protocol::id_t	id_;
-	std::set<uint32_t>	set_;
-
-public:
-	r8c_prog(bool verbose, bool progress) : verbose_(verbose), progress_(progress) {
-		id_.fill();
-	}
-
-	bool get_progress() const { return progress_; }
-
-	const r8c::protocol::id_t& get_id() const { return id_; }
-
-	bool set_id(const std::string& text) {
-		utils::strings ss = utils::split_text(text, ":, \t");
-		bool err = false;
-		if(ss.size() != 7) {
-			err = true;
-		} else {
-			for(int i = 0; i < 7; ++i) {
-				int val;
-				if(utils::string_to_int(ss[i], val)) {
-					if(val >= 0 && val <= 255) {
-						id_.buff[i] = val;
-					} else {
-						err = true;
-						break;
-					}
-				} else {
-					err = true;
-					break;
-				}
-			}
-		}
-		if(err) {
-			return false;
-		}
-		return true;
-	}
-
-
-	bool start(const std::string& path, const std::string& brate) {
-		using namespace r8c;
-
-		// 開始
-		if(!proto_.start(path)) {
-			std::cerr << "Can't open path: '" << path << "'" << std::endl;
-			return false;
-		}
-
-		// コネクション
-		if(!proto_.connection()) {
-			proto_.end();
-			std::cerr << "Connection device error..." << std::endl;
-			return false;
-		}
-		if(verbose_) {
-			std::cout << "Connection OK." << std::endl;
-		}
-
-		// ボーレート変更
-		int val;
-		if(!utils::string_to_int(brate, val)) {
-			std::cerr << "Baud rate conversion error: '" << brate << std::endl;
-			return false;
-		}
-		speed_t speed;
-		switch(val) {
-		case 9600:   speed = B9600;   break;
-		case 19200:  speed = B19200;  break;
-		case 38400:  speed = B38400;  break;
-		case 57600:  speed = B57600;  break;
-		case 115200: speed = B115200; break;
-		default:
-			proto_.end();
-			std::cerr << "Baud rate error: " << brate << std::endl;
-			return false;
-		}
-
-		if(!proto_.change_speed(speed)) {
-			proto_.end();
-			std::cerr << "Change speed error: " << brate << std::endl;
-			return false;
-		}
-		if(verbose_) {
-			std::cout << "Change speed OK: " << brate << " [bps]" << std::endl;
-		}
-
-		// バージョンの取得
-		ver_ = proto_.get_version();
-		if(ver_.empty()) {
-			proto_.end();
-			std::cerr << "Get version error..." << std::endl;
-			return false;
-		}
-		if(verbose_) {
-			std::cout << "Version: '" << ver_ << "'" << std::endl;
-		}
-
-		// ID チェック認証
-		if(!proto_.id_inspection(id_)) {
-			std::cerr << "ID error: ";
-			for(int i = 0; i < 7; ++i) {
-				std::cerr << std::hex << std::setw(2) << std::uppercase << std::setfill('0')
-						  << "0x" << static_cast<int>(id_.buff[i]) << ' ';
-			}
-			proto_.end();
-			std::cerr << std::dec << std::endl;
-			return false;
-		}
-		if(verbose_) {
-			std::cout << "ID OK: ";
-			for(int i = 0; i < 7; ++i) {
-				std::cout << std::hex << std::setw(2) << std::uppercase << std::setfill('0')
-						  << "0x" << static_cast<int>(id_.buff[i]) << ' ';
-			}
-			std::cout << std::endl;
-		}
-
-		set_.clear();
-
-		return true;
-	}
-
-
-	bool read(uint32_t top, uint8_t* data) {
-		if(!proto_.read_page(top, data)) {
-			std::cerr << "Read error: " << std::hex << std::setw(6)
-					  << static_cast<int>(top) << " to " << static_cast<int>(top + 255)
-					  << std::endl;
-			return false;
-		}
-		return true;
-	}
-
-
-	bool erase(uint32_t top) {
-		uint32_t area = 1024;
-		if(top >= 0x8000) area = 4096;
-
-		uint32_t adr = top & ~(area - 1);
-		if(set_.find(adr) != set_.end()) {
-			return true;
-		}
-		set_.insert(adr);
-
-		// イレース
-		if(!proto_.erase_page(top)) {
-			std::cerr << "Erase error: " << std::hex << std::setw(6)
-					  << static_cast<int>(top) << " to " << static_cast<int>(top + 255)
-					  << std::endl;
-			return false;
-		}
-		return true;
-	}
-
-
-	bool write(uint32_t top, const uint8_t* data) {
-		using namespace r8c;
-		// ページ書き込み
-		if(!proto_.write_page(top, data)) {
-   			std::cerr << "Write error: " << std::hex << std::setw(6)
-					  << static_cast<int>(top) << " to " << static_cast<int>(top + 255)
-					  << std::endl;
-			return false;
-		}
-		return true;
-   	}
-
-
-	bool verify(uint32_t top, const uint8_t* data) {
-		// ページ読み込み
-		uint8_t tmp[256];
-   		if(!proto_.read_page(top, tmp)) {
-   			std::cerr << "Read error: " << std::hex << std::setw(6)
-					  << static_cast<int>(top) << " to " << static_cast<int>(top + 255)
-					  << std::endl;
-   			return false;
+#if 0
+   		std::mt19937 mt(0x1234);
+   		protocol::array_type ar;
+   		for(int i = 0; i < 256; ++i) {
+   			ar.push_back(mt() & 255);
    		}
-
-		for(int i = 0; i < 256; ++i) {
-			if(data[i] != tmp[i]) {
-   			std::cerr << "Verify error: " << std::hex << std::setw(6)
-					  << "0x" << static_cast<int>(top)
-					  << std::setw(2) << static_cast<int>(data[top + i]) << " -> "
-					  << static_cast<int>(tmp[i])
-					  << std::endl;
-				return false;
-			}
-		}
-		return true;
-	}
-
-	void end() {
-		proto_.end();
-	}
-};
+   		dump_(&ar[0], 256, 0x8000);
+#endif
 
 
 static void progress_(uint32_t page, uint32_t n, uint32_t& pcn)
@@ -275,39 +64,49 @@ static void progress_(uint32_t page, uint32_t n, uint32_t& pcn)
 }
 
 
-static bool read_(r8c_prog& prog, utils::motsx_io& motr, uint32_t sadr, uint32_t eadr)
+static bool read_(r8c_prog& prog, utils::motsx_io& motr, const utils::areas& as)
 {
-	bool noerr = true;
+	uint32_t tpage = 0;
+	BOOST_FOREACH(const utils::area_t& t, as) {
+		tpage += ((t.end_ | 0xff) + 1 - (t.org_ & 0xffffff00)) >> 8;
+	}
+	if(tpage == 0) return true;
+
 	if(prog.get_progress()) std::cout << "Read:   ";
+
+	int err = 0;
 	uint32_t pcn = 0;
 	uint32_t n = 0;
-	uint32_t tpage = ((eadr | 0xff) + 1 - (sadr & 0xffff00)) >> 8;
-	while(sadr <= eadr) {
-		uint8_t tmp[256];
-   		if(!prog.read(sadr & 0xffff00, tmp)) {
-   			noerr = false;
-   			break;
-   		}
-		uint32_t ofs = sadr & 255;
-		motr.write(sadr, &tmp[ofs], 256 - ofs);
-		sadr |= 255;
-		++sadr;
-   		++n;
-		if(prog.get_progress()) progress_(tpage, n, pcn);
+	BOOST_FOREACH(const utils::area_t& t, as) {
+		uint32_t sadr = t.org_;
+		uint32_t eadr = t.end_;
+		while(sadr <= eadr && err == 0) {
+			uint8_t tmp[256];
+			if(!prog.read(sadr & 0xffffff00, tmp)) {
+				++err;
+				break;
+			}
+			uint32_t ofs = sadr & 255;
+			motr.write(sadr, &tmp[ofs], 256 - ofs);
+			sadr |= 255;
+			++sadr;
+			++n;
+			if(prog.get_progress()) progress_(tpage, n, pcn);
+		}
 	}
 	if(prog.get_progress()) std::cout << std::endl << std::flush;
 
-	return noerr;
+	return err == 0;
 }
 
 
-static bool erase_(r8c_prog& prog, const utils::conf_in::device_t::areas& as)
+static bool erase_(r8c_prog& prog, const utils::areas& as)
 {
 	bool noerr = true;
 	uint32_t pcn = 0;
 	uint32_t n = 0;
-	BOOST_FOREACH(const utils::conf_in::device_t::area a, as) {
-   		if(!prog.erase(a.top_)) {
+	BOOST_FOREACH(const utils::area_t& a, as) {
+   		if(!prog.erase(a.org_)) {
    			noerr = false;
    			break;
    		}
@@ -405,7 +204,7 @@ struct options {
 	std::string id_val;
 	bool	id;
 
-	std::string	area_val;
+	utils::areas area_val;
 	bool	area;
 
 	bool	read;
@@ -416,6 +215,7 @@ struct options {
 	bool	progress;
 	bool	erase_data;
 	bool	erase_rom;
+	bool	help;
 
 	options() : verbose(false),
 				inp_file(),
@@ -427,9 +227,36 @@ struct options {
 				read(false), erase(false), write(false), verify(false),
 				device_list(false),
 				progress(false),
-				erase_data(false), erase_rom(false) { }
+				erase_data(false), erase_rom(false),
+				help(false) { }
 
-	void set_str(const std::string& t) {
+
+	bool set_area_(const std::string& s) {
+		utils::strings ss = utils::split_text(s, ",");
+		std::string t;
+		if(ss.empty()) t = s;
+		else if(ss.size() >= 1) t = ss[0];
+		uint32_t org = 0;
+		bool err = false;
+		if(!utils::string_to_hex(t, org)) {
+			err = true;
+		}
+		uint32_t end = org + 256;
+		if(ss.size() >= 2) {
+			if(!utils::string_to_hex(ss[1], end)) {
+				err = true;
+			}
+		}
+		if(err) {
+			return false;
+		}
+		area_val.emplace_back(org, end);
+		return true;
+	}
+
+
+	bool set_str(const std::string& t) {
+		bool ok = true;
 		if(br) {
 			speed = t;
 			br = false;
@@ -443,13 +270,46 @@ struct options {
 			id_val = t;
 			id = false;
 		} else if(area) {
-			area_val = t;
+			if(!set_area_(t)) {
+				ok = false;
+			}
 			area = false;
 		} else {
 			inp_file = t;
 		}
+		return ok;
+	}
+
+
+	bool area_check(uint32_t adr) {
+		BOOST_FOREACH(const utils::area_t& t, area_val) {
+			if(t.org_ <= adr && adr <= t.end_) return true;
+		}
+		return false;
 	}
 };
+
+
+static void dump_areas_(utils::motsx_io& motr, const utils::areas& as)
+{
+	BOOST_FOREACH(const utils::area_t& t, as) {
+		uint32_t org = t.org_;
+		uint32_t end = t.end_;
+		while(org <= end) {
+			const utils::motsx_io::array& a = motr.get_memory(org);
+			uint32_t len = 256 - (org & 255);
+			bool cr = false;
+			if((org + len) > end) {
+				len = end - org + 1;
+				cr = true;
+			}
+			dump_(org, len, &a[org & 255]);
+			if(cr) std::cout << std::endl;
+			org |= 0xff;
+			++org;
+		}
+	}
+}
 
 
 static void title_(const std::string& cmd)
@@ -473,7 +333,7 @@ static void title_(const std::string& cmd)
 //	cout << "-p, --programmer=PROGRAMMER\tSpecify programmer name" << endl;
 	cout << "-P, --port=PORT\t\t\tSpecify serial port" << endl;
 //	cout << "-q\t\t\t\tQuell progress output" << endl;
-	cout << "-A, --area=ORG,END\t\tSpecify read area" << endl;
+	cout << "-a, --area=ORG,END\t\tSpecify read area" << endl;
 	cout << "-r, --read\t\t\tPerform data read" << endl;
 	cout << "-s, --speed=SPEED\t\tSpecify serial speed" << endl;
 	cout << "-v, --verify\t\t\tPerform data verify" << endl;
@@ -482,7 +342,7 @@ static void title_(const std::string& cmd)
 	cout << "-V, --verbose\t\t\tVerbose output" << endl;
 	cout << "-w, --write\t\t\tPerform data write" << endl;
 	cout << "    --progress\t\t\tdisplay Progress output" << endl;
-//	cout << "-h, --help\t\t\tDisplay this" << endl;
+	cout << "-h, --help\t\t\tDisplay this" << endl;
 //	cout << "    --version\t\t\tDisplay version No." << endl;
 }
 
@@ -566,6 +426,7 @@ int main(int argc, char* argv[])
 	}
 
    	// コマンドラインの解析
+	bool opterr = false;
 	for(int i = 1; i < argc; ++i) {
 		const std::string p = argv[i];
 		if(p[0] == '-') {
@@ -576,9 +437,12 @@ int main(int argc, char* argv[])
 			else if(utils::string_strncmp(p, "--device=", 9) == 0) { opt.device = &p[9]; }
 			else if(p == "-P") opt.dp = true;
 			else if(utils::string_strncmp(p, "--port=", 7) == 0) { opt.dev_path = &p[7]; }
-			else if(p == "-A") opt.area = true;
-			else if(utils::string_strncmp(p, "--area=", 7) == 0) { opt.area_val = &p[7]; }
-			else if(p == "-r" || p == "--read") opt.read = true;
+			else if(p == "-a") opt.area = true;
+			else if(utils::string_strncmp(p, "--area=", 7) == 0) {
+				if(!opt.set_area_(&p[7])) {
+					opterr = true;
+				}
+			} else if(p == "-r" || p == "--read") opt.read = true;
 			else if(p == "-e" || p == "--erase") opt.erase = true;
 			else if(p == "-i") opt.id = true;
 			else if(utils::string_strncmp(p, "--id=", 5) == 0) { opt.id_val = &p[5]; }
@@ -591,10 +455,25 @@ int main(int argc, char* argv[])
 			else if(p == "--erase-all" || p == "--erase-chip") {
 				opt.erase_rom = true;
 				opt.erase_data = true;
+			} else if(p == "-h" || p == "--help") opt.help = true;
+			else {
+				opterr = true;
 			}
 		} else {
-			opt.set_str(p);
+			if(!opt.set_str(p)) {
+				opterr = true;
+			}
 		}
+		if(opterr) {
+			std::cerr << "Option error: '" << p << "'" << std::endl;
+			opt.help = true;
+		}
+	}
+
+	// HELP 表示
+	if(opt.help) {
+		title_(argv[0]);
+		return 0;
 	}
 
 	// デバイス・リスト表示
@@ -654,6 +533,10 @@ int main(int argc, char* argv[])
 		if(opt.verbose) {
 			motf.list_memory_map();
 		}
+		// エリア判定
+
+
+
 	}
 
 	if(!prog.start(opt.dev_path, opt.speed)) {
@@ -664,27 +547,21 @@ int main(int argc, char* argv[])
 
 	// リード
 	if(opt.read) {
-		uint32_t adr = 0x17002;
-		uint32_t end = 0x173fc;
-
+		if(opt.area_val.empty()) {  // エリア指定が無い場合
+			if(devt.data_area_.size()) {
+				const utils::areas& as = devt.data_area_;
+				opt.area_val.emplace_back(as.front().org_, as.back().end_);
+			}
+			if(devt.rom_area_.size()) {
+				const utils::areas& as = devt.rom_area_;
+				opt.area_val.emplace_back(as.front().org_, as.back().end_);
+			}
+		}
 		utils::motsx_io motr;
-		if(!read_(prog, motr, adr, end)) {
+		if(!read_(prog, motr, opt.area_val)) {
 			return -1;
 		}
-
-		while(adr <= end) {
-			const utils::motsx_io::array& a = motr.get_memory(adr);
-			uint32_t len = 256 - (adr & 255);
-			bool cr = false;
-			if((adr + len) > end) {
-				len = end - adr;
-				cr = true;
-			}
-			dump_(adr, len, &a[adr & 255]);
-			if(cr) std::cout << std::endl;
-			adr |= 0xff;
-			++adr;
-		}
+		dump_areas_(motr, opt.area_val);
 	}
 
 	// イレース
