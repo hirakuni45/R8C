@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 		if(cnt >= 30) {
 			cnt = 0;
 			if(adc_.get_state()) {
-				int v = adc_.get_value(1);
+				auto v = adc_.get_value(1);
 //				chout_ << hex << v << chout::endl;
 				utils::format("(%5d): %1.2:8y[V], %d\n")
 					% static_cast<uint32_t>(nnn)
@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 		else P1.B0 = 0;
 
 		if(uart0_.length()) {  // UART のレシーブデータがあるか？
-			char ch = uart0_.getch();
+			auto ch = uart0_.getch();
 			uart0_.putch(ch);
 		}
 	}
