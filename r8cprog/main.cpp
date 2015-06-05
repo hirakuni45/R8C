@@ -16,7 +16,7 @@
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
 
-static const std::string version_ = "0.60b";
+static const std::string version_ = "0.70b";
 static const uint32_t progress_num_ = 50;
 static const char progress_cha_ = '#';
 static const std::string conf_file = "r8c_prog.conf";
@@ -43,15 +43,6 @@ static void dump_(uint32_t adr, uint32_t len, const uint8_t* top, uint32_t w = 1
 		}
 	}
 }
-
-#if 0
-   		std::mt19937 mt(0x1234);
-   		protocol::array_type ar;
-   		for(int i = 0; i < 256; ++i) {
-   			ar.push_back(mt() & 255);
-   		}
-   		dump_(&ar[0], 256, 0x8000);
-#endif
 
 
 static void progress_(uint32_t page, uint32_t n, uint32_t& pcn)
@@ -303,8 +294,14 @@ static void dump_areas_(utils::motsx_io& motr, const utils::areas& as)
 				len = end - org + 1;
 				cr = true;
 			}
-			dump_(org, len, &a[org & 255]);
-			if(cr) std::cout << std::endl;
+			uint32_t ffcnt = 0;
+			for(uint32_t i = 0; i < len; ++i) {
+				if(a[(org + i) & 255] == 0xff) ++ffcnt;
+			}
+			if(ffcnt != len) {
+				dump_(org, len, &a[org & 255]);
+				if(cr) std::cout << std::endl;
+			}
 			org |= 0xff;
 			++org;
 		}
@@ -534,7 +531,6 @@ int main(int argc, char* argv[])
 			motf.list_memory_map();
 		}
 		// エリア判定
-
 
 
 	}
