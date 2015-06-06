@@ -16,7 +16,7 @@
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
 
-static const std::string version_ = "0.70b";
+static const std::string version_ = "0.72b";
 static const uint32_t progress_num_ = 50;
 static const char progress_cha_ = '#';
 static const std::string conf_file = "r8c_prog.conf";
@@ -315,7 +315,7 @@ static void title_(const std::string& cmd)
 
 	std::string c = utils::get_file_base(cmd);
 
-	cout << "Renesas R8C Series Programmer Version" << version_ << endl;
+	cout << "Renesas R8C Series Programmer Version " << version_ << endl;
 	cout << "Copyright (C) 2015, Hiramatsu Kunihito (hira@rvf-rc45.net)" << endl;
 	cout << "usage:" << endl;
 	cout << c << "[options] [mot file] ..." << endl;
