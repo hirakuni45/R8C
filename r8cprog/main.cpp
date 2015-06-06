@@ -48,7 +48,7 @@ static void dump_(uint32_t adr, uint32_t len, const uint8_t* top, uint32_t w = 1
 static void progress_(uint32_t page, uint32_t n, uint32_t& pcn)
 {
 	uint32_t pos = progress_num_ * n / page;
-	for(int i = 0; i < (pos - pcn); ++i) {
+	for(auto i = 0; i < (pos - pcn); ++i) {
 		std::cout << progress_cha_ << std::flush;
 	}
 	pcn = pos;
