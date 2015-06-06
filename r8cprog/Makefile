@@ -45,6 +45,7 @@ CP	=	g++
 CC	=	gcc
 LK	=	g++
 RC	=
+PINCS += -isystem/mingw64/include
 else
 CP	=	clang++
 CC	=	clang

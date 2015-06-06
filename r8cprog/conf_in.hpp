@@ -98,7 +98,7 @@ namespace utils {
 			bool parse_area_(const std::string& s, utils::areas& a) {
 				utils::strings ss = utils::split_text(s, ",");
 				if(ss.size() & 1) return false;  // odd size error..
-				for(auto i = 0; i < ss.size() / 2; ++i) {
+				for(uint32_t i = 0; i < ss.size() / 2; ++i) {
 					uint32_t adr_top = 0;
 					if(!utils::string_to_hex(ss[i * 2 + 0], adr_top)) {
 						return false;
