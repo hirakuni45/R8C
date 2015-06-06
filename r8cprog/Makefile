@@ -40,10 +40,17 @@ LIBN	+=	$(addprefix -l, $(OPTLIBS))
 #
 # Compiler, Linker Options, Resource_compiler
 #
+ifeq ($(OS),Windows_NT)
+CP	=	g++
+CC	=	gcc
+LK	=	g++
+RC	=
+else
 CP	=	clang++
 CC	=	clang
 LK	=	clang++
 RC	=
+endif
 
 POPT	=	-O2 -std=gnu++11
 COPT	=	-O2
