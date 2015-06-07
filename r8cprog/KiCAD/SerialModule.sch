@@ -32,13 +32,14 @@ LIBS:contrib
 LIBS:valves
 LIBS:ftdi
 LIBS:renesas
+LIBS:SerialModule-cache
 EELAYER 27 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "6 jun 2015"
+Date "7 jun 2015"
 Rev ""
 Comp ""
 Comment1 ""
@@ -421,6 +422,10 @@ Wire Wire Line
 	7100 4500 7100 4000
 Wire Wire Line
 	7100 4000 6700 4000
+Text Notes 6000 4750 0    60   ~ 0
+1: RXD\n3: GND\n5: /RTS\n7: /DTR\n9: /DCD
+Text Notes 6600 4750 0    60   ~ 0
+2: TXD\n4: VCC\n6: /CTS\n8: /DSR\n10: /RI
 Text Notes 6000 4750 0    60   ~ 0
 1: RXD\n3: GND\n5: /RTS\n7: /DTR\n9: /DCD
 Text Notes 6600 4750 0    60   ~ 0
