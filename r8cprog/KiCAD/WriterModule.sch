@@ -1,5 +1,6 @@
 EESchema Schematic File Version 2
 LIBS:power
+LIBS:akizuki
 LIBS:device
 LIBS:transistors
 LIBS:conn
@@ -29,7 +30,6 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:renesas
 LIBS:WriterModule-cache
 EELAYER 27 0
 EELAYER END
@@ -37,7 +37,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "noname.sch"
-Date "7 jun 2015"
+Date "14 jun 2015"
 Rev ""
 Comp ""
 Comment1 ""
@@ -46,10 +46,10 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L CONN_5X2 P?
+L CONN_5X2 CN1
 U 1 1 55739747
 P 3100 4100
-F 0 "P?" H 3100 4400 60  0000 C CNN
+F 0 "CN1" H 3100 4400 60  0000 C CNN
 F 1 "CONN_5X2" V 3100 4100 50  0000 C CNN
 F 2 "~" H 3100 4100 60  0000 C CNN
 F 3 "~" H 3100 4100 60  0000 C CNN
@@ -57,14 +57,243 @@ F 3 "~" H 3100 4100 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R8C/M120AN U?
+L R8C/M120AN U1
 U 1 1 557398C5
 P 7000 4100
-F 0 "U?" H 5450 5250 60  0000 C CNN
+F 0 "U1" H 5450 5250 60  0000 C CNN
 F 1 "R8C/M120AN" H 5700 2950 60  0000 C CNN
 F 2 "~" H 7000 4100 60  0000 C CNN
 F 3 "~" H 7000 4100 60  0000 C CNN
 	1    7000 4100
 	1    0    0    -1  
 $EndComp
+$Comp
+L GND #PWR2
+U 1 1 5578C6C7
+P 7000 5950
+F 0 "#PWR2" H 7000 5950 30  0001 C CNN
+F 1 "GND" H 7000 5880 30  0001 C CNN
+F 2 "" H 7000 5950 60  0000 C CNN
+F 3 "" H 7000 5950 60  0000 C CNN
+	1    7000 5950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7000 5500 7000 5700
+Wire Wire Line
+	7000 5700 7000 5950
+$Comp
+L C C1
+U 1 1 5578C6E7
+P 6300 2500
+F 0 "C1" H 6300 2600 40  0000 L CNN
+F 1 "0.1uF" H 6350 2400 40  0000 L CNN
+F 2 "~" H 6338 2350 30  0000 C CNN
+F 3 "~" H 6300 2500 60  0000 C CNN
+	1    6300 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR1
+U 1 1 5578C6F6
+P 6300 2800
+F 0 "#PWR1" H 6300 2800 30  0001 C CNN
+F 1 "GND" H 6300 2730 30  0001 C CNN
+F 2 "" H 6300 2800 60  0000 C CNN
+F 3 "" H 6300 2800 60  0000 C CNN
+	1    6300 2800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7000 2100 7000 2700
+Wire Wire Line
+	2700 2100 3700 2100
+Wire Wire Line
+	3700 2100 4300 2100
+Wire Wire Line
+	4300 2100 4900 2100
+Wire Wire Line
+	4900 2100 6300 2100
+Wire Wire Line
+	6300 2100 7000 2100
+$Comp
+L 6P-SW SW2
+U 1 1 5578C9A4
+P 3650 5000
+F 0 "SW2" H 3650 5300 60  0000 C CNN
+F 1 "6P-SW" H 3650 4700 60  0000 C CNN
+F 2 "" H 3650 5000 60  0000 C CNN
+F 3 "" H 3650 5000 60  0000 C CNN
+	1    3650 5000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4150 5000 5100 5000
+Wire Wire Line
+	4150 5150 4300 5150
+Wire Wire Line
+	4300 5150 4300 5700
+Wire Wire Line
+	2400 5700 4300 5700
+Wire Wire Line
+	4300 5700 7000 5700
+Connection ~ 7000 5700
+Wire Wire Line
+	4150 4850 4300 4850
+Connection ~ 6300 2100
+Wire Wire Line
+	6300 2350 6300 2100
+Wire Wire Line
+	6300 2800 6300 2650
+Text Label 2550 3900 0    60   ~ 0
+RXD
+Text Label 2550 4000 0    60   ~ 0
+GND
+Text Label 3500 3900 0    60   ~ 0
+TXD
+Text Label 3500 4000 0    60   ~ 0
+VCC
+$Comp
+L R R3
+U 1 1 557D1AA5
+P 4900 2500
+F 0 "R3" H 5000 2550 60  0000 C CNN
+F 1 "10K" H 4800 2450 60  0000 C CNN
+F 2 "~" V 4895 2465 60  0000 C CNN
+F 3 "~" V 4895 2465 60  0000 C CNN
+	1    4900 2500
+	1    0    0    -1  
+$EndComp
+Connection ~ 4900 2100
+Wire Wire Line
+	4900 2650 4900 3400
+Wire Wire Line
+	3350 3400 3500 3400
+Wire Wire Line
+	3500 3400 4900 3400
+Wire Wire Line
+	4900 3400 5100 3400
+Wire Wire Line
+	4900 2350 4900 2100
+$Comp
+L R R2
+U 1 1 557D1B31
+P 4300 2500
+F 0 "R2" H 4400 2550 60  0000 C CNN
+F 1 "10K" H 4200 2450 60  0000 C CNN
+F 2 "~" V 4295 2465 60  0000 C CNN
+F 3 "~" V 4295 2465 60  0000 C CNN
+	1    4300 2500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4300 2350 4300 2100
+Wire Wire Line
+	4300 4850 4300 2650
+Wire Wire Line
+	2900 6200 9200 6200
+Wire Wire Line
+	9200 6200 9200 4400
+Wire Wire Line
+	9200 4400 8900 4400
+Wire Wire Line
+	2900 6200 2900 5150
+Wire Wire Line
+	2900 5150 3150 5150
+Wire Wire Line
+	3150 4850 2700 4850
+Wire Wire Line
+	2700 4850 2700 6400
+Wire Wire Line
+	2700 6400 9400 6400
+Wire Wire Line
+	9400 6400 9400 4200
+Wire Wire Line
+	9400 4200 8900 4200
+Wire Wire Line
+	3450 3900 3800 3900
+Wire Wire Line
+	3800 3900 3800 4500
+Wire Wire Line
+	3800 4500 2900 4500
+Wire Wire Line
+	2900 4500 2900 5000
+Wire Wire Line
+	2900 5000 3150 5000
+Wire Wire Line
+	8900 4000 9200 4000
+Wire Wire Line
+	9200 4000 9200 1900
+Wire Wire Line
+	9200 1900 2400 1900
+Wire Wire Line
+	2400 1900 2400 2800
+Wire Wire Line
+	2400 2800 2400 3900
+Wire Wire Line
+	2400 3900 2700 3900
+$Comp
+L R R1
+U 1 1 557D1CF8
+P 2700 2500
+F 0 "R1" H 2800 2550 60  0000 C CNN
+F 1 "10K" H 2600 2450 60  0000 C CNN
+F 2 "~" V 2695 2465 60  0000 C CNN
+F 3 "~" V 2695 2465 60  0000 C CNN
+	1    2700 2500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2700 2650 2700 2800
+Wire Wire Line
+	2700 2800 2400 2800
+Connection ~ 2400 2800
+Wire Wire Line
+	2700 2350 2700 2100
+Connection ~ 4300 2100
+Wire Wire Line
+	3500 4000 3700 4000
+Wire Wire Line
+	3700 4000 3700 2100
+Connection ~ 3700 2100
+Wire Wire Line
+	2400 5700 2400 4000
+Wire Wire Line
+	2200 4000 2400 4000
+Wire Wire Line
+	2400 4000 2700 4000
+Connection ~ 4300 5700
+$Comp
+L 2P-SW SW1
+U 1 1 557D1DBB
+P 3100 3350
+F 0 "SW1" H 3150 3550 60  0000 C CNN
+F 1 "RESET" H 3050 3150 60  0000 C CNN
+F 2 "~" H 3105 3350 60  0000 C CNN
+F 3 "~" H 3105 3350 60  0000 C CNN
+	1    3100 3350
+	1    0    0    -1  
+$EndComp
+Connection ~ 4900 3400
+Wire Wire Line
+	3500 3400 3500 3300
+Wire Wire Line
+	3500 3300 3350 3300
+Connection ~ 3500 3400
+Wire Wire Line
+	2850 3400 2700 3400
+Wire Wire Line
+	2700 3400 2200 3400
+Wire Wire Line
+	2200 3400 2200 4000
+Connection ~ 2400 4000
+Wire Wire Line
+	2700 3400 2700 3300
+Wire Wire Line
+	2700 3300 2850 3300
+Connection ~ 2700 3400
+Text Notes 4450 5200 0    60   ~ 0
+WRITE
+Text Notes 4450 4850 0    60   ~ 0
+RUN
 $EndSCHEMATC
