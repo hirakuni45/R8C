@@ -14,64 +14,64 @@ namespace device {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  I2C テンプレートクラス @n
-				SCL、SDA ポート指定クラス： @n
+				PORT ポート指定クラス： @n
 				class port { @n
 				public: @n
 					void init() const { } @n
-					void out(bool val) const { } @n
-					bool inp() const { return 0; } @n
+					void scl_out(bool val) const { } @n
+					bool scl_inp() const { return 0; } @n
+					void sda_out(bool val) const { } @n
+					bool sda_inp() const { return 0; } @n
 				};
-		@param[in]	SCL	ポート定義クラス
-		@param[in]	SDA	ポート定義クラス
+		@param[in]	SCL_SDA	ポート定義クラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class SCL, class SDA>
+	template <class PORT>
 	class i2c_io {
-		SCL	scl_;
-		SDA	sda_;
+		PORT		port_;
 		uint16_t	clock_;
 
 		void start_() const {
-			scl_.out(1);
+			port_.scl_out(1);
 			utils::delay::micro_second(clock_ >> 1);
-			sda_.out(0);
+			port_.sda_out(0);
 		}
 
 		void stop_() const {
-			scl_.out(1);
+			port_.scl_out(1);
 			utils::delay::micro_second(clock_ >> 1);
-			sda_.out(1);
+			port_.sda_out(1);
 		}
 
 		bool ack_() const {
-			scl_.out(0);
+			port_.scl_out(0);
 			utils::delay::micro_second(clock_ >> 1);
-			scl_.out(1);
+			port_.scl_out(1);
 			utils::delay::micro_second(clock_ >> 1);
-			bool f = sda_.inp();
+			bool f = port_.sda_inp();
 			return f;
 		}
 
 		void write_(uint8_t val) const {
 			for(uint8_t n = 0; n < 8; ++n) {
-				scl_.out(0);
-				if(val & 0x80) sda_.out(1); else sda_.out(0);
+				port_.scl_out(0);
+				if(val & 0x80) port_.sda_out(1); else port_.sda_out(0);
 				utils::delay::micro_second(clock_ >> 1);
-				scl_.out(1);
+				port_.scl_out(1);
 				val <<= 1;
 				utils::delay::micro_second(clock_ >> 1);
 			}
 		}
 
 		uint8_t read_() const {
-			uint8_t val;
+			uint8_t val = 0;
 			for(uint8_t n = 0; n < 8; ++n) {
-				scl_.out(0);
+				port_.scl_out(0);
 				val <<= 1;
 				utils::delay::micro_second(clock_ >> 1);
-				scl_.out(1);
+				port_.scl_out(1);
 				utils::delay::micro_second(clock_ >> 1);
-				if(sda_.inp()) val |= 1;
+				if(port_.sda_inp()) val |= 1;
 			}
 			return val;
 		}
@@ -90,9 +90,8 @@ namespace device {
 			@brief  初期化
 		*/
 		//-----------------------------------------------------------------//
-		void init() {
-			scl_.init();
-			sda_.init();
+		void init() const {
+			port_.init();
 		}
 
 
