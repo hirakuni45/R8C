@@ -14,20 +14,22 @@ namespace device {
 	template <class PORT>
 	class ds1371_io {
 
+		static const uint8_t	DS1371_ADR_ = 0x68;
+
 		i2c_io<PORT>	i2c_io_;
 
 		bool get_time_(time_t& tp) const {
 			uint8_t reg[4];
 			reg[0] = 0x00;	// address
-			i2c_io_.send(0x68, reg, 1);
-
-			int ret = i2c_io_.recv(0x68, reg, 4);
-			if(ret != 0) {
+			if(!i2c_io_.send(DS1371_ADR_, reg, 1)) {
+				return false;
+			}
+			if(!i2c_io_.recv(DS1371_ADR_, &reg[0], 4)) {
 				return false;
 			}
 
 			tp = (static_cast<time_t>(reg[3]) << 24) | (static_cast<time_t>(reg[2]) << 16) |
-				 (static_cast<time_t>(reg[1]) << 8)  | static_cast<time_t>(reg[0]);
+				 (static_cast<time_t>(reg[1]) << 8)  |  static_cast<time_t>(reg[0]);
 			return true;
 		}
 
@@ -37,13 +39,15 @@ namespace device {
 			@brief	開始
 		 */
 		//-----------------------------------------------------------------//
-		void start() const {
+		void start() {
 			i2c_io_.init();
+			i2c_io_.set_fast();		// 400kbps
 
-			uint8_t reg[2];
-			reg[0] = 0x08;	/// address
+			uint8_t reg[3];
+			reg[0] = 0x07;	/// address
 			reg[1] = 0x00;
-			i2c_io_.send(0x68, reg, 2);
+			reg[2] = 0x00;
+			i2c_io_.send(DS1371_ADR_, reg, 3);
 		}
 
 
@@ -56,16 +60,12 @@ namespace device {
 		//-----------------------------------------------------------------//
 		bool set_time(time_t t) const {
 			uint8_t reg[5];
-
 			reg[0] = 0x00;	/// address
 			reg[1] = t;
 			reg[2] = t >> 8;
 			reg[3] = t >> 16;
 			reg[4] = t >> 24;
-			if(!i2c_io_.send(0x68, reg, 5)) {
-				return false;
-			}
-			return true;
+			return i2c_io_.send(DS1371_ADR_, reg, 5);
 		}
 
 
@@ -82,8 +82,8 @@ namespace device {
 			// 二度読んで、同じだったら正しい時間とする
 			uint8_t n = 4; // ４回ループして正常に読めなかったら、エラーとする
 			do {
-				if(get_time_(t) != 0) return false;
-				if(get_time_(tmp) != 0) return false;
+				if(!get_time_(t)) return false;
+				if(!get_time_(tmp)) return false;
 				--n;
 				if(n == 0) {
 					return false;
@@ -91,7 +91,6 @@ namespace device {
 			} while(t != tmp) ;
 
 			tp = t; 
-
 			return true;
 		}
 	};
