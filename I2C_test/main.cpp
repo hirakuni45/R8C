@@ -50,6 +50,10 @@ static utils::command<64> command_;
 // P1_B7: SCL
 // P4_B5: SDA
 struct scl_sda {
+	void init() const {
+		device::POD1.B7 = 1;
+		device::POD4.B5 = 1;
+	}
 	void scl_dir(bool b) const { device::PD1.B7 = b; }
 	void scl_out(bool b) const { device::P1.B7 = b; }
 	bool scl_inp() const { return device::P1.B7(); }
