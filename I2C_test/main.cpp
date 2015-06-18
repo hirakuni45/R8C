@@ -12,7 +12,8 @@
 #include "common/command.hpp"
 #include <cstring>
 #include <cstdlib>
-#include "common/i2c_io.hpp"
+#include "common/ds1371_io.hpp"
+#include "common/format.hpp"
 
 static void wait_(uint16_t n)
 {
@@ -24,7 +25,6 @@ static void wait_(uint16_t n)
 
 static timer_b timer_b_;
 static uart0 uart0_;
-static flash flash_;
 
 extern "C" {
 	void sci_putch(char ch) {
@@ -46,31 +46,19 @@ extern "C" {
 
 static utils::command<64> command_;
 
-struct scl {
-	void init() const {
-		device::PD3.B5 = 0;
-		device::P3.B5 = 0;
-	}
-	void out(bool b) const { device::PD3.B5 = !b; }
-	bool inp() const {
-		device::PD3.B5 = 0;
-		return device::P3.B5();
-	}
+// DS1371 I2C ポートの定義クラス
+// P1_B7: SCL
+// P4_B5: SDA
+struct scl_sda {
+	void scl_dir(bool b) const { device::PD1.B7 = b; }
+	void scl_out(bool b) const { device::P1.B7 = b; }
+	bool scl_inp() const { return device::P1.B7(); }
+	void sda_dir(bool b) const { device::PD4.B5 = b; }
+	void sda_out(bool b) const { device::P4.B5 = b; }
+	bool sda_inp() const { return device::P4.B5(); }
 };
 
-struct sda {
-	void init() const {
-		device::PD3.B4 = 0;
-		device::P3.B4 = 0;
-	}
-	void out(bool b) const { device::PD3.B4 = !b; }
-	bool inp() const {
-		device::PD3.B4 = 0;
-		return device::P3.B4();
-	}
-};
-
-static device::i2c_io<scl, sda> i2c_;
+static device::ds1371_io<scl_sda> rtc_;
 
 extern "C" {
 	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
@@ -116,6 +104,7 @@ extern "C" {
 	};
 }
 
+#if 0
 static bool check_key_word_(uint8_t idx, const char* key)
 {
 	char buff[8];
@@ -126,6 +115,7 @@ static bool check_key_word_(uint8_t idx, const char* key)
 	}
 	return false;
 }
+
 
 static uint16_t get_hexadecimal_(const char* str)
 {
@@ -154,6 +144,7 @@ static void put_hexadecimal_byte_(uint8_t val) {
 	put_hexadecimal_(val >> 4);
 	put_hexadecimal_(val);
 }
+#endif
 
 
 int main(int argc, char *argv[])
@@ -176,7 +167,7 @@ int main(int argc, char *argv[])
 		timer_b_.start_timer(60, ir_level);
 	}
 
-	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
+	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
 	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
 	{
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
@@ -185,7 +176,12 @@ int main(int argc, char *argv[])
 		uart0_.start(19200, ir_level);
 	}
 
-	sci_puts("Start R8C FLASH monitor\n");
+
+	{  // DS1371 RTC の許可
+		rtc_.start();
+	}
+
+	sci_puts("Start R8C RTC monitor\n");
 	command_.set_prompt("# ");
 
 	// LED シグナル用ポートを出力
@@ -195,6 +191,20 @@ int main(int argc, char *argv[])
 	while(1) {
 		timer_b_.sync();
 
+		if(cnt >= 20) {
+			cnt = 0;
+
+			time_t t;
+			if(rtc_.get_time(t)) {
+				utils::format("%08X\n") % static_cast<uint32_t>(t);			
+			}
+
+		}
+		if(cnt < 10) P1.B0 = 1;
+		else P1.B0 = 0;
+		++cnt;
+
+#if 0
 		if(command_.service()) {
 			if(check_key_word_(0, "erase")) {
 				bool f = false;
@@ -241,13 +251,6 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
-
-		++cnt;
-		if(cnt >= 30) {
-			cnt = 0;
-		}
-
-		if(cnt < 10) P1.B0 = 1;
-		else P1.B0 = 0;
+#endif
 	}
 }
