@@ -140,6 +140,7 @@ namespace device {
 		*/
 		//-----------------------------------------------------------------//
 		void init() const {
+			port_.init();
 			port_.scl_dir(1);
 			port_.sda_dir(1);
 			port_.scl_out(1);
