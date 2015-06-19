@@ -31,7 +31,7 @@ namespace device {
 	class i2c_io {
 		PORT		port_;
 		uint8_t		clock_;
-		uint8_t		busy_;
+		uint16_t	busy_;
 
 		static const uint8_t slow_clock_ = 10 / 2;
 		static const uint8_t fast_clock_ = 4 / 2;
@@ -66,7 +66,7 @@ namespace device {
 
 
 		bool wait_() const {
-			uint8_t cnt = busy_;
+			uint16_t cnt = busy_;
 			port_.scl_dir(0);
 			while(port_.scl_inp() == 0) {
 				utils::delay::micro_second(1);
@@ -171,6 +171,15 @@ namespace device {
 		*/
 		//-----------------------------------------------------------------//
 		void set_fast() { clock_ = fast_clock_; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  スレーブデバイスの「待ち」時間の最大値を設定
+			@param[in]	busy	待ち時間（単位マイクロ秒）
+		*/
+		//-----------------------------------------------------------------//
+		void set_busy(uint16_t busy) { busy_ = busy; }
 
 
 		//-----------------------------------------------------------------//
