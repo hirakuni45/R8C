@@ -108,10 +108,32 @@ extern "C" {
 	};
 }
 
-#if 0
+
+static void disp_time_(time_t t) {
+	struct tm *m = gmtime(&t);
+
+	static const char* wday_[] = {
+		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" 
+	};
+	static const char* mon_[] = {
+		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+	};
+
+	utils::format("%s %s %d %02d:%02d:%02d  %4d\n")
+		% wday_[m->tm_wday]
+		% mon_[m->tm_mon]
+		% static_cast<uint32_t>(m->tm_mday)
+		% static_cast<uint32_t>(m->tm_hour)
+		% static_cast<uint32_t>(m->tm_min)
+		% static_cast<uint32_t>(m->tm_sec)
+		% static_cast<uint32_t>(m->tm_year + 1900);
+}
+
+
 static bool check_key_word_(uint8_t idx, const char* key)
 {
-	char buff[8];
+	char buff[12];
 	if(command_.get_word(idx, sizeof(buff), buff)) {
 		if(strcmp(buff, key) == 0) {
 			return true;
@@ -120,6 +142,49 @@ static bool check_key_word_(uint8_t idx, const char* key)
 	return false;
 }
 
+
+#if 0
+static void cmd_date_()
+{
+		time_t tt = 0;
+		rtc_.get_time(tt);
+		struct tm *tp = localtime(&tt);
+
+		if(ss.size() == 1) {
+			printf("%d/%d/%d ", tp->tm_year + 1900, tp->tm_mon + 1, tp->tm_mday);
+			static const char* days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+			printf("%s ", days[tp->tm_wday % 7]);
+			printf("%02d:%02d.%02d\n", tp->tm_hour, tp->tm_min, tp->tm_sec);
+		} else {
+			struct tm tmp = *tp;
+			std::string time;
+			if(ss.size() >= 3) {
+				int year, mon, day;
+				if(sscanf(ss[1].c_str(), "%d/%d/%d", &year, &mon, &day) == 3) {
+					if(year >= 1900 && year < 2100) tmp.tm_year = year - 1900;
+					if(mon >= 1 && mon <= 12) tmp.tm_mon = mon - 1;
+					if(day >= 1 && day <= 31) tmp.tm_mday = day;
+				}
+				time = ss[2];
+			} else if(ss.size() >= 2) {
+				time = ss[1];
+			}
+			if(!time.empty()) {
+				int hour, min, sec;
+				if(sscanf(time.c_str(), "%d:%d.%d", &hour, &min, &sec) == 3) {
+					if(hour >= 0 && hour < 24) tmp.tm_hour = hour;
+					if(min >= 0 && min < 60) tmp.tm_min = min;
+					if(sec >= 0 && sec < 60) tmp.tm_sec = sec;
+				} else if(sscanf(time.c_str(), "%d:%d", &hour, &min) == 2) {
+					if(hour >= 0 && hour < 24) tmp.tm_hour = hour;
+					if(min >= 0 && min < 60) tmp.tm_min = min;
+				}
+			}
+			time_t tt = mktime(&tmp);
+			rtc_.set_time(tt);
+		}
+		return true;
+}
 
 static uint16_t get_hexadecimal_(const char* str)
 {
@@ -197,64 +262,30 @@ int main(int argc, char *argv[])
 
 		if(cnt >= 20) {
 			cnt = 0;
-
-			time_t t;
-			if(rtc_.get_time(t)) {
-				utils::format("%08X\n") % static_cast<uint32_t>(t);			
-			}
-
 		}
 		if(cnt < 10) P1.B0 = 1;
 		else P1.B0 = 0;
 		++cnt;
 
-#if 0
 		if(command_.service()) {
-			if(check_key_word_(0, "erase")) {
-				bool f = false;
-				if(check_key_word_(1, "bank0")) {
-					f = flash_.erase(flash_io::data_area::bank0);
-				} else if(check_key_word_(1, "bank1")) {
-					f = flash_.erase(flash_io::data_area::bank1);
-				} else {
-					sci_puts("Erase bank error...\n");
-					f = true;
-				}
-				if(!f) {
-					sci_puts("Erase error...\n");
-				}
-			} else if(check_key_word_(0, "r")) {
-				char buff[5];
-				if(command_.get_word(1, sizeof(buff), buff)) {
-					uint16_t ofs = get_hexadecimal_(buff);
-					uint8_t v = flash_.read(ofs);
-					put_hexadecimal_byte_(v);
-					sci_putch('\n');
-				}
-			} else if(check_key_word_(0, "write")) {
-				char buff[5];
-				if(command_.get_word(1, sizeof(buff), buff)) {
-					uint16_t ofs = get_hexadecimal_(buff);
-					if(command_.get_word(2, sizeof(buff), buff)) {
-						uint16_t val = get_hexadecimal_(buff);
-						if(!flash_.write(ofs, val)) {
-							sci_puts("Write error...\n");
-						}
+			uint8_t cmdn = command_.get_words();
+			if(cmdn >= 1) {
+				if(check_key_word_(0, "date")) {			   
+					time_t t;
+					if(rtc_.get_time(t)) {
+						disp_time_(t);
+					} else {
+						sci_puts("Stall RTC error\n");
 					}
-				}
-			} else if(check_key_word_(0, "?")) {
-				sci_puts("erase bank[01]\n");
-				sci_puts("r xxxx\n");
-				sci_puts("write xxxx yy\n");
-			} else {
-				const char* p = command_.get_command();
-				if(p[0]) {
-					sci_puts("command error: ");
-					sci_puts(p);
-					sci_puts("\n");
+				} else {
+					sci_puts("Command error: ");
+					char buff[12];
+					if(command_.get_word(0, sizeof(buff), buff)) {
+						sci_puts(buff);
+						sci_putch('\n');
+					}
 				}
 			}
 		}
-#endif
 	}
 }
