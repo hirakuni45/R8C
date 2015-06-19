@@ -7,7 +7,7 @@
 //=====================================================================//
 #include <cstdint>
 #include "common/i2c_io.hpp"
-#include <time.h>
+#include "common/time.h"
 
 namespace device {
 

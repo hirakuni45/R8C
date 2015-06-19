@@ -137,6 +137,28 @@ namespace utils {
 
         //-----------------------------------------------------------------//
         /*!
+            @brief  ワード数を取得
+			@return ワード数を返す
+        */
+        //-----------------------------------------------------------------//
+		uint8_t get_words() const {
+			const char* p = buff_;
+			char bc = ' ';
+			uint8_t n = 0;
+			while(1) {
+				char ch = *p++;
+				if(bc == ' ' && ch != ' ') {
+					++n;
+				}
+				if(ch == 0) break;
+				bc = ch;
+			}
+			return n;
+		}
+
+
+        //-----------------------------------------------------------------//
+        /*!
             @brief  ワードを取得
 			@param[in]	argc	ワード位置
 			@param[in]	limit	ワード文字列リミット数
@@ -144,7 +166,7 @@ namespace utils {
 			@return 取得できたら「true」を返す
         */
         //-----------------------------------------------------------------//
-		bool get_word(uint8_t argc, uint8_t limit, char* word) {
+		bool get_word(uint8_t argc, uint8_t limit, char* word) const {
 			const char* p = buff_;
 			char bc = ' ';
 			const char* wd = p;
