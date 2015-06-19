@@ -50,16 +50,16 @@ static utils::command<64> command_;
 // P1_B7: SCL
 // P4_B5: SDA
 struct scl_sda {
-	void init() const {
+	void init() const {  // オープン・ドレイン設定
 		device::POD1.B7 = 1;
 		device::POD4.B5 = 1;
 	}
-	void scl_dir(bool b) const { device::PD1.B7 = b; }
-	void scl_out(bool b) const { device::P1.B7 = b; }
-	bool scl_inp() const { return device::P1.B7(); }
-	void sda_dir(bool b) const { device::PD4.B5 = b; }
-	void sda_out(bool b) const { device::P4.B5 = b; }
-	bool sda_inp() const { return device::P4.B5(); }
+	void scl_dir(bool b) const { device::PD1.B7 = b; }  // SCL 方向 (0:in, 1:out)
+	void scl_out(bool b) const { device::P1.B7 = b; }   // SCL 出力
+	bool scl_inp() const { return device::P1.B7(); }    // SCL 入力
+	void sda_dir(bool b) const { device::PD4.B5 = b; }  // SDA 方向 (0:in, 1:out)
+	void sda_out(bool b) const { device::P4.B5 = b; }   // SDA 出力
+	bool sda_inp() const { return device::P4.B5(); }    // SDA 入力
 };
 
 static device::ds1371_io<scl_sda> rtc_;
