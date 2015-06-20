@@ -304,9 +304,9 @@ int main(int argc, char *argv[])
 					sci_puts("date\n");
 					sci_puts("date yyyy/mm/dd hh:mm[:ss]\n");
 				} else {
-					sci_puts("Command error: ");
 					char buff[12];
 					if(command_.get_word(0, sizeof(buff), buff)) {
+						sci_puts("Command error: ");
 						sci_puts(buff);
 						sci_putch('\n');
 					}
