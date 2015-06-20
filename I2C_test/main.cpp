@@ -1,6 +1,7 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C I2C メイン
+	@brief	R8C I2C メイン @n
+			for DS1302 RTC
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -11,7 +12,6 @@
 #include "common/port_map.hpp"
 #include "common/command.hpp"
 #include <cstring>
-#include <cstdlib>
 #include "common/ds1371_io.hpp"
 #include "common/format.hpp"
 
@@ -109,16 +109,28 @@ extern "C" {
 }
 
 
+static time_t get_time_() {
+	time_t t = 0;
+	if(!rtc_.get_time(t)) {
+		sci_puts("Stall RTC read...\n");
+	}
+	return t;
+}
+
+
+static const char* wday_[] = {
+	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" 
+};
+
+
+static const char* mon_[] = {
+	"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+
+
 static void disp_time_(time_t t) {
 	struct tm *m = gmtime(&t);
-
-	static const char* wday_[] = {
-		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" 
-	};
-	static const char* mon_[] = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	};
 
 	utils::format("%s %s %d %02d:%02d:%02d  %4d\n")
 		% wday_[m->tm_wday]
@@ -143,79 +155,87 @@ static bool check_key_word_(uint8_t idx, const char* key)
 }
 
 
-#if 0
-static void cmd_date_()
-{
-		time_t tt = 0;
-		rtc_.get_time(tt);
-		struct tm *tp = localtime(&tt);
-
-		if(ss.size() == 1) {
-			printf("%d/%d/%d ", tp->tm_year + 1900, tp->tm_mon + 1, tp->tm_mday);
-			static const char* days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-			printf("%s ", days[tp->tm_wday % 7]);
-			printf("%02d:%02d.%02d\n", tp->tm_hour, tp->tm_min, tp->tm_sec);
-		} else {
-			struct tm tmp = *tp;
-			std::string time;
-			if(ss.size() >= 3) {
-				int year, mon, day;
-				if(sscanf(ss[1].c_str(), "%d/%d/%d", &year, &mon, &day) == 3) {
-					if(year >= 1900 && year < 2100) tmp.tm_year = year - 1900;
-					if(mon >= 1 && mon <= 12) tmp.tm_mon = mon - 1;
-					if(day >= 1 && day <= 31) tmp.tm_mday = day;
-				}
-				time = ss[2];
-			} else if(ss.size() >= 2) {
-				time = ss[1];
-			}
-			if(!time.empty()) {
-				int hour, min, sec;
-				if(sscanf(time.c_str(), "%d:%d.%d", &hour, &min, &sec) == 3) {
-					if(hour >= 0 && hour < 24) tmp.tm_hour = hour;
-					if(min >= 0 && min < 60) tmp.tm_min = min;
-					if(sec >= 0 && sec < 60) tmp.tm_sec = sec;
-				} else if(sscanf(time.c_str(), "%d:%d", &hour, &min) == 2) {
-					if(hour >= 0 && hour < 24) tmp.tm_hour = hour;
-					if(min >= 0 && min < 60) tmp.tm_min = min;
-				}
-			}
-			time_t tt = mktime(&tmp);
-			rtc_.set_time(tt);
-		}
-		return true;
-}
-
-static uint16_t get_hexadecimal_(const char* str)
-{
-	uint16_t v = 0;
+static const char* get_dec_(const char* p, char tmch, int& value) {
+	int v = 0;
 	char ch;
-	while((ch = *str++) != 0) {
-		v <<= 4;
-		if(ch >= '0' && ch <= '9') v |= ch - '0';
-		else if(ch >= 'A' && ch <= 'F') v |= ch - 'A' + 10;
-		else if(ch >= 'a' && ch <= 'f') v |= ch - 'a' + 10;
-		else return 0;
+	while((ch = *p) != 0) {
+		++p;
+		if(ch == tmch) {
+			break;
+		} else if(ch >= '0' && ch <= '9') {
+			v *= 10;
+			v += ch - '0';
+		} else {
+			return nullptr;
+		}
 	}
-	return v;
+	value = v;
+	return p;
 }
 
 
-static void put_hexadecimal_(uint8_t val) {
-	val &= 0xf;
-	if(val > 9) val += 'A' - 10;
-	else val += '0';
-	sci_putch(val);	
+ __attribute__ ((section (".exttext")))
+static void set_time_date_()
+{
+	time_t t = get_time_();
+	if(t == 0) return;
+
+	struct tm *m = gmtime(&t);
+	bool err = false;
+	if(command_.get_words() == 3) {
+		char buff[12];
+		if(command_.get_word(1, sizeof(buff), buff)) {
+			const char* p = buff;
+			int vs[3];
+			uint8_t i;
+			for(i = 0; i < 3; ++i) {
+				p = get_dec_(p, '/', vs[i]);
+				if(p == nullptr) {
+					break;
+				}
+			}
+			if(p != nullptr && p[0] == 0 && i == 3) {
+				if(vs[0] >= 1900 && vs[0] < 2100) m->tm_year = vs[0] - 1900;
+				if(vs[1] >= 1 && vs[1] <= 12) m->tm_mon = vs[1] - 1;
+				if(vs[2] >= 1 && vs[2] <= 31) m->tm_mday = vs[2];		
+			} else {
+				err = true;
+			}
+		}
+
+		if(command_.get_word(2, sizeof(buff), buff)) {
+			const char* p = buff;
+			int vs[3];
+			uint8_t i;
+			for(i = 0; i < 3; ++i) {
+				p = get_dec_(p, ':', vs[i]);
+				if(p == nullptr) {
+					break;
+				}
+			}
+			if(p != nullptr && p[0] == 0 && (i == 2 || i == 3)) {
+				if(vs[0] >= 0 && vs[0] < 24) m->tm_hour = vs[0];
+				if(vs[1] >= 0 && vs[1] < 60) m->tm_min = vs[1];
+				if(i == 3 && vs[2] >= 0 && vs[2] < 60) m->tm_sec = vs[2];
+				else m->tm_sec = 0;
+			} else {
+				err = true;
+			}
+		}
+	}
+
+	if(err) {
+		sci_puts("Can't analize Time/Date input.\n");
+		return;
+	}
+
+	time_t tt = mktime(m);
+	if(!rtc_.set_time(tt)) {
+		sci_puts("Stall RTC write...\n");
+	}
 }
 
-
-static void put_hexadecimal_byte_(uint8_t val) {
-	put_hexadecimal_(val >> 4);
-	put_hexadecimal_(val);
-}
-#endif
-
-
+ __attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])
 {
 	using namespace device;
@@ -245,8 +265,8 @@ int main(int argc, char *argv[])
 		uart0_.start(19200, ir_level);
 	}
 
-
-	{  // DS1371 RTC の許可
+	// DS1371 RTC を開始
+	{
 		rtc_.start();
 	}
 
@@ -267,16 +287,22 @@ int main(int argc, char *argv[])
 		else P1.B0 = 0;
 		++cnt;
 
+		// コマンド入力と、コマンド解析
 		if(command_.service()) {
 			uint8_t cmdn = command_.get_words();
 			if(cmdn >= 1) {
-				if(check_key_word_(0, "date")) {			   
-					time_t t;
-					if(rtc_.get_time(t)) {
-						disp_time_(t);
+				if(check_key_word_(0, "date")) {
+					if(cmdn == 1) {
+						time_t t = get_time_();
+						if(t != 0) {
+							disp_time_(t);
+						}
 					} else {
-						sci_puts("Stall RTC error\n");
+						set_time_date_();
 					}
+				} else if(check_key_word_(0, "help")) {
+					sci_puts("date\n");
+					sci_puts("date yyyy/mm/dd hh:mm[:ss]\n");
 				} else {
 					sci_puts("Command error: ");
 					char buff[12];
