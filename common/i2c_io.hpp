@@ -24,7 +24,7 @@ namespace device {
 					void sda_out(bool val) const { } @n
 					bool sda_inp() const { return 0; } @n
 				};
-		@param[in]	SCL_SDA	ポート定義クラス
+		@param[in]	PORT	ポート定義クラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <class PORT>
