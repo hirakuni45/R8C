@@ -162,21 +162,22 @@ int main(int argc, char *argv[])
 	uint16_t y = rand_() & 31;
 	uint16_t xx;
 	uint16_t yy;
-	uint8_t loop = 0;
+	uint8_t loop = 20;
 	while(1) {
 		timer_b_.sync();
 		lcd_.copy(bitmap_.fb());
 
+		if(loop >= 20) {
+			loop = 0;
+			bitmap_.clear(0);
+			bitmap_.frame(0, 0, 128, 32, 1);
+		}
 		xx = rand_() & 127;
 		yy = rand_() & 31;
 		bitmap_.line(x, y, xx, yy, 1);
 		x = xx;
 		y = yy;
 		++loop;
-		if(loop >= 20) {
-			loop = 0;
-			bitmap_.clear(0);
-		}
 
 //		bitmap_.line(0, 0, 127, 31, 1);
 //		bitmap_.line(0, 31, 127, 0, 1);
