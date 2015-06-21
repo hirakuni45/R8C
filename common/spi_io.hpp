@@ -58,10 +58,12 @@ namespace device {
 			for(uint8_t i = 0; i < 8; ++i) {
 				port_.scl_out(0);
 				port_.sda_out(d & 0x80);
-//				utils::delay::micro_second(clock_);
+				asm("nop");
+//				utils::delay::micro_second(1);
 				port_.scl_out(1);
 				d <<= 1;
-//				utils::delay::micro_second(clock_);
+				asm("nop");
+//				utils::delay::micro_second(1);
 			}
 		}
 

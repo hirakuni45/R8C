@@ -39,15 +39,15 @@ namespace device {
 			spi_.init();
 			ctrl_.init();
 
-			// 50ms setup...
-			for(uint8_t i = 0; i < 5; ++i) {
+			// 100ms setup...
+			for(uint8_t i = 0; i < 10; ++i) {
 				utils::delay::micro_second(10000);
 			}
 
 			ctrl_.a0_out(0);
 			ctrl_.cs_out(0);	// device enable
 
-//			spi_.write(0xae);	// display off
+			spi_.write(0xae);	// display off
 			spi_.write(0x40);	// display start line of 0
 			spi_.write(0xa1);	// ADC set to reverse
 			spi_.write(0xc0);	// common output mode: set scan direction normal operation
@@ -69,7 +69,10 @@ namespace device {
 			spi_.write(0xa4);	// all pixel on disable
 			spi_.write(0xaf);	// display on
 
-			utils::delay::micro_second(10000);
+			for(uint8_t i = 0; i < 5; ++i) {
+				utils::delay::micro_second(10000);
+			}
+
 			ctrl_.cs_out(1);	// device disable
 		}
 
@@ -86,7 +89,7 @@ namespace device {
 				ctrl_.a0_out(0);
 				spi_.write(0xb0 + page);
 				spi_.write(0x10);  // column upper
-				spi_.write(0x00);  // column lower
+				spi_.write(0x04);  // column lower
 				ctrl_.a0_out(1);
 				for(uint8_t i = 0; i < 128; ++i) {
 					spi_.write(*p);
