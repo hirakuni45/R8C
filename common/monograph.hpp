@@ -5,7 +5,7 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
-#include <stdint.h>
+#include <cstdint>
 
 // LCD 128x64 の場合
 // #define LCD128X64
@@ -72,7 +72,20 @@ namespace graphics {
 			@brief	初期化
 		*/
 		//-----------------------------------------------------------------//
-		void init();
+		void init() {
+#ifdef KANJI_FONTS
+			for(uint8_t i = 0; i < KANJI_CASH_SIZE; ++i) {
+				kanji_cash_[i].sjis_lo = 0;
+				kanji_cash_[i].sjis_hi = 0;
+			}
+			cash_first_ = 0;
+#endif
+#ifdef LCD128X64
+			font_width_ = 6;
+			font_height_ = 12;
+#endif
+			multi_byte_hi_ = 0;
+		}
 
 
 		//-----------------------------------------------------------------//
