@@ -1,6 +1,8 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C ADC メイン
+	@brief	R8C SD メイン @n
+			for ST7567 SPI (128 x 32) @n
+			LCD: Aitendo M-G0812P7567
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -8,6 +10,8 @@
 #include "system.hpp"
 #include "clock.hpp"
 #include "common/port_map.hpp"
+#include "common/command.hpp"
+#include <cstring>
 #include "common/format.hpp"
 
 static void wait_(uint16_t n)
@@ -20,18 +24,27 @@ static void wait_(uint16_t n)
 
 static timer_b timer_b_;
 static uart0 uart0_;
-class out_cha {
-public:
-	void operator () (char ch) {
+static utils::command<64> command_;
+static lcd lcd_;
+static mono_graph bitmap_;
+
+extern "C" {
+	void sci_putch(char ch) {
 		uart0_.putch(ch);
-	} 
-};
+	}
 
-void putch_(char ch) {
-	uart0_.putch(ch);
+	char sci_getch(void) {
+		return uart0_.getch();
+	}
+
+	uint16_t sci_length() {
+		return uart0_.length();
+	}
+
+	void sci_puts(const char* str) {
+		uart0_.puts(str);
+	}
 }
-
-static adc adc_;
 
 extern "C" {
 	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
@@ -77,7 +90,32 @@ extern "C" {
 	};
 }
 
-int main(int argc, char *ragv[])
+static uint8_t v_ = 91;
+static uint8_t m_ = 123;
+
+#if 0
+static void randmize_(uint8_t v, uint8_t m)
+{
+	v_ = v;
+	m_ = m;
+}
+#endif
+
+static uint8_t rand_()
+{
+	v_ += v_ << 2;
+	++v_;
+	uint8_t n = 0;
+	if(m_ & 0x02) n = 1;
+	if(m_ & 0x40) n ^= 1;
+	m_ += m_;
+	if(n == 0) ++m_;
+	return v_ ^ m_;
+}
+
+
+//  __attribute__ ((section (".exttext")))
+int main(int argc, char *argv[])
 {
 	using namespace device;
 
@@ -97,7 +135,7 @@ int main(int argc, char *ragv[])
 		timer_b_.start_timer(60, ir_level);
 	}
 
-	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
+	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
 	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
 	{
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
@@ -106,44 +144,78 @@ int main(int argc, char *ragv[])
 		uart0_.start(19200, ir_level);
 	}
 
-	uart0_.puts("Start R8C ADC\n");
-
-	// ADC の設定（CH1のサイクルモード）
-	// port1.b1 の A/D 変換
+	// LCD を開始
 	{
-		PD1.B1 = 0;
-		adc_.setup(true, device::adc_io::cnv_type::chanel1, 0);
-		adc_.start();
+		lcd_.start();
+		bitmap_.init();
+		bitmap_.clear(0);
 	}
 
-	// L チカ・メイン
+	sci_puts("Start R8C LCD monitor\n");
+	command_.set_prompt("# ");
+
+	// LED シグナル用ポートを出力
 	PD1.B0 = 1;
+
 	uint8_t cnt = 0;
-	uint32_t nnn = 0;
+	uint16_t x = rand_() & 127;
+	uint16_t y = rand_() & 31;
+	uint16_t xx;
+	uint16_t yy;
+	uint8_t loop = 20;
 	while(1) {
 		timer_b_.sync();
-		++cnt;
-		if(cnt >= 30) {
-			cnt = 0;
-#if 0
-			if(adc_.get_state()) {
-				uint16_t v = adc_.get_value(1);
-				utils::format("(%d): %1.2:8y[V], %d\n")
-					% static_cast<uint32_t>(nnn)
-					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
-					% static_cast<uint32_t>(v);
-				adc_.start();
-			}
-			++nnn;
-#endif
-		}
+		lcd_.copy(bitmap_.fb());
 
+		if(loop >= 20) {
+			loop = 0;
+			bitmap_.clear(0);
+			bitmap_.frame(0, 0, 128, 32, 1);
+		}
+		xx = rand_() & 127;
+		yy = rand_() & 31;
+		bitmap_.line(x, y, xx, yy, 1);
+		x = xx;
+		y = yy;
+		++loop;
+
+//		bitmap_.line(0, 0, 127, 31, 1);
+//		bitmap_.line(0, 31, 127, 0, 1);
+
+		if(cnt >= 20) {
+			cnt = 0;
+		}
 		if(cnt < 10) P1.B0 = 1;
 		else P1.B0 = 0;
+		++cnt;
 
-		if(uart0_.length()) {  // UART のレシーブデータがあるか？
-			char ch = uart0_.getch();
-			uart0_.putch(ch);
+		// コマンド入力と、コマンド解析
+		if(command_.service()) {
+#if 0
+			uint8_t cmdn = command_.get_words();
+			if(cmdn >= 1) {
+				if(check_key_word_(0, "date")) {
+					if(cmdn == 1) {
+						time_t t = get_time_();
+						if(t != 0) {
+							disp_time_(t);
+						}
+					} else {
+						set_time_date_();
+					}
+				} else if(check_key_word_(0, "help")) {
+					sci_puts("date\n");
+					sci_puts("date yyyy/mm/dd hh:mm[:ss]\n");
+				} else {
+					char buff[12];
+					if(command_.get_word(0, sizeof(buff), buff)) {
+						sci_puts("Command error: ");
+						sci_puts(buff);
+						sci_putch('\n');
+					}
+				}
+			}
+#endif
 		}
 	}
 }
