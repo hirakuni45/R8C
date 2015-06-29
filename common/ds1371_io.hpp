@@ -33,7 +33,7 @@ namespace device {
 
 		static const uint8_t	DS1371_ADR_ = 0x68;
 
-		i2c_io<PORT>	i2c_io_;
+		i2c_io<PORT>&	i2c_io_;
 
 		bool get_time_(time_t& tp) const {
 			uint8_t reg[4];
@@ -53,11 +53,19 @@ namespace device {
 	public:
 		//-----------------------------------------------------------------//
 		/*!
+			@brief	コンストラクター
+			@param[in]	i2c	I2C class
+		 */
+		//-----------------------------------------------------------------//
+		ds1371_io(i2c_io<PORT>& i2c) : i2c_io_(i2c) { }
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief	開始
 		 */
 		//-----------------------------------------------------------------//
 		void start() {
-			i2c_io_.init();
 			i2c_io_.set_fast();		// 400kbps
 
 			uint8_t reg[3];
@@ -76,6 +84,7 @@ namespace device {
 		 */
 		//-----------------------------------------------------------------//
 		bool set_time(time_t t) const {
+			i2c_io_.set_fast();		// 400kbps
 			uint8_t reg[5];
 			reg[0] = 0x00;	/// address
 			reg[1] = t;
@@ -94,6 +103,7 @@ namespace device {
 		 */
 		//-----------------------------------------------------------------//
 		bool get_time(time_t& tp) const {
+			i2c_io_.set_fast();		// 400kbps
 			time_t t = 0;
 			time_t tmp = 0;
 			// 二度読んで、同じだったら正しい時間とする
