@@ -24,7 +24,8 @@ static void wait_(uint16_t n)
 static timer_b timer_b_;
 static uart0 uart0_;
 static utils::command<64> command_;
-static ds1371 rtc_;
+static i2c_io i2c_io_;
+static ds1371 rtc_(i2c_io_);
 
 extern "C" {
 	void sci_putch(char ch) {
@@ -243,6 +244,11 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P15::RXD0);
 		uint8_t ir_level = 1;
 		uart0_.start(19200, ir_level);
+	}
+
+	// I2C クラスの初期化
+	{
+		i2c_io_.init();
 	}
 
 	// DS1371 RTC を開始
