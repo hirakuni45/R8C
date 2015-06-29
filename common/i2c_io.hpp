@@ -105,6 +105,23 @@ namespace device {
 			return true;
 		}
 
+
+		bool write_(const uint8_t* src, uint8_t num) const {
+			for(uint8_t n = 0; n < num; ++n) {
+				if(!write_(*src, true)) {
+					stop_();
+					return false;
+				}
+				++src;
+				if(ack_()) {
+					stop_();
+					return false;
+				}
+			}
+			return true;
+		}
+
+
 		bool read_(uint8_t& val, bool sync) const {
 			port_.sda_dir(0);
 			for(uint8_t n = 0; n < 8; ++n) {
@@ -231,16 +248,79 @@ namespace device {
 				return false;
 			}
 
-			for(uint8_t n = 0; n < num; ++n) {
-				if(!write_(*src, true)) {
-					stop_();
-					return false;
-				}
-				++src;
-				if(ack_()) {
-					stop_();
-					return false;
-				}
+			if(!write_(src, num)) {
+				stop_();
+				return false;
+			}
+			stop_();
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  送信（ライト）
+			@param[in] address スレーブアドレス（７ビット）
+			@param[in]	first	ファーストデータ
+			@param[in]	src	元
+			@param[in]	num	数
+			@return 失敗なら「false」が返る
+		*/
+		//-----------------------------------------------------------------//
+		bool send(uint8_t address, uint8_t first, const uint8_t* src, uint8_t num) const {
+			start_();
+			write_(address << 1, false);
+			if(ack_()) {
+				stop_();
+				return false;
+			}
+
+			if(!write_(first, false)) {
+				stop_();
+				return false;
+			}
+
+			if(!write_(src, num)) {
+				stop_();
+				return false;
+			}
+			stop_();
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  送信（ライト）
+			@param[in] address スレーブアドレス（７ビット）
+			@param[in]	first	ファースト・データ
+			@param[in]	second	セカンド・データ
+			@param[in]	src	元
+			@param[in]	num	数
+			@return 失敗なら「false」が返る
+		*/
+		//-----------------------------------------------------------------//
+		bool send(uint8_t address, uint8_t first, uint8_t second, const uint8_t* src, uint8_t num) const {
+			start_();
+			write_(address << 1, false);
+			if(ack_()) {
+				stop_();
+				return false;
+			}
+
+			if(!write_(first, false)) {
+				stop_();
+				return false;
+			}
+
+			if(!write_(second, false)) {
+				stop_();
+				return false;
+			}
+
+			if(!write_(src, num)) {
+				stop_();
+				return false;
 			}
 			stop_();
 			return true;

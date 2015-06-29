@@ -38,6 +38,7 @@ struct scl_sda {
 	bool sda_inp() const { return device::P4.B5(); }    // SDA 入力
 };
 
+typedef device::i2c_io<scl_sda> i2c_io;
 typedef device::ds1371_io<scl_sda> ds1371;
 
 
