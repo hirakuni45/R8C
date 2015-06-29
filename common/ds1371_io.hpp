@@ -11,6 +11,23 @@
 
 namespace device {
 
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  DS1371 テンプレートクラス @n
+				PORT ポート指定クラス： @n
+				class port { @n
+				public: @n
+					void scl_dir(bool val) const { } @n
+					void scl_out(bool val) const { } @n
+					bool scl_inp() const { return 0; } @n
+					void sda_dir(bool val) const { } @n
+					void sda_out(bool val) const { } @n
+					bool sda_inp() const { return 0; } @n
+				};
+		@param[in]	PORT	ポート定義クラス
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <class PORT>
 	class ds1371_io {
 
