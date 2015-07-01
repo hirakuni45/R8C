@@ -58,12 +58,26 @@ namespace device {
 			for(uint8_t i = 0; i < 8; ++i) {
 				port_.scl_out(0);
 				port_.sda_out(d & 0x80);
+				port_.scl_out(1);
+				d <<= 1;
+			}
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  ライト
+			@param[in]	d	データ
+		*/
+		//-----------------------------------------------------------------//
+		void write_1(uint8_t d) const {
+			for(uint8_t i = 0; i < 8; ++i) {
+				port_.scl_out(0);
+				port_.sda_out(d & 0x80);
 				asm("nop");
-//				utils::delay::micro_second(1);
 				port_.scl_out(1);
 				d <<= 1;
 				asm("nop");
-//				utils::delay::micro_second(1);
 			}
 		}
 
