@@ -205,20 +205,46 @@ int main(int argc, char *argv[])
 							if(eeprom_.read(adr, tmp, 8)) {
 								dump_(adr, tmp, 8);
 							} else {
-								sci_puts("Stall eeprom...\n");
+								sci_puts("Stall eeprom read...\n");
 							}
-							err = true;
+							err = false;
 						}
 					}
 				}
-			} else if(cmdn == 3) {
+			} else if(cmdn >= 3 && cmdn <= 10) {
 				if(check_key_word_(0, "write")) {
-
-
-
+					char buff[9];
+					if(command_.get_word(1, sizeof(buff), buff)) {
+						uint32_t adr;
+						if(get_value_(buff, adr)) {
+							cmdn -= 2;
+							uint8_t tmp[8];
+							bool f = true;
+							for(uint8_t i = 0; i < cmdn; ++i) {
+								if(command_.get_word(2 + i, sizeof(buff), buff)) {
+									uint32_t data;
+									if(get_value_(buff, data)) {
+										tmp[i] = data;
+									} else {
+										f = false;
+										break;
+									}
+								} else {
+									f = false;
+									break;
+								}
+							}
+							if(f) {
+								if(!eeprom_.write(adr, tmp, cmdn)) {
+									sci_puts("Stall eeprom write...\n");
+								}
+								err = false;
+							}
+						}
+					}
 				}
 			}
-			if(err) {
+			if(cmdn > 0 && err) {
 				sci_puts("Command error: ");
 				sci_puts(command_.get_command());
 				sci_putch('\n');
