@@ -1,16 +1,15 @@
 //=====================================================================//
 /*!	@file
 	@brief	R8C I2C メイン @n
-			for DS1302 RTC
+			for EEPROM 24FC1025
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
 #include "main.hpp"
+#include <cstring>
 #include "system.hpp"
 #include "clock.hpp"
-#include "common/port_map.hpp"
 #include "common/command.hpp"
-#include <cstring>
 #include "common/format.hpp"
 
 static void wait_(uint16_t n)
@@ -90,6 +89,43 @@ extern "C" {
 }
 
 
+static bool check_key_word_(uint8_t idx, const char* key)
+{
+	char buff[12];
+	if(command_.get_word(idx, sizeof(buff), buff)) {
+		if(strcmp(buff, key) == 0) {
+			return true;
+		}				
+	}
+	return false;
+}
+
+
+static bool get_value_(const char* text, uint32_t& val) {
+	val = 0;
+	char ch;
+	while((ch = *text++) != 0) {
+		if(ch >= '0' && ch <= '9') {
+			ch -= '0';
+		} else if(ch >= 'A' && ch <= 'F') {
+			ch -= 'A' + 10;
+		} else if(ch >= 'a' && ch <= 'f') {
+			ch -= 'a' + 10;
+		} else {
+			return false;
+		}
+		val <<= 4;
+		val |= ch;
+	}
+	return true;
+}
+
+
+static void dump_(uint32_t adr, const uint8_t* src, uint8_t len) {
+	
+}
+
+
  __attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])
 {
@@ -125,10 +161,11 @@ int main(int argc, char *argv[])
 		i2c_io_.init();
 	}
 
-	// EEPROM を開始
+	// EEPROM（24FC1025）を開始
 	{
-		// 2 バイトアドレス、ページサイズ６４バイトのEEPROM
-		eeprom_.start(true, 64);
+		// 2 バイトアドレス、ページサイズ128バイト
+		uint8_t device_select = 0;
+		eeprom_.start(device_select, true, 128);
 	}
 
 	sci_puts("Start R8C EEPROM monitor\n");
@@ -150,31 +187,42 @@ int main(int argc, char *argv[])
 
 		// コマンド入力と、コマンド解析
 		if(command_.service()) {
-#if 0
 			uint8_t cmdn = command_.get_words();
-			if(cmdn >= 1) {
-				if(check_key_word_(0, "date")) {
-					if(cmdn == 1) {
-						time_t t = get_time_();
-						if(t != 0) {
-							disp_time_(t);
+			bool err = true;
+			if(cmdn == 1) {
+				if(check_key_word_(0, "help")) {
+					sci_puts("read xxxx\n");
+					sci_puts("write yyyy aa bb cc ...\n");
+					err = false;
+				}
+			} else if(cmdn == 2) {
+				if(check_key_word_(0, "read")) {
+					char buff[9];
+					if(command_.get_word(1, sizeof(buff), buff)) {
+						uint32_t adr;
+						if(get_value_(buff, adr)) {
+							uint8_t tmp[8];
+							if(eeprom_.read(adr, tmp, 8)) {
+								dump_(adr, tmp, 8);
+							} else {
+								sci_puts("Stall eeprom...\n");
+							}
+							err = true;
 						}
-					} else {
-						set_time_date_();
-					}
-				} else if(check_key_word_(0, "help")) {
-					sci_puts("date\n");
-					sci_puts("date yyyy/mm/dd hh:mm[:ss]\n");
-				} else {
-					char buff[12];
-					if(command_.get_word(0, sizeof(buff), buff)) {
-						sci_puts("Command error: ");
-						sci_puts(buff);
-						sci_putch('\n');
 					}
 				}
+			} else if(cmdn == 3) {
+				if(check_key_word_(0, "write")) {
+
+
+
+				}
 			}
-#endif
+			if(err) {
+				sci_puts("Command error: ");
+				sci_puts(command_.get_command());
+				sci_putch('\n');
+			}
 		}
 	}
 }
