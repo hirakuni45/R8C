@@ -125,7 +125,7 @@ namespace device {
 				}
 				src += l;
 				adr += l;
-				if(src < end) {  // 書き込み終了を待つポーリング
+				if(src <= end) {  // 書き込み終了を待つポーリング
 					bool ok = false;
 					for(uint16_t i = 0; i < 600; ++i) {  // 最大で６ｍｓ待つ
 						utils::delay::micro_second(10);
