@@ -35,11 +35,13 @@ namespace device {
 		i2c_io<PORT>&	i2c_io_;
 
 		bool	exp_;
+		uint8_t	pagen_;
 
 	public:
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	コンストラクター
+			@param[in]	i2c	i2c_io クラスを参照で渡す
 		 */
 		//-----------------------------------------------------------------//
 		eeprom_io(i2c_io<PORT>& i2c) : i2c_io_(i2c), exp_(false) { }
@@ -49,10 +51,12 @@ namespace device {
 		/*!
 			@brief	開始
 			@param[in]	exp	「true」の場合、２バイトアドレス
+			@param[in]	pagen	ページサイズ
 		 */
 		//-----------------------------------------------------------------//
-		void start(bool exp) {
+		void start(bool exp, uint8_t pagen) {
 			exp_ = exp;
+			pagen_ = pagen;
 		}
 
 
