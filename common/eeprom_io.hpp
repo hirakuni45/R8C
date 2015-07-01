@@ -69,6 +69,28 @@ namespace device {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief	書き込み同期
+			@param[in]	adr	読み込みテストアドレス
+			@param[in]	delay 待ち時間（10us単位）
+			@return デバイスエラーなら「false」
+		 */
+		//-----------------------------------------------------------------//
+		bool sync_write(uint32_t adr = 0, uint16_t delay = 600) const {
+			bool ok = false;
+			for(uint16_t i = 0; i < delay; ++i) {
+				utils::delay::micro_second(10);
+				uint8_t tmp[1];
+				if(read(adr, tmp, 1)) {
+					ok = true;
+					break;
+				}
+			}
+			return ok;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief	EEPROM 読み出し
 			@param[in]	adr	読み出しアドレス
 			@param[out]	dst	先
@@ -125,17 +147,10 @@ namespace device {
 				}
 				src += l;
 				adr += l;
-				if(src <= end) {  // 書き込み終了を待つポーリング
-					bool ok = false;
-					for(uint16_t i = 0; i < 600; ++i) {  // 最大で６ｍｓ待つ
-						utils::delay::micro_second(10);
-						uint8_t tmp[1];
-						if(read(adr, tmp, 1)) {
-							ok = true;
-							break;
-						}
+				if(src < end) {  // 書き込み終了を待つポーリング
+					if(!sync_write(adr)) {
+						return false;
 					}
-					if(!ok) return false;
 				}
 			}
 			return true;
