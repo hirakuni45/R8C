@@ -34,8 +34,13 @@ namespace device {
 
 		i2c_io<PORT>&	i2c_io_;
 
+		uint8_t	ds_;
 		bool	exp_;
 		uint8_t	pagen_;
+
+		uint8_t i2c_adr_(bool exta = 0) const {
+			return EEPROM_ADR_ | ds_ | (static_cast<uint8_t>(exta) << 2);
+		}
 
 	public:
 		//-----------------------------------------------------------------//
@@ -44,17 +49,19 @@ namespace device {
 			@param[in]	i2c	i2c_io クラスを参照で渡す
 		 */
 		//-----------------------------------------------------------------//
-		eeprom_io(i2c_io<PORT>& i2c) : i2c_io_(i2c), exp_(false) { }
+		eeprom_io(i2c_io<PORT>& i2c) : i2c_io_(i2c), ds_(0), exp_(false), pagen_(1) { }
 
 
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	開始
+			@param[in]	ds	デバイス選択ビット
 			@param[in]	exp	「true」の場合、２バイトアドレス
 			@param[in]	pagen	ページサイズ
 		 */
 		//-----------------------------------------------------------------//
-		void start(bool exp, uint8_t pagen) {
+		void start(uint8_t ds, bool exp, uint8_t pagen) {
+			ds_ = ds & 7;
 			exp_ = exp;
 			pagen_ = pagen;
 		}
@@ -74,19 +81,19 @@ namespace device {
 				uint8_t tmp[2];
 				tmp[0] = (adr >> 8) & 255;
 				tmp[1] =  adr & 255;
-				if(!i2c_io_.send(EEPROM_ADR_ | ((adr >> 16) & 7), tmp, 2)) {
+				if(!i2c_io_.send(i2c_adr_((adr >> 16) & 1), tmp, 2)) {
 					return false;
 				}
-				if(!i2c_io_.recv(EEPROM_ADR_ | ((adr >> 16) & 7), dst, len)) {
+				if(!i2c_io_.recv(i2c_adr_((adr >> 16) & 1), dst, len)) {
 					return false;
 				}
 			} else {
 				uint8_t tmp[1];
 				tmp[0] = adr & 255;
-				if(!i2c_io_.send(EEPROM_ADR_ | ((adr >> 8) & 7), tmp, 1)) {
+				if(!i2c_io_.send(i2c_adr_(), tmp, 1)) {
 					return false;
 				}
-				if(!i2c_io_.recv(EEPROM_ADR_ | ((adr >> 16) & 7), dst, len)) {
+				if(!i2c_io_.recv(i2c_adr_(), dst, len)) {
 					return false;
 				}
 			}
@@ -104,13 +111,31 @@ namespace device {
 		 */
 		//-----------------------------------------------------------------//
 		bool write(uint32_t adr, const uint8_t* src, uint16_t len) const {
-			if(exp_) {
-				if(!i2c_io_.send(EEPROM_ADR_ | ((adr >> 16) & 7), adr >> 8, adr & 255, src, len)) {
-					return false;
+			const uint8_t* end = src + len;
+			while(src < end) {
+				uint16_t l = pagen_ - static_cast<uint16_t>(src) & (pagen_ - 1);
+				if(exp_) {
+					if(!i2c_io_.send(i2c_adr_((adr >> 16) & 1), adr >> 8, adr & 255, src, l)) {
+						return false;
+					}
+				} else {
+					if(!i2c_io_.send(i2c_adr_((adr >> 16) & 1), adr & 255, src, l)) {
+						return false;
+					}
 				}
-			} else {
-				if(!i2c_io_.send(EEPROM_ADR_ | ((adr >> 8) & 7), adr & 255, src, len)) {
-					return false;
+				src += l;
+				adr += l;
+				if(src < end) {  // 書き込み終了を待つポーリング
+					bool ok = false;
+					for(uint16_t i = 0; i < 600; ++i) {  // 最大で６ｍｓ待つ
+						utils::delay::micro_second(10);
+						uint8_t tmp[1];
+						if(read(adr, tmp, 1)) {
+							ok = true;
+							break;
+						}
+					}
+					if(!ok) return false;
 				}
 			}
 			return true;
