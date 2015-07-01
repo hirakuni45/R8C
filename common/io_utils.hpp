@@ -95,7 +95,21 @@ namespace device {
 	struct io8 {
 		typedef uint8_t value_type;
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  書き込み
+			@param[in]	data	書き込み値
+		*/
+		//-----------------------------------------------------------------//
 		static void write(uint8_t data) { wr8_(adr, data | with_data); }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief 読み出し
+			@return 読み出し値
+		*/
+		//-----------------------------------------------------------------//
 		static uint8_t read() { return rd8_(adr); }
 
 		void operator = (value_type data) const { write(data); }
@@ -115,6 +129,12 @@ namespace device {
 	struct io8_ro {
 		typedef uint8_t value_type;
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief 読み出し
+			@return 読み出し値
+		*/
+		//-----------------------------------------------------------------//
 		static uint8_t read() { return rd8_(adr); }
 
 		value_type operator () () const { return read(); }
@@ -131,6 +151,12 @@ namespace device {
 	struct io8_wo {
 		typedef uint8_t value_type;
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  書き込み
+			@param[in]	data	書き込み値
+		*/
+		//-----------------------------------------------------------------//
 		static void write(uint8_t data) { wr8_(adr, data); }
 
 		void operator = (value_type data) const { write(data); }
@@ -147,7 +173,21 @@ namespace device {
 	struct io16 {
 		typedef uint16_t value_type;
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  書き込み
+			@param[in]	data	書き込み値
+		*/
+		//-----------------------------------------------------------------//
 		static void write(uint16_t data) { wr16_(adr, data); }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief 読み出し
+			@return 読み出し値
+		*/
+		//-----------------------------------------------------------------//
 		static uint16_t read() { return rd16_(adr); }
 
 		void operator = (value_type data) const { write(data); }
@@ -167,6 +207,13 @@ namespace device {
 	struct io16_ro {
 		typedef uint16_t value_type;
 
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief 読み出し
+			@return 読み出し値
+		*/
+		//-----------------------------------------------------------------//
 		static uint16_t read() { return rd16_(adr); }
 
 		value_type operator () () const { return read(); }
@@ -183,6 +230,12 @@ namespace device {
 	struct io16_wo {
 		typedef uint16_t value_type;
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  書き込み
+			@param[in]	data	書き込み値
+		*/
+		//-----------------------------------------------------------------//
 		static void write(uint16_t data) { wr16_(adr, data); }
 
 		void operator = (value_type data) const { write(data); }
@@ -199,7 +252,21 @@ namespace device {
 	struct io32 {
 		typedef uint32_t	value_type;
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  書き込み
+			@param[in]	data	書き込み値
+		*/
+		//-----------------------------------------------------------------//
 		static void write(uint32_t data) { wr32_(adr, data); }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  書き込み
+			@param[in]	data	書き込み値
+		*/
+		//-----------------------------------------------------------------//
 		static uint32_t read() { return rd32_(adr); }
 
 		void operator = (value_type data) const { write(data); }

@@ -10,12 +10,13 @@
 
 namespace device {
 
+	/// @brief レジスタ定義 
+	typedef io8<0x0180> wcmpr_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  コンパレーター制御レジスタ WCMPR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x0180> wcmpr_io;
 	struct wcmpr_t : public wcmpr_io {
 		using wcmpr_io::operator =;
 		using wcmpr_io::operator ();
@@ -30,12 +31,13 @@ namespace device {
 	static wcmpr_t WCMPR;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x0181> wcb1intr_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  コンパレーター B1 割り込み制御レジスタ WCB1INTR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x0181> wcb1intr_io;
 	struct wcb1intr_t : public wcb1intr_io {
 		using wcb1intr_io::operator =;
 		using wcb1intr_io::operator ();
@@ -50,12 +52,13 @@ namespace device {
 	static wcb1intr_t WCB1INTR;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x0182> wcb3intr_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  コンパレーター B3 割り込み制御レジスタ WCB3INTR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x0182> wcb3intr_io;
 	struct wcb3intr_t : public wcb3intr_io {
 		using wcb3intr_io::operator =;
 		using wcb3intr_io::operator ();

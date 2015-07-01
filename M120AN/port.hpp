@@ -10,12 +10,13 @@
 
 namespace device {
 
+	/// @brief レジスタ定義
+	typedef io8<0x00B9> pinsr_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート入出力機能制御レジスタ PINSR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00B9> pinsr_io;
 	struct pinsr_t : public pinsr_io {
 		using pinsr_io::operator =;
 		using pinsr_io::operator ();
@@ -28,12 +29,13 @@ namespace device {
 	static pinsr_t PINSR;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00A9> pd1_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート P1 方向レジスタ PD1
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00A9> pd1_io;
 	struct pd1_t : public pd1_io {
 		using pd1_io::operator =;
 		using pd1_io::operator ();
@@ -52,12 +54,13 @@ namespace device {
 	static pd1_t PD1;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00AF> p1_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート P1 レジスタ P1
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00AF> p1_io;
 	struct p1_t : public p1_io {
 		using p1_io::operator =;
 		using p1_io::operator ();
@@ -76,12 +79,13 @@ namespace device {
 	static p1_t P1;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00B5> pur1_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  プルアップ制御レジスタ１ PUR1
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00B5> pur1_io;
 	struct pur1_t : public pur1_io {
 		using pur1_io::operator =;
 		using pur1_io::operator ();
@@ -100,12 +104,13 @@ namespace device {
 	static pur1_t PUR1;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00BB> drr1_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  駆動能力制御レジスタ１ DRR1
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00BB> drr1_io;
 	struct drr1_t : public drr1_io {
 		using drr1_io::operator =;
 		using drr1_io::operator ();
@@ -120,12 +125,13 @@ namespace device {
 	static drr1_t DRR1;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00C1> pod1_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  オープンドレイン制御レジスタ１ POD1
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00C1> pod1_io;
 	struct pod1_t : public pod1_io {
 		using pod1_io::operator =;
 		using pod1_io::operator ();
@@ -144,12 +150,13 @@ namespace device {
 	static pod1_t POD1;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00C8> pml1_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート１機能マッピングレジスタ０ PML1
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00C8> pml1_io;
 	struct pml1_t : public pml1_io {
 		using pml1_io::operator =;
 		using pml1_io::operator ();
@@ -164,12 +171,13 @@ namespace device {
 	static pml1_t PML1;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00C9> pmh1_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート１機能マッピングレジスタ１ PMH1
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00C9> pmh1_io;
 	struct pmh1_t : public pmh1_io {
 		using pmh1_io::operator =;
 		using pmh1_io::operator ();
@@ -184,12 +192,13 @@ namespace device {
 	static pmh1_t PMH1;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00D1> pmh1e_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート１機能マッピング拡張レジスタ PMH1E
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00D1> pmh1e_io;
 	struct pmh1e_t : public pmh1e_io {
 		using pmh1e_io::operator =;
 		using pmh1e_io::operator ();
@@ -202,12 +211,13 @@ namespace device {
 	static pmh1e_t PMH1E;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00AB> pd3_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート P3 方向レジスタ PD3
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00AB> pd3_io;
 	struct pd3_t : public pd3_io {
 		using pd3_io::operator =;
 		using pd3_io::operator ();
@@ -222,12 +232,13 @@ namespace device {
 	static pd3_t PD3;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00B1> p3_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート P3 レジスタ P3
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00B1> p3_io;
 	struct p3_t : public p3_io {
 		using p3_io::operator =;
 		using p3_io::operator ();
@@ -242,12 +253,13 @@ namespace device {
 	static p3_t P3;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00B1> pur3_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  プルアップ制御レジスタ３ PUR3
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00B1> pur3_io;
 	struct pur3_t : public pur3_io {
 		using pur3_io::operator =;
 		using pur3_io::operator ();
@@ -262,12 +274,13 @@ namespace device {
 	static pur3_t PUR3;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00BD> drr3_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  駆動能力制御レジスタ３ DRR3
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00BD> drr3_io;
 	struct drr3_t : public drr3_io {
 		using drr3_io::operator =;
 		using drr3_io::operator ();
@@ -282,12 +295,13 @@ namespace device {
 	static drr3_t DRR3;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00C3> pod3_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  オープンドレイン制御レジスタ３ POD3
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00C3> pod3_io;
 	struct pod3_t : public pod3_io {
 		using pod3_io::operator =;
 		using pod3_io::operator ();
@@ -302,12 +316,13 @@ namespace device {
 	static pod3_t POD3;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00CC> pml3_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート３機能マッピングレジスタ０ PML3
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00CC> pml3_io;
 	struct pml3_t : public pml3_io {
 		using pml3_io::operator =;
 		using pml3_io::operator ();
@@ -319,12 +334,13 @@ namespace device {
 	static pml3_t PML3;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00CD> pmh3_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート３機能マッピングレジスタ１ PMH3
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00CD> pmh3_io;
 	struct pmh3_t : public pmh3_io {
 		using pmh3_io::operator =;
 		using pmh3_io::operator ();
@@ -338,12 +354,13 @@ namespace device {
 	static pmh3_t PMH3;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00AC> pd4_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート P4 方向レジスタ PD4
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00AC> pd4_io;
 	struct pd4_t : public pd4_io {
 		using pd4_io::operator =;
 		using pd4_io::operator ();
@@ -358,12 +375,13 @@ namespace device {
 	static pd4_t PD4;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00B2> p4_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート P4 レジスタ P4
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00B2> p4_io;
 	struct p4_t : public p4_io {
 		using p4_io::operator =;
 		using p4_io::operator ();
@@ -378,12 +396,13 @@ namespace device {
 	static p4_t P4;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00B8> pur4_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  プルアップ制御レジスタ４ PUR4
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00B8> pur4_io;
 	struct pur4_t : public pur4_io {
 		using pur4_io::operator =;
 		using pur4_io::operator ();
@@ -398,12 +417,13 @@ namespace device {
 	static pur4_t PUR4;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00C4> pod4_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  オープンドレイン制御レジスタ４ POD4
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00C4> pod4_io;
 	struct pod4_t : public pod4_io {
 		using pod4_io::operator =;
 		using pod4_io::operator ();
@@ -418,12 +438,13 @@ namespace device {
 	static pod4_t POD4;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00CE> pml4_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート４機能マッピングレジスタ０ PML4
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00CE> pml4_io;
 	struct pml4_t : public pml4_io {
 		using pml4_io::operator =;
 		using pml4_io::operator ();
@@ -435,12 +456,13 @@ namespace device {
 	static pml4_t PML4;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00CF> pmh4_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート４機能マッピングレジスタ１ PMH4
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00CF> pmh4_io;
 	struct pmh4_t : public pmh4_io {
 		using pmh4_io::operator =;
 		using pmh4_io::operator ();
@@ -454,12 +476,13 @@ namespace device {
 	static pmh4_t PMH4;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00D5> pmh4e_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート４機能マッピング拡張レジスタ PMH4E
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00D5> pmh4e_io;
 	struct pmh4e_t : public pmh4e_io {
 		using pmh4e_io::operator =;
 		using pmh4e_io::operator ();
@@ -471,12 +494,13 @@ namespace device {
 	static pmh4e_t PMH4E;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00AD> pda_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート PA 方向レジスタ PDA
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00AD> pda_io;
 	struct pda_t : public pda_io {
 		using pda_io::operator =;
 		using pda_io::operator ();
@@ -488,12 +512,13 @@ namespace device {
 	static pda_t PDA;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00B3> pa_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  ポート PA レジスタ PA
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00B3> pa_io;
 	struct pa_t : public pa_io {
 		using pa_io::operator =;
 		using pa_io::operator ();
@@ -505,12 +530,13 @@ namespace device {
 	static pa_t PA;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00C5> pamcr_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief	ポート PA 制御レジスタ PAMCR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00C5> pamcr_io;
 	struct pamcr_t : public pamcr_io {
 		using pamcr_io::operator =;
 		using pamcr_io::operator ();
