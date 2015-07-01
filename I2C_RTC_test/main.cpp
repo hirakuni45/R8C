@@ -6,11 +6,10 @@
 */
 //=====================================================================//
 #include "main.hpp"
+#include <cstring>
 #include "system.hpp"
 #include "clock.hpp"
-#include "common/port_map.hpp"
 #include "common/command.hpp"
-#include <cstring>
 #include "common/format.hpp"
 
 static void wait_(uint16_t n)

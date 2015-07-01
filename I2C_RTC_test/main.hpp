@@ -7,6 +7,7 @@
 //=====================================================================//
 #include "port.hpp"
 #include "common/intr_utils.hpp"
+#include "common/port_map.hpp"
 #include "common/uart_io.hpp"
 #include "common/trb_io.hpp"
 #include "common/adc_io.hpp"
@@ -26,9 +27,11 @@ typedef device::flash_io flash;
 // P1_B7: SCL
 // P4_B5: SDA
 struct scl_sda {
-	void init() const {  // オープン・ドレイン設定
-		device::POD1.B7 = 1;
-		device::POD4.B5 = 1;
+	void init() const {
+		utils::PORT_MAP(utils::port_map::P17::PORT);
+		utils::PORT_MAP(utils::port_map::P45::PORT);
+		device::POD1.B7 = 1;  // オープン・ドレイン設定
+		device::POD4.B5 = 1;  // オープン・ドレイン設定
 	}
 	void scl_dir(bool b) const { device::PD1.B7 = b; }  // SCL 方向 (0:in, 1:out)
 	void scl_out(bool b) const { device::P1.B7 = b; }   // SCL 出力
