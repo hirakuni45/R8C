@@ -18,12 +18,13 @@ namespace device {
 	static io16<0x00D8> TRJ;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00DA> trjcr_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  タイマＲＪ制御レジスタ TRJCR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00DA> trjcr_io;
 	struct trjcr_t : public trjcr_io {
 		using trjcr_io::operator =;
 		using trjcr_io::operator ();
@@ -39,12 +40,13 @@ namespace device {
 	static trjcr_t TRJCR;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00DB> trjioc_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  タイマＲＪ I/O 制御レジスタ TRJIOC
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00DB> trjioc_io;
 	struct trjioc_t : public trjioc_io {
 		using trjioc_io::operator =;
 		using trjioc_io::operator ();
@@ -59,12 +61,13 @@ namespace device {
 	static trjioc_t TRJIOC;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00DC> trjmr_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  タイマＲＪモードレジスタ TRJIOC
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00DC> trjmr_io;
 	struct trjmr_t : public trjmr_io {
 		using trjmr_io::operator =;
 		using trjmr_io::operator ();
@@ -79,12 +82,13 @@ namespace device {
 	static trjmr_t TRJMR;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00DD> trjisr_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  タイマＲＪイベント選択レジスタ TRJISR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00DD> trjisr_io;
 	struct trjisr_t : public trjisr_io {
 		using trjisr_io::operator =;
 		using trjisr_io::operator ();
@@ -97,12 +101,13 @@ namespace device {
 	static trjisr_t TRJISR;
 
 
+	/// @brief レジスタ定義
+	typedef io8<0x00DE> trjir_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  タイマＲＪ割り込み制御レジスタ TRJIR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00DE> trjir_io;
 	struct trjir_t : public trjir_io {
 		using trjir_io::operator =;
 		using trjir_io::operator ();
