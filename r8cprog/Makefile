@@ -27,8 +27,8 @@ PINC_APP	=
 CINC_APP	=
 LIBDIR		=
 
-INC_S	=	$(addprefix -isystem, $(INC_SYS))
-INC_L	=	$(addprefix -isystem, $(INC_LIB))
+INC_S	=	$(addprefix -isystem , $(INC_SYS))
+INC_L	=	$(addprefix -isystem , $(INC_LIB))
 INC_P	=	$(addprefix -I, $(PINC_APP))
 INC_C	=	$(addprefix -I, $(CINC_APP))
 CINCS	=	$(INC_S) $(INC_L) $(INC_C)
@@ -73,9 +73,6 @@ ifeq ($(BUILD),release)
 endif
 
 # 	-static-libgcc -static-libstdc++
-#LFLAGS	=	-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk \
--Wl,-search_paths_first -Wl,-headerpad_max_install_names \
--framework AGL -framework Cocoa -framework OpenGL -framework IOKit -framework CoreFoundation -framework CoreVideo -framework OpenAL
 LFLAGS =
 
 # -Wuninitialized -Wunused -Werror -Wshadow
@@ -124,7 +121,8 @@ $(BUILD)/%.d : %.cpp
 	[ -s $@ ] || rm -f $@
 
 run:
-	./$(TARGET) -V -P /dev/tty.usbserial-A600e0xq -e -w -v flash_test.mot
+	./$(TARGET) -V -P /dev/tty.usbserial-DA00X2QP --progress -e -w -v flash_test.mot
+#	./$(TARGET) -V -P /dev/tty.usbserial-A600e0xq -e -w -v flash_test.mot
 
 clean:
 	rm -rf $(BUILD) $(TARGET)
