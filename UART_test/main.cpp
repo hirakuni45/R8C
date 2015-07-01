@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
-	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
+	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
 	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
 	utils::PORT_MAP(utils::port_map::P14::TXD0);
 	utils::PORT_MAP(utils::port_map::P15::RXD0);
