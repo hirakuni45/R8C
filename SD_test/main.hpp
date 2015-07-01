@@ -43,26 +43,32 @@ struct scl_sda {
 
 typedef device::ds1371_io<scl_sda> ds1371;
 
-// LCD SCL: P4_2(1)
-// LCD SDA: P4_5(12)
-// LCD A0:  P3_3(11)
-// LCD /CS: P3_7(2)
+// LCD SCK / SD CLK: P4_2(1)
+// LCD SDA / SD DO:  P4_5(12)
+//         / SD DI:  P4_7(4)
+// LCD A0:           P3_3(11)
+// LCD /CS:          P3_7(2)
+// SD  /CS:          P3_4(10)
 struct spi_base {
 	void init() const {
 		device::PD4.B2 = 1;
 		device::PD4.B5 = 1;
+		device::PD4.B7 = 0;
 	}
 	void scl_out(bool b) const { device::P4.B2 = b; }
 	void sda_out(bool b) const { device::P4.B5 = b; }
+	bool sda_inp() const { return device::P4.B7(); }
 };
 
 struct spi_ctrl {
 	void init() const {
 		device::PD3.B3 = 1;
 		device::PD3.B7 = 1;
+		device::PD3.B4 = 1;
 	}
 	void a0_out(bool b) const { device::P3.B3 = b; }
-	void cs_out(bool b) const { device::P3.B7 = b; }
+	void cs0_out(bool b) const { device::P3.B7 = b; }
+	void cs1_out(bool b) const { device::P3.B4 = b; }
 };
 
 typedef device::lcd_io<spi_base, spi_ctrl> lcd;
