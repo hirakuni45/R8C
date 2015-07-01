@@ -122,7 +122,10 @@ static bool get_value_(const char* text, uint32_t& val) {
 
 
 static void dump_(uint32_t adr, const uint8_t* src, uint8_t len) {
-	
+	utils::format("%05X:") % adr;
+	for(uint8_t i = 0; i < len; ++i) {
+		utils::format(" %02X") % static_cast<uint32_t>(src[i]);
+	}
 }
 
 
