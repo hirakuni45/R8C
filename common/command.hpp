@@ -147,10 +147,10 @@ namespace utils {
 			uint8_t n = 0;
 			while(1) {
 				char ch = *p++;
+				if(ch == 0) break;
 				if(bc == ' ' && ch != ' ') {
 					++n;
 				}
-				if(ch == 0) break;
 				bc = ch;
 			}
 			return n;
