@@ -3,7 +3,7 @@
 #	R8C Makefile 				        				#
 #														#
 #=======================================================#
-TARGET		=	i2c_test
+TARGET		=	i2c_rtc_test
 
 BUILD		=	release
 
