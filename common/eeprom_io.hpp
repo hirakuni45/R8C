@@ -135,7 +135,7 @@ namespace device {
 		bool write(uint32_t adr, const uint8_t* src, uint16_t len) const {
 			const uint8_t* end = src + len;
 			while(src < end) {
-				uint16_t l = pagen_ - static_cast<uint16_t>(src) & (pagen_ - 1);
+				uint16_t l = pagen_ - (reinterpret_cast<uint16_t>(src) & (pagen_ - 1));
 				if(exp_) {
 					if(!i2c_io_.send(i2c_adr_((adr >> 16) & 1), adr >> 8, adr & 255, src, l)) {
 						return false;
