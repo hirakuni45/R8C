@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 		timer_b_.start_timer(60, ir_level);
 	}
 
-	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
+	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
 	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
 	{
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
