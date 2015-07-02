@@ -108,9 +108,9 @@ static bool get_value_(const char* text, uint32_t& val) {
 		if(ch >= '0' && ch <= '9') {
 			ch -= '0';
 		} else if(ch >= 'A' && ch <= 'F') {
-			ch -= 'A' + 10;
+			ch -= 'A' - 10;
 		} else if(ch >= 'a' && ch <= 'f') {
-			ch -= 'a' + 10;
+			ch -= 'a' - 10;
 		} else {
 			return false;
 		}
@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 				if(check_key_word_(0, "read")) {
 					char buff[9];
 					if(command_.get_word(1, sizeof(buff), buff)) {
-						uint32_t adr;
+						uint32_t adr = 0;
 						if(get_value_(buff, adr)) {
 							uint8_t tmp[8];
 							if(eeprom_.read(adr, tmp, 8)) {
@@ -221,14 +221,14 @@ int main(int argc, char *argv[])
 				if(check_key_word_(0, "write")) {
 					char buff[9];
 					if(command_.get_word(1, sizeof(buff), buff)) {
-						uint32_t adr;
+						uint32_t adr = 0;
 						if(get_value_(buff, adr)) {
 							cmdn -= 2;
 							uint8_t tmp[8];
 							bool f = true;
 							for(uint8_t i = 0; i < cmdn; ++i) {
 								if(command_.get_word(2 + i, sizeof(buff), buff)) {
-									uint32_t data;
+									uint32_t data = 0;
 									if(get_value_(buff, data)) {
 										tmp[i] = data;
 									} else {
