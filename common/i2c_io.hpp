@@ -279,6 +279,10 @@ namespace device {
 				stop_();
 				return false;
 			}
+			if(ack_()) {
+				stop_();
+				return false;
+			}
 
 			if(!write_(src, num)) {
 				stop_();
@@ -312,8 +316,16 @@ namespace device {
 				stop_();
 				return false;
 			}
+			if(ack_()) {
+				stop_();
+				return false;
+			}
 
 			if(!write_(second, false)) {
+				stop_();
+				return false;
+			}
+			if(ack_()) {
 				stop_();
 				return false;
 			}
