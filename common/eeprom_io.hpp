@@ -231,7 +231,8 @@ namespace device {
 		bool write(uint32_t adr, const uint8_t* src, uint16_t len) const {
 			const uint8_t* end = src + len;
 			while(src < end) {
-				uint16_t l = pagen_ - (reinterpret_cast<uint16_t>(src) & (pagen_ - 1));
+				uint16_t l = pagen_ - (adr & (pagen_ - 1));
+				if(len < l) l = len;
 				if(exp_) {
 					if(!i2c_io_.send(i2c_adr_(adr), adr >> 8, adr & 255, src, l)) {
 						return false;
@@ -242,12 +243,12 @@ namespace device {
 					}
 				}
 				src += l;
-				adr += l;
 				if(src < end) {  // 書き込み終了を待つポーリング
 					if(!sync_write(adr)) {
 						return false;
 					}
 				}
+				adr += l;
 			}
 			return true;
 		}
