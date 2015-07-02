@@ -152,13 +152,26 @@ namespace device {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief	書き込み状態の検査
+			@param[in]	adr	検査アドレス
+			@return 「false」なら、書き込み中
+		 */
+		//-----------------------------------------------------------------//
+		bool get_write_state(uint32_t adr) const {
+			uint8_t tmp[1];
+			return read(adr, tmp, 1);
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief	書き込み同期
-			@param[in]	adr	読み込みテストアドレス
+			@param[in]	adr	検査アドレス
 			@param[in]	delay 待ち時間（10us単位）
 			@return デバイスエラーなら「false」
 		 */
 		//-----------------------------------------------------------------//
-		bool sync_write(uint32_t adr = 0, uint16_t delay = 600) const {
+		bool sync_write(uint32_t adr, uint16_t delay = 600) const {
 			bool ok = false;
 			for(uint16_t i = 0; i < delay; ++i) {
 				utils::delay::micro_second(10);
