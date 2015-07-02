@@ -126,6 +126,7 @@ static void dump_(uint32_t adr, const uint8_t* src, uint8_t len) {
 	for(uint8_t i = 0; i < len; ++i) {
 		utils::format(" %02X") % static_cast<uint32_t>(src[i]);
 	}
+	sci_putch('\n');
 }
 
 
@@ -164,11 +165,13 @@ int main(int argc, char *argv[])
 		i2c_io_.init();
 	}
 
-	// EEPROM（24FC1025）を開始
+	// EEPROMを開始
 	{
-		// 2 バイトアドレス、ページサイズ128バイト
-		uint8_t device_select = 0;
-		eeprom_.start(device_select, true, 128);
+		// 24FC1025: 128KB、ID0, ページサイズ128バイト
+		eeprom_.start(eeprom::M128KB::ID0, 128);
+
+		// 24FC512:  64KB、 ID0, ページサイズ128バイト
+//		eeprom_.start(eeprom::M64KB::ID0, 128);
 	}
 
 	sci_puts("Start R8C EEPROM monitor\n");
