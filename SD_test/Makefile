@@ -14,10 +14,10 @@ ASOURCES	=	common/start.s
 CSOURCES	=	common/vect.c \
 				common/init.c \
 				common/time.c \
-				pfatfs/src/pff.c \
-				pfatfs/src/diskio.c
+				pfatfs/src/pff.c
 
-PSOURCES	=	main.cpp
+PSOURCES	=	main.cpp \
+				pfatfs/src/diskio.cpp
 
 USER_LIBS	=	stdc++
 

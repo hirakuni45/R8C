@@ -13,6 +13,7 @@
 #include "common/command.hpp"
 #include <cstring>
 #include "common/format.hpp"
+#include "pfatfs/src/pff.h"
 
 static void wait_(uint16_t n)
 {
@@ -143,6 +144,13 @@ int main(int argc, char *argv[])
 		uint8_t ir_level = 1;
 		uart0_.start(19200, ir_level);
 	}
+
+	FATFS fatfs;
+	// pfatfs を開始
+	{
+		pf_mount(&fatfs);
+	}
+
 
 	// LCD を開始
 	{
