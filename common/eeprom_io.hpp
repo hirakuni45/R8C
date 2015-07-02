@@ -36,33 +36,116 @@ namespace device {
 
 		uint8_t	ds_;
 		bool	exp_;
+		bool	ad_mix_;
 		uint8_t	pagen_;
 
-		uint8_t i2c_adr_(bool exta = 0) const {
-			return EEPROM_ADR_ | ds_ | (static_cast<uint8_t>(exta) << 2);
+		uint8_t i2c_adr_(uint32_t adr) const {
+			uint8_t a = EEPROM_ADR_ | ds_;
+			if(ad_mix_) {
+				if(adr >> 16) a |= 4;
+			}
+			return a;
 		}
 
 	public:
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief 256 バイトまでの EEPROM の ID (0 to 7)
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class M256B {
+			ID0,
+			ID1,
+			ID2,
+			ID3,
+			ID4,
+			ID5,
+			ID6,
+			ID7,
+		};
+
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief 64K バイトまでの EEPROM の ID (0 to 7)
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class M64KB {
+			ID0,
+			ID1,
+			ID2,
+			ID3,
+			ID4,
+			ID5,
+			ID6,
+			ID7,
+		};
+
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief 128K バイトまでの EEPROM の ID (0 to 3)
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class M128KB {
+			ID0,
+			ID1,
+			ID2,
+			ID3,
+		};
+
+
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	コンストラクター
 			@param[in]	i2c	i2c_io クラスを参照で渡す
 		 */
 		//-----------------------------------------------------------------//
-		eeprom_io(i2c_io<PORT>& i2c) : i2c_io_(i2c), ds_(0), exp_(false), pagen_(1) { }
+		eeprom_io(i2c_io<PORT>& i2c) : i2c_io_(i2c), ds_(0),
+									   exp_(false), ad_mix_(false), pagen_(1) { }
 
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief	開始
-			@param[in]	ds	デバイス選択ビット
-			@param[in]	exp	「true」の場合、２バイトアドレス
-			@param[in]	pagen	ページサイズ
+			@brief	256 バイトまでの EEPROM を開始
+			@param[in]	type	デバイスのタイプとID
+			@param[in]	pagen	ページサイズ（書き込み一時バッファのサイズ）	
 		 */
 		//-----------------------------------------------------------------//
-		void start(uint8_t ds, bool exp, uint8_t pagen) {
-			ds_ = ds & 7;
-			exp_ = exp;
+		void start(M256B type_id, uint8_t pagen) {
+			ds_ = static_cast<uint8_t>(type_id);
+			exp_ = false;
+			ad_mix_ = false;
+			pagen_ = pagen;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	64K バイトまでの EEPROM を開始
+			@param[in]	type	デバイスのタイプとID
+			@param[in]	pagen	ページサイズ（書き込み一時バッファのサイズ）	
+		 */
+		//-----------------------------------------------------------------//
+		void start(M64KB type_id, uint8_t pagen) {
+			ds_ = static_cast<uint8_t>(type_id);
+			exp_ = true;
+			ad_mix_ = false;
+			pagen_ = pagen;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	128K バイトまでの EEPROM を開始
+			@param[in]	type	デバイスのタイプとID
+			@param[in]	pagen	ページサイズ（書き込み一時バッファのサイズ）	
+		 */
+		//-----------------------------------------------------------------//
+		void start(M128KB type_id, uint8_t pagen) {
+			ds_ = static_cast<uint8_t>(type_id);
+			exp_ = true;
+			ad_mix_ = true;
 			pagen_ = pagen;
 		}
 
@@ -103,19 +186,19 @@ namespace device {
 				uint8_t tmp[2];
 				tmp[0] = (adr >> 8) & 255;
 				tmp[1] =  adr & 255;
-				if(!i2c_io_.send(i2c_adr_((adr >> 16) & 1), tmp, 2)) {
+				if(!i2c_io_.send(i2c_adr_(adr), tmp, 2)) {
 					return false;
 				}
-				if(!i2c_io_.recv(i2c_adr_((adr >> 16) & 1), dst, len)) {
+				if(!i2c_io_.recv(i2c_adr_(adr), dst, len)) {
 					return false;
 				}
 			} else {
 				uint8_t tmp[1];
 				tmp[0] = adr & 255;
-				if(!i2c_io_.send(i2c_adr_(), tmp, 1)) {
+				if(!i2c_io_.send(i2c_adr_(adr), tmp, 1)) {
 					return false;
 				}
-				if(!i2c_io_.recv(i2c_adr_(), dst, len)) {
+				if(!i2c_io_.recv(i2c_adr_(adr), dst, len)) {
 					return false;
 				}
 			}
@@ -137,11 +220,11 @@ namespace device {
 			while(src < end) {
 				uint16_t l = pagen_ - (reinterpret_cast<uint16_t>(src) & (pagen_ - 1));
 				if(exp_) {
-					if(!i2c_io_.send(i2c_adr_((adr >> 16) & 1), adr >> 8, adr & 255, src, l)) {
+					if(!i2c_io_.send(i2c_adr_(adr), adr >> 8, adr & 255, src, l)) {
 						return false;
 					}
 				} else {
-					if(!i2c_io_.send(i2c_adr_((adr >> 16) & 1), adr & 255, src, l)) {
+					if(!i2c_io_.send(i2c_adr_(adr), adr & 255, src, l)) {
 						return false;
 					}
 				}
