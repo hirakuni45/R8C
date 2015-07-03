@@ -122,7 +122,7 @@ namespace device {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief	64K バイトまでの EEPROM を開始
+			@brief	256 バイト以上 64K バイトまでの EEPROM を開始
 			@param[in]	type	デバイスのタイプとID
 			@param[in]	pagen	ページサイズ（書き込み一時バッファのサイズ）	
 		 */
@@ -137,7 +137,7 @@ namespace device {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief	128K バイトまでの EEPROM を開始
+			@brief	128K バイトの EEPROM を開始
 			@param[in]	type	デバイスのタイプとID
 			@param[in]	pagen	ページサイズ（書き込み一時バッファのサイズ）	
 		 */
@@ -195,25 +195,21 @@ namespace device {
 		 */
 		//-----------------------------------------------------------------//
 		bool read(uint32_t adr, uint8_t* dst, uint16_t len) const {
+			uint8_t tmp[2];
 			if(exp_) {
-				uint8_t tmp[2];
 				tmp[0] = (adr >> 8) & 255;
 				tmp[1] =  adr & 255;
 				if(!i2c_io_.send(i2c_adr_(adr), tmp, 2)) {
 					return false;
 				}
-				if(!i2c_io_.recv(i2c_adr_(adr), dst, len)) {
-					return false;
-				}
 			} else {
-				uint8_t tmp[1];
 				tmp[0] = adr & 255;
 				if(!i2c_io_.send(i2c_adr_(adr), tmp, 1)) {
 					return false;
 				}
-				if(!i2c_io_.recv(i2c_adr_(adr), dst, len)) {
-					return false;
-				}
+			}
+			if(!i2c_io_.recv(i2c_adr_(adr), dst, len)) {
+				return false;
 			}
 			return true;
 		}
