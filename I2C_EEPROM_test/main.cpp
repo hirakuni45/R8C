@@ -196,6 +196,7 @@ static bool speed_(uint8_t cmdn) {
 		} else {
 			sci_puts("Invalid SPEED.\n");
 		}
+		return true;
 	}
 	return false;
 }
