@@ -51,10 +51,12 @@ namespace device {
 			port_.sda_dir(0);
 			utils::delay::micro_second(clock_);
 			bool f = port_.sda_inp();
+			port_.sda_out(0);
 			port_.sda_dir(1);
 			port_.scl_out(0);
 			return f;
 		}
+
 
 		void out_ack_(bool b) const {
 			utils::delay::micro_second(clock_);
@@ -92,7 +94,7 @@ namespace device {
 
 		bool write_(uint8_t val, bool sync) const {
 			for(uint8_t n = 0; n < 8; ++n) {
-				if(val & 0x80) port_.sda_out(1); else port_.sda_out(0);
+				port_.sda_out(val & 0x80);
 				utils::delay::micro_second(clock_);
 				port_.scl_out(1);
 				if(n == 0 && sync) {
@@ -101,6 +103,19 @@ namespace device {
 				val <<= 1;
 				utils::delay::micro_second(clock_);
 				port_.scl_out(0);
+			}
+			return true;
+		}
+
+
+		bool write_(uint8_t data) const {
+			if(!write_(data, true)) {
+				stop_();
+				return false;
+			}
+			if(ack_()) {
+				stop_();
+				return false;
 			}
 			return true;
 		}
@@ -275,11 +290,7 @@ namespace device {
 				return false;
 			}
 
-			if(!write_(first, false)) {
-				stop_();
-				return false;
-			}
-			if(ack_()) {
+			if(!write_(first)) {
 				stop_();
 				return false;
 			}
@@ -312,24 +323,14 @@ namespace device {
 				return false;
 			}
 
-			if(!write_(first, false)) {
+			if(!write_(first)) {
 				stop_();
 				return false;
 			}
-			if(ack_()) {
+			if(!write_(second)) {
 				stop_();
 				return false;
 			}
-
-			if(!write_(second, false)) {
-				stop_();
-				return false;
-			}
-			if(ack_()) {
-				stop_();
-				return false;
-			}
-
 			if(!write_(src, num)) {
 				stop_();
 				return false;
