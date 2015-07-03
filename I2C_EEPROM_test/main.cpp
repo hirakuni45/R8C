@@ -101,7 +101,23 @@ static bool check_key_word_(uint8_t idx, const char* key)
 }
 
 
-static bool get_value_(const char* text, uint32_t& val) {
+static bool get_dec_(const char* text, uint32_t& val) {
+	val = 0;
+	char ch;
+	while((ch = *text++) != 0) {
+		if(ch >= '0' && ch <= '9') {
+			ch -= '0';
+		} else {
+			return false;
+		}
+		val *= 10;
+		val += ch;
+	}
+	return true;
+}
+
+
+static bool get_hexadec_(const char* text, uint32_t& val) {
 	val = 0;
 	char ch;
 	while((ch = *text++) != 0) {
@@ -121,12 +137,201 @@ static bool get_value_(const char* text, uint32_t& val) {
 }
 
 
+static bool get_value_(uint8_t no, uint32_t& val) {
+	char buff[9];
+	if(command_.get_word(no, sizeof(buff), buff)) {
+		if(get_hexadec_(buff, val)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+static bool get_decimal_(uint8_t no, uint32_t& val) {
+	char buff[9];
+	if(command_.get_word(no, sizeof(buff), buff)) {
+		if(get_dec_(buff, val)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
 static void dump_(uint32_t adr, const uint8_t* src, uint8_t len) {
 	utils::format("%05X:") % adr;
 	for(uint8_t i = 0; i < len; ++i) {
 		utils::format(" %02X") % static_cast<uint32_t>(src[i]);
 	}
 	sci_putch('\n');
+}
+
+
+static bool help_(uint8_t cmdn) {
+	if(cmdn >= 1 && check_key_word_(0, "help")) {
+		sci_puts("speed KBPS (KBPS: 10 to 1000 [Kbps])\n");
+		sci_puts("read ADRESS [LENGTH]\n");
+		sci_puts("write ADRESS DATA ...\n");
+		sci_puts("fill ADDRESS LENGTH DATA ...\n");
+		return true;
+	}
+	return false;
+}
+
+
+static bool speed_(uint8_t cmdn) {
+	if(cmdn == 2 && check_key_word_(0, "speed")) {
+		uint32_t val;
+		if(get_decimal_(1, val)) {
+			if(val >= 10 && val <= 1000) {
+				uint8_t clock = 1000 / val;
+				if(clock & 1) ++clock;
+				clock >>= 1;
+				if(clock == 0) clock = 1;
+				i2c_io_.set_clock(clock);
+			} else {
+				sci_puts("Invalid SPEED renge.\n");
+			}
+		} else {
+			sci_puts("Invalid SPEED.\n");
+		}
+	}
+	return false;
+}
+
+
+static bool type_(uint8_t cmdn) {
+	if(cmdn == 2 && check_key_word_(0, "type")) {
+		uint32_t val;
+		if(get_decimal_(1, val)) {
+			if(val >= 0 && val <= 7) {
+//				i2c_io_.set_clock(clock);
+			} else {
+				sci_puts("Invalid ID renge.\n");
+			}
+		} else {
+			sci_puts("Invalid ID.\n");
+		}
+	}
+	return false;
+}
+
+
+static bool read_(uint8_t cmdn) {
+	if(cmdn >= 2 && check_key_word_(0, "read")) {
+		uint32_t adr;
+		if(get_value_(1, adr)) {
+			uint32_t end = adr + 16;
+			if(cmdn >= 3) {
+				if(!get_value_(2, end)) {
+					sci_puts("Invalid ADDRESS.");
+					return true;
+				}
+				++end;
+			}
+			while(adr < end) {
+				uint8_t tmp[16];
+				uint16_t len = 16;
+				if(len > (end - adr)) {
+					len = end - adr;
+				}
+				if(eeprom_.read(adr, tmp, len)) {
+					dump_(adr, tmp, len);
+				} else {
+					sci_puts("Stall EEPROM read...\n");
+				}
+				adr += len;
+			}
+		} else {
+			sci_puts("Invalid ADDRESS.\n");
+		}
+		return true;
+	}
+	return false;
+}
+
+
+static bool write_(uint8_t cmdn) {
+	if(cmdn >= 3 && check_key_word_(0, "write")) {
+		if(cmdn > 10) {
+			sci_puts("Too many data.\n");
+			return true;
+		}
+
+		uint32_t adr;
+		if(get_value_(1, adr)) {
+			cmdn -= 2;
+			uint8_t tmp[8];
+			for(uint8_t i = 0; i < cmdn; ++i) {
+				uint32_t data;
+				if(get_value_(2 + i, data)) {
+					tmp[i] = data;
+				} else {
+					sci_puts("Invalid DATA.\n");
+					return true;
+				}
+			}
+			if(!eeprom_.write(adr, tmp, cmdn)) {
+				sci_puts("Stall EEPROM write...\n");
+			}
+		} else {
+			sci_puts("Invalid ADDRESS.\n");
+		}
+		return true;
+	}
+	return false;
+}
+
+
+static bool fill_(uint8_t cmdn) {
+	if(cmdn >= 4 && check_key_word_(0, "fill")) {
+		if(cmdn > 11) {
+			sci_puts("Too many data.\n");
+			return true;
+		}
+
+		uint32_t adr;
+		if(get_value_(1, adr)) {
+			uint32_t len = 0;
+			if(get_value_(2, len)) {
+				cmdn -= 3;
+				uint8_t tmp[8];
+				for(uint8_t i = 0; i < cmdn; ++i) {
+					uint32_t data;
+					if(get_value_(3 + i, data)) {
+						tmp[i] = data;
+					} else {
+						sci_puts("Invalid DATA.\n");
+						return true;
+					}
+				}
+				while(len > 0) {
+					if(cmdn > len) cmdn = len;
+					if(!eeprom_.write(adr, tmp, cmdn)) {
+						sci_puts("Stall EEPROM write...\n");
+						break;
+					} else {
+						sci_putch('.');
+					}
+					len -= cmdn;
+					if(len > 0) {
+						if(!eeprom_.sync_write(adr)) {
+							sci_puts("Stall EEPROM write: 'write sync time out'\n");
+						}
+					}
+					adr += cmdn;
+				}
+				sci_putch('.');
+				return true;
+			} else {
+				sci_puts("Invalid LENGTH.\n");
+			}
+		} else {
+			sci_puts("Invalid ADDRESS.\n");
+		}
+	}
+	return false;
 }
 
 
@@ -194,63 +399,14 @@ int main(int argc, char *argv[])
 		// コマンド入力と、コマンド解析
 		if(command_.service()) {
 			uint8_t cmdn = command_.get_words();
-			bool err = true;
-			if(cmdn == 1) {
-				if(check_key_word_(0, "help")) {
-					sci_puts("read xxxx\n");
-					sci_puts("write yyyy aa bb cc ...\n");
-					err = false;
-				}
-			} else if(cmdn == 2) {
-				if(check_key_word_(0, "read")) {
-					char buff[9];
-					if(command_.get_word(1, sizeof(buff), buff)) {
-						uint32_t adr = 0;
-						if(get_value_(buff, adr)) {
-							uint8_t tmp[8];
-							if(eeprom_.read(adr, tmp, 8)) {
-								dump_(adr, tmp, 8);
-							} else {
-								sci_puts("Stall eeprom read...\n");
-							}
-							err = false;
-						}
-					}
-				}
-			} else if(cmdn >= 3 && cmdn <= 10) {
-				if(check_key_word_(0, "write")) {
-					char buff[9];
-					if(command_.get_word(1, sizeof(buff), buff)) {
-						uint32_t adr = 0;
-						if(get_value_(buff, adr)) {
-							cmdn -= 2;
-							uint8_t tmp[8];
-							bool f = true;
-							for(uint8_t i = 0; i < cmdn; ++i) {
-								if(command_.get_word(2 + i, sizeof(buff), buff)) {
-									uint32_t data = 0;
-									if(get_value_(buff, data)) {
-										tmp[i] = data;
-									} else {
-										f = false;
-										break;
-									}
-								} else {
-									f = false;
-									break;
-								}
-							}
-							if(f) {
-								if(!eeprom_.write(adr, tmp, cmdn)) {
-									sci_puts("Stall eeprom write...\n");
-								}
-								err = false;
-							}
-						}
-					}
-				}
-			}
-			if(cmdn > 0 && err) {
+			if(cmdn == 0) ;
+			else if(help_(cmdn)) ;
+			else if(speed_(cmdn)) ;
+			else if(type_(cmdn)) ;
+			else if(read_(cmdn)) ;
+			else if(write_(cmdn)) ;
+			else if(fill_(cmdn)) ;
+			else {
 				sci_puts("Command error: ");
 				sci_puts(command_.get_command());
 				sci_putch('\n');
