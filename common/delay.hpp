@@ -33,6 +33,8 @@ namespace utils {
 				asm("nop");
 				asm("nop");
 				asm("nop");
+				asm("nop");
+				asm("nop");
 				--us;
 			}
 		}
