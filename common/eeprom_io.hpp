@@ -225,8 +225,7 @@ namespace device {
 		 */
 		//-----------------------------------------------------------------//
 		bool write(uint32_t adr, const uint8_t* src, uint16_t len) const {
-			const uint8_t* end = src + len;
-			while(src < end) {
+			while(len > 0) {
 				uint16_t l = pagen_ - (adr & (pagen_ - 1));
 				if(len < l) l = len;
 				if(exp_) {
@@ -239,7 +238,8 @@ namespace device {
 					}
 				}
 				src += l;
-				if(src < end) {  // 書き込み終了を待つポーリング
+				len -= l;
+				if(len) {  // 書き込み終了を待つポーリング
 					if(!sync_write(adr)) {
 						return false;
 					}
