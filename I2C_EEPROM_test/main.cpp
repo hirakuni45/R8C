@@ -323,7 +323,7 @@ static bool fill_(uint8_t cmdn) {
 					}
 					adr += cmdn;
 				}
-				sci_putch('.');
+				sci_putch('\n');
 				return true;
 			} else {
 				sci_puts("Invalid LENGTH.\n");
