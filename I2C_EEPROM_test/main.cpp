@@ -203,16 +203,36 @@ static bool speed_(uint8_t cmdn) {
 
 
 static bool type_(uint8_t cmdn) {
-	if(cmdn == 2 && check_key_word_(0, "type")) {
-		uint32_t val;
-		if(get_decimal_(1, val)) {
-			if(val >= 0 && val <= 7) {
-//				i2c_io_.set_clock(clock);
-			} else {
-				sci_puts("Invalid ID renge.\n");
+	if(cmdn == 4 && check_key_word_(0, "type")) {
+		uint32_t id;
+		if(!get_decimal_(2, id)) {
+			sci_puts("Invalid ID.\n");
+			return true;
+		}
+		uint32_t pgs;
+		if(!get_decimal_(3, pgs)) {
+			sci_puts("Invalid Page-Size.\n");
+			return true;
+		}
+		if(pgs == 0 || pgs > 256) {
+			sci_puts("Invalid Page-Size renge.\n");
+			return true;
+		}
+		if(check_key_word_(1, "M256B")) {
+			if(id >= 0 && id <= 7) {
+				eeprom_.start(static_cast<eeprom::M256B>(id), pgs);
+			}
+		} else if(check_key_word_(1, "M64KB")) {
+			if(id >= 0 && id <= 7) {
+				eeprom_.start(static_cast<eeprom::M64KB>(id), pgs);
+			}
+		} else if(check_key_word_(1, "M128KB")) {
+			if(id >= 0 && id <= 3) {
+				eeprom_.start(static_cast<eeprom::M128KB>(id), pgs);
 			}
 		} else {
-			sci_puts("Invalid ID.\n");
+			sci_puts("Ivvalid TYPE.\n");
+			return true;
 		}
 	}
 	return false;
