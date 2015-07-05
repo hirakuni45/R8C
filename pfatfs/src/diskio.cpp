@@ -22,43 +22,18 @@
 
 #include "pffconf.h"
 #include "diskio.h"
+#include "port_def.hpp"
+#include "common/delay.hpp"
 
-
-/*-------------------------------------------------------------------------*/
-/* Platform dependent macros and functions needed to be modified           */
-/*-------------------------------------------------------------------------*/
-// #include <hardware.h>			/* Include hardware specific declareation file here */
-#if 0
-#define	INIT_PORT()	init_port()	/* Initialize MMC control port (CS/CLK/DI:output, DO:input) */
-#define DLY_US(n)	dly_us(n)	/* Delay n microseconds */
-#define	FORWARD(d)	forward(d)	/* Data in-time processing function (depends on the project) */
-
-#define	CS_H()		bset(P0)	/* Set MMC CS "high" */
-#define CS_L()		bclr(P0)	/* Set MMC CS "low" */
-#define CK_H()		bset(P1)	/* Set MMC SCLK "high" */
-#define CK_L()		bclr(P1)	/* Set MMC SCLK "low" */
-#define DI_H()		bset(P2)	/* Set MMC DI "high" */
-#define DI_L()		bclr(P2)	/* Set MMC DI "low" */
-#define DO			btest(P3)	/* Test MMC DO (high:true, low:false) */
-#endif
-
-static void init_port_(void)
-{
-}
+static spi_base spi_base_;
+static spi_ctrl spi_ctrl_;
 
 static void dly_us_(unsigned int n)
 {
+	utils::delay::micro_second(n);
 }
 
 static void forward_(BYTE d)
-{
-}
-
-static void cs_h_(void)
-{
-}
-
-static void cs_l_(void)
 {
 }
 
@@ -88,7 +63,6 @@ static const BYTE CT_SDC    = (CT_SD1|CT_SD2);	/* SD */
 static const BYTE CT_BLOCK	= 0x08;	/* Block addressing */
 
 
-
 static
 BYTE CardType;			/* b0:MMC, b1:SDv1, b2:SDv2, b3:Block addressing */
 
@@ -103,24 +77,30 @@ void xmit_mmc (
 	BYTE d			/* Data to be sent */
 )
 {
-#if 0
-	if (d & 0x80) DI_H(); else DI_L();	/* bit7 */
-	CK_H(); CK_L();
-	if (d & 0x40) DI_H(); else DI_L();	/* bit6 */
-	CK_H(); CK_L();
-	if (d & 0x20) DI_H(); else DI_L();	/* bit5 */
-	CK_H(); CK_L();
-	if (d & 0x10) DI_H(); else DI_L();	/* bit4 */
-	CK_H(); CK_L();
-	if (d & 0x08) DI_H(); else DI_L();	/* bit3 */
-	CK_H(); CK_L();
-	if (d & 0x04) DI_H(); else DI_L();	/* bit2 */
-	CK_H(); CK_L();
-	if (d & 0x02) DI_H(); else DI_L();	/* bit1 */
-	CK_H(); CK_L();
-	if (d & 0x01) DI_H(); else DI_L();	/* bit0 */
-	CK_H(); CK_L();
-#endif
+	spi_base_.sda_out(d & 0x80);
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	spi_base_.sda_out(d & 0x40);
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	spi_base_.sda_out(d & 0x20);
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	spi_base_.sda_out(d & 0x10);
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	spi_base_.sda_out(d & 0x08);
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	spi_base_.sda_out(d & 0x04);
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	spi_base_.sda_out(d & 0x02);
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	spi_base_.sda_out(d & 0x01);
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
 }
 
 
@@ -133,27 +113,40 @@ static
 BYTE rcvr_mmc (void)
 {
 	BYTE r = 0;
-#if 0
+	spi_base_.sda_out(1);
 
-	DI_H();	/* Send 0xFF */
+	if(spi_base_.sda_inp()) ++r; // B7
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	r <<= 1;
+	if(spi_base_.sda_inp()) ++r; // B6
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	r <<= 1;
+	if(spi_base_.sda_inp()) ++r; // B5
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	r <<= 1;
+	if(spi_base_.sda_inp()) ++r; // B4
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	r <<= 1;
+	if(spi_base_.sda_inp()) ++r; // B3
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	r <<= 1;
+	if(spi_base_.sda_inp()) ++r; // B2
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	r <<= 1;
+	if(spi_base_.sda_inp()) ++r; // B1
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
+	r <<= 1;
+	if(spi_base_.sda_inp()) ++r; // B0
+	spi_base_.scl_out(1);
+	spi_base_.scl_out(0);
 
-	r = 0;   if (DO) r++;	/* bit7 */
-	CK_H(); CK_L();
-	r <<= 1; if (DO) r++;	/* bit6 */
-	CK_H(); CK_L();
-	r <<= 1; if (DO) r++;	/* bit5 */
-	CK_H(); CK_L();
-	r <<= 1; if (DO) r++;	/* bit4 */
-	CK_H(); CK_L();
-	r <<= 1; if (DO) r++;	/* bit3 */
-	CK_H(); CK_L();
-	r <<= 1; if (DO) r++;	/* bit2 */
-	CK_H(); CK_L();
-	r <<= 1; if (DO) r++;	/* bit1 */
-	CK_H(); CK_L();
-	r <<= 1; if (DO) r++;	/* bit0 */
-	CK_H(); CK_L();
-#endif
 	return r;
 }
 
@@ -168,22 +161,27 @@ void skip_mmc (
 	UINT n		/* Number of bytes to skip */
 )
 {
-#if 0
-	DI_H();	/* Send 0xFF */
+	spi_base_.sda_out(1);
 
 	do {
-		CK_H(); CK_L();
-		CK_H(); CK_L();
-		CK_H(); CK_L();
-		CK_H(); CK_L();
-		CK_H(); CK_L();
-		CK_H(); CK_L();
-		CK_H(); CK_L();
-		CK_H(); CK_L();
+		spi_base_.scl_out(1); // B7
+		spi_base_.scl_out(0);
+		spi_base_.scl_out(1); // B6
+		spi_base_.scl_out(0);
+		spi_base_.scl_out(1); // B5
+		spi_base_.scl_out(0);
+		spi_base_.scl_out(1); // B4
+		spi_base_.scl_out(0);
+		spi_base_.scl_out(1); // B3
+		spi_base_.scl_out(0);
+		spi_base_.scl_out(1); // B2
+		spi_base_.scl_out(0);
+		spi_base_.scl_out(1); // B1
+		spi_base_.scl_out(0);
+		spi_base_.scl_out(1); // B0
+		spi_base_.scl_out(0);
 	} while (--n);
-#endif
 }
-
 
 
 /*-----------------------------------------------------------------------*/
@@ -193,7 +191,7 @@ void skip_mmc (
 static
 void release_spi (void)
 {
-	cs_h_();
+	spi_ctrl_.sd_sel(1);
 	rcvr_mmc();
 }
 
@@ -218,8 +216,11 @@ BYTE send_cmd (
 	}
 
 	/* Select the card */
-	cs_h_(); rcvr_mmc();
-	cs_l_(); rcvr_mmc();
+	spi_ctrl_.sd_sel(1);
+	rcvr_mmc();
+
+	spi_ctrl_.sd_sel(0);
+	rcvr_mmc();
 
 	/* Send a command packet */
 	xmit_mmc(cmd);					/* Start + Command index */
@@ -259,8 +260,10 @@ DSTATUS disk_initialize (void)
 	BYTE n, cmd, ty, buf[4];
 	UINT tmr;
 
-	init_port_();
-	cs_h_();
+// SPI ポートは、共有している為、メイン側で初期化
+//	init_port();
+
+	spi_ctrl_.sd_sel(1);
 	skip_mmc(10);			/* Dummy clocks */
 
 	ty = 0;
