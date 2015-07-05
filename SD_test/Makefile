@@ -27,10 +27,12 @@ USER_DEFS	=	F_CLK=20000000
 
 MCU_TARGET	=	-mcpu=r8c
 
+WRITER		=	r8c_prog
+
 #INC_SYS		=	/usr/boost_1_53_0
 INC_SYS		=
 
-INC_APP		=	. ../ ../M120AN ../fatfs/src
+INC_APP		=	. ../ ../M120AN ../pfatfs/src
 
 OPTIMIZE	=	-O2
 
@@ -160,10 +162,10 @@ bin_zip:
 	zip $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H)_bin.zip *.exe *.dll res/*.*
 
 run:
-	r8c_prog -d R5F2M120 -e -w -v $(TARGET).mot
+	$(WRITER) --progress -d R5F2M120 -e -w -v $(TARGET).mot
 
 verify:
-	r8c_prog -d R5F2M120 -v $(TARGET).mot
+	$(WRITER) -d R5F2M120 -v $(TARGET).mot
 
 -include $(DEPENDS)
 

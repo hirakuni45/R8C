@@ -26,8 +26,10 @@ static void wait_(uint16_t n)
 static timer_b timer_b_;
 static uart0 uart0_;
 static utils::command<64> command_;
-static lcd lcd_;
-static mono_graph bitmap_;
+static spi_base spi_base_;
+static spi_ctrl spi_ctrl_;
+// static lcd lcd_;
+// static mono_graph bitmap_;
 
 extern "C" {
 	void sci_putch(char ch) {
@@ -91,8 +93,8 @@ extern "C" {
 	};
 }
 
-static uint8_t v_ = 91;
-static uint8_t m_ = 123;
+// static uint8_t v_ = 91;
+// static uint8_t m_ = 123;
 
 #if 0
 static void randmize_(uint8_t v, uint8_t m)
@@ -102,6 +104,7 @@ static void randmize_(uint8_t v, uint8_t m)
 }
 #endif
 
+#if 0
 static uint8_t rand_()
 {
 	v_ += v_ << 2;
@@ -113,7 +116,7 @@ static uint8_t rand_()
 	if(n == 0) ++m_;
 	return v_ ^ m_;
 }
-
+#endif
 
 //  __attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])
@@ -145,47 +148,87 @@ int main(int argc, char *argv[])
 		uart0_.start(19200, ir_level);
 	}
 
+	// spi_base, spi_ctrl ポートの初期化
+	{
+		spi_ctrl_.init();
+		spi_base_.init();
+	}
+
+	sci_puts("Start R8C SD monitor\n");
+
 	FATFS fatfs;
+	bool mount = false;
 	// pfatfs を開始
 	{
-		pf_mount(&fatfs);
+		if(pf_mount(&fatfs) != FR_OK) {
+			sci_puts("SD mount error\n");
+		} else {
+			sci_puts("SD mount OK!\n");
+			mount = true;
+		}
+	}
+
+	if(mount) {
+		DIR dir;
+		if(pf_opendir(&dir, "") != FR_OK) {
+			sci_puts("Can't open dir\n");
+		} else {
+
+			for(;;) {
+				FILINFO fno;
+				// Read a directory item
+				if(pf_readdir(&dir, &fno) != FR_OK) {
+					sci_puts("Can't read dir\n");
+					break;
+				}
+				if(!fno.fname[0]) break;
+
+				if(fno.fattrib & AM_DIR) {
+					utils::format("        /%s\n") % fno.fname;
+				} else {
+					utils::format("%8d  %s\n") % static_cast<uint32_t>(fno.fsize) % fno.fname;
+				}
+			}
+		}
 	}
 
 
+
+
+#if 0
 	// LCD を開始
 	{
 		lcd_.start();
 		bitmap_.init();
 		bitmap_.clear(0);
 	}
+#endif
 
-	sci_puts("Start R8C LCD monitor\n");
 	command_.set_prompt("# ");
 
 	// LED シグナル用ポートを出力
 	PD1.B0 = 1;
 
 	uint8_t cnt = 0;
-	uint16_t x = rand_() & 127;
-	uint16_t y = rand_() & 31;
-	uint16_t xx;
-	uint16_t yy;
-	uint8_t loop = 20;
+//	uint16_t x = rand_() & 127;
+//	uint16_t y = rand_() & 31;
+//	uint16_t xx;
+//	uint16_t yy;
+//	uint8_t loop = 20;
 	while(1) {
 		timer_b_.sync();
-		lcd_.copy(bitmap_.fb());
-
-		if(loop >= 20) {
-			loop = 0;
-			bitmap_.clear(0);
-			bitmap_.frame(0, 0, 128, 32, 1);
-		}
-		xx = rand_() & 127;
-		yy = rand_() & 31;
-		bitmap_.line(x, y, xx, yy, 1);
-		x = xx;
-		y = yy;
-		++loop;
+//		lcd_.copy(bitmap_.fb());
+//		if(loop >= 20) {
+//			loop = 0;
+//			bitmap_.clear(0);
+//			bitmap_.frame(0, 0, 128, 32, 1);
+//		}
+//		xx = rand_() & 127;
+//		yy = rand_() & 31;
+//		bitmap_.line(x, y, xx, yy, 1);
+//		x = xx;
+//		y = yy;
+//		++loop;
 
 //		bitmap_.line(0, 0, 127, 31, 1);
 //		bitmap_.line(0, 31, 127, 0, 1);
