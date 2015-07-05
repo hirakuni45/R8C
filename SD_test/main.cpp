@@ -190,9 +190,28 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
+
+		const char* file_name = "LICENSE";
+		if(pf_open(file_name) != FR_OK) {
+			sci_puts("Can't open file: '");
+			sci_puts(file_name);
+			sci_puts("'\n");
+		} else {
+			for(;;) {
+				UINT br;
+				char buff[64];
+				if(pf_read(buff, sizeof(buff), &br) == FR_OK) {
+					if(!br) break;
+
+					for(UINT i = 0; i < br; ++i) {
+						sci_putch(buff[i]);
+					}
+				} else {
+					break;
+				}
+			}
+		}
 	}
-
-
 
 
 #if 0
