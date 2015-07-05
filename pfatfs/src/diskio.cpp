@@ -19,7 +19,6 @@
    You need to modify only a few macros to control GPIO ports.
 
 /-------------------------------------------------------------------------*/
-
 #include "pffconf.h"
 #include "diskio.h"
 #include "port_def.hpp"
@@ -71,11 +70,7 @@ BYTE CardType;			/* b0:MMC, b1:SDv1, b2:SDv2, b3:Block addressing */
 /*-----------------------------------------------------------------------*/
 /* Transmit a byte to the MMC (bitbanging)                               */
 /*-----------------------------------------------------------------------*/
-
-static
-void xmit_mmc (
-	BYTE d			/* Data to be sent */
-)
+static void xmit_mmc(BYTE d)
 {
 	spi_base_.sda_out(d & 0x80);
 	spi_base_.scl_out(1);
@@ -104,47 +99,45 @@ void xmit_mmc (
 }
 
 
-
 /*-----------------------------------------------------------------------*/
 /* Receive a byte from the MMC (bitbanging)                              */
 /*-----------------------------------------------------------------------*/
-
-static
-BYTE rcvr_mmc (void)
+static BYTE rcvr_mmc()
 {
 	BYTE r = 0;
 	spi_base_.sda_out(1);
 
 	if(spi_base_.sda_inp()) ++r; // B7
 	spi_base_.scl_out(1);
-	spi_base_.scl_out(0);
 	r <<= 1;
+	spi_base_.scl_out(0);
 	if(spi_base_.sda_inp()) ++r; // B6
 	spi_base_.scl_out(1);
-	spi_base_.scl_out(0);
 	r <<= 1;
+	spi_base_.scl_out(0);
 	if(spi_base_.sda_inp()) ++r; // B5
 	spi_base_.scl_out(1);
-	spi_base_.scl_out(0);
 	r <<= 1;
+	spi_base_.scl_out(0);
 	if(spi_base_.sda_inp()) ++r; // B4
 	spi_base_.scl_out(1);
-	spi_base_.scl_out(0);
 	r <<= 1;
+	spi_base_.scl_out(0);
 	if(spi_base_.sda_inp()) ++r; // B3
 	spi_base_.scl_out(1);
-	spi_base_.scl_out(0);
 	r <<= 1;
+	spi_base_.scl_out(0);
 	if(spi_base_.sda_inp()) ++r; // B2
 	spi_base_.scl_out(1);
-	spi_base_.scl_out(0);
 	r <<= 1;
+	spi_base_.scl_out(0);
 	if(spi_base_.sda_inp()) ++r; // B1
 	spi_base_.scl_out(1);
-	spi_base_.scl_out(0);
 	r <<= 1;
+	spi_base_.scl_out(0);
 	if(spi_base_.sda_inp()) ++r; // B0
 	spi_base_.scl_out(1);
+
 	spi_base_.scl_out(0);
 
 	return r;

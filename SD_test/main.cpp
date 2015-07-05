@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 				if(!fno.fname[0]) break;
 
 				if(fno.fattrib & AM_DIR) {
-					utils::format("        /%s\n") % fno.fname;
+					utils::format("          /%s\n") % fno.fname;
 				} else {
 					utils::format("%8d  %s\n") % static_cast<uint32_t>(fno.fsize) % fno.fname;
 				}

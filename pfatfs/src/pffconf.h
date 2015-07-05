@@ -23,9 +23,9 @@
 / Locale and Namespace Configurations
 /---------------------------------------------------------------------------*/
 
-#define _USE_LCC	0	/* Allow lower case characters for path name */
+#define _USE_LCC	1	/* Allow lower case characters for path name */
 
-#define	_CODE_PAGE	437
+#define	_CODE_PAGE	932
 /* The _CODE_PAGE specifies the code page to be used on the target system.
 /  SBCS code pages with _USE_LCC == 1 requiers a 128 byte of case conversion
 /  table. This might occupy RAM on some platforms, e.g. avr-gcc.
