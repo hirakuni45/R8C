@@ -27,11 +27,13 @@ R8C sources
 
  - /common      --->   R8C 共有クラス、小規模なツールキットなど
 
- - /L_chika     --->   ＬＥＤ点滅テスト
+ - /pfatfs      --->   ぷち FatFS 関係ソース、ヘッダー
+
+ - /LED_test    --->   ＬＥＤ点滅テスト
 
  - /UART_test   --->   シリアルインターフェースの送信、受信テスト
 
- - /TIMER_test  --->   タイマーＲＪのテスト（インターバルタイマー）
+ - /TIMER_test  --->   タイマーＲＢのテスト（インターバルタイマー）
 
  - /ADC_test    --->   Ａ／Ｄ変換のテスト
 
@@ -47,7 +49,6 @@ R8C sources
 
  - /LCD_test    --->  128x32 mono color graphics のテスト
 
- - /pfatfs      --->   pfatfs 関係ソース、ヘッダー
 
 
 ## R8C 開発環境
