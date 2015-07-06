@@ -9,16 +9,9 @@
 #include <cstring>
 #include "system.hpp"
 #include "clock.hpp"
+#include "common/delay.hpp"
 #include "common/command.hpp"
 #include "common/format.hpp"
-
-static void wait_(uint16_t n)
-{
-	while(n > 0) {
-		asm("nop");
-		--n;
-	}
-}
 
 static timer_b timer_b_;
 static uart0 uart0_;
@@ -377,14 +370,14 @@ int main(int argc, char *argv[])
 // 高速オンチップオシレーターへ切り替え(20MHz)
 // ※ F_CLK を設定する事（Makefile内）
 	OCOCR.HOCOE = 1;
-	wait_(1000);
+	utils::delay::micro_second(1);  // >=30us(125KHz)
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
 	// タイマーＢ初期化
 	{
-		uint8_t ir_level = 2;
-		timer_b_.start_timer(60, ir_level);
+		uint8_t intr_level = 2;
+		timer_b_.start_timer(60, intr_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
@@ -410,11 +403,14 @@ int main(int argc, char *argv[])
 //		eeprom_.start(eeprom::M64KB::ID0, 128);
 	}
 
+	// LED シグナル用ポートを出力
+	{
+		utils::PORT_MAP(utils::port_map::P10::PORT);
+		PD1.B0 = 1;
+	}
+
 	sci_puts("Start R8C EEPROM monitor\n");
 	command_.set_prompt("# ");
-
-	// LED シグナル用ポートを出力
-	PD1.B0 = 1;
 
 	uint8_t cnt = 0;
 	while(1) {
