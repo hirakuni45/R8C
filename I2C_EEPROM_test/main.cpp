@@ -247,7 +247,7 @@ static bool read_(uint8_t cmdn) {
 			uint32_t end = adr + 16;
 			if(cmdn >= 3) {
 				if(!get_value_(2, end)) {
-					sci_puts("Invalid ADDRESS.");
+					sci_puts("Invalid ADDRESS.\n");
 					return true;
 				}
 				++end;
