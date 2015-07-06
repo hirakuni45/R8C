@@ -14,12 +14,22 @@
 #include "common/format.hpp"
 #include "pfatfs/src/pff.h"
 
-static timer_b timer_b_;
+static volatile uint8_t input_value_ = 0;
+
+class timer_task {
+public:
+	void operator() () {
+		input_value_ = device::P1();
+	}
+};
+
+typedef device::trb_io<timer_task> timer_bt;
+
+static timer_bt timer_b_;
 static uart0 uart0_;
 static utils::command<64> command_;
 static spi_base spi_base_;
 static spi_ctrl spi_ctrl_;
-static timer_c timer_c_;
 
 extern "C" {
 	void sci_putch(char ch) {
@@ -84,68 +94,45 @@ extern "C" {
 }
 
 static FATFS fatfs_;
+static bool sd_mount_ = false;
 
-//  __attribute__ ((section (".exttext")))
-int main(int argc, char *argv[])
+static void mount_service_()
 {
-	using namespace device;
+	return;
 
-// クロック関係レジスタ・プロテクト解除
-	PRCR.PRC0 = 1;
-
-// 高速オンチップオシレーターへ切り替え(20MHz)
-// ※ F_CLK を設定する事（Makefile内）
-	OCOCR.HOCOE = 1;
-	utils::delay::micro_second(1);  // >=30us(125KHz)
-	SCKCR.HSCKSEL = 1;
-	CKSTPR.SCKSEL = 1;
-
-	// タイマーＢ初期化
-	{
-		uint8_t ir_level = 2;
-		timer_b_.start_timer(60, ir_level);
-	}
-
-	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
-	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
-	{
-		utils::PORT_MAP(utils::port_map::P14::TXD0);
-		utils::PORT_MAP(utils::port_map::P15::RXD0);
-		uint8_t intr_level = 1;
-		uart0_.start(19200, intr_level);
-	}
-
-	// spi_base, spi_ctrl ポートの初期化
-	{
-		spi_ctrl_.init();
-		spi_base_.init();
-	}
-
-	// ＰＷＭモード設定
-	{
-		utils::PORT_MAP(utils::port_map::P12::TRCIOB);
-		utils::PORT_MAP(utils::port_map::P13::TRCIOC);
-		bool pfl = 0;  // 0->1
-		timer_c_.start_pwm(0x100, 0, pfl);
-//		uint16_t n = timer_c_.get_pwm_limit();
-		timer_c_.set_pwm_b(128);
-		timer_c_.set_pwm_c(128);
-	}
-
-	sci_puts("Start R8C SD monitor\n");
-
-	bool mount = false;
+//		if(get_input_positive_() & 0x04) {
+//			mount_();
+//		}
 	// pfatfs を開始
-	{
-		if(pf_mount(&fatfs_) != FR_OK) {
-			sci_puts("SD mount error\n");
-		} else {
-			sci_puts("SD mount OK!\n");
-			mount = true;
-		}
+	if(pf_mount(&fatfs_) != FR_OK) {
+		sci_puts("SD mount error\n");
+		sd_mount_ = false;
+	} else {
+		sci_puts("SD mount OK!\n");
+		sd_mount_ = true;
+	}
+}
+
+
+static bool check_key_word_(uint8_t idx, const char* key)
+{
+	char buff[12];
+	if(command_.get_word(idx, sizeof(buff), buff)) {
+		if(strcmp(buff, key) == 0) {
+			return true;
+		}				
+	}
+	return false;
+}
+
+
+static bool ls_(uint8_t words)
+{
+	if(!check_key_word_(0, "ls")) {
+		return false;
 	}
 
-	if(mount) {
+	if(sd_mount_) {
 		DIR dir;
 		if(pf_opendir(&dir, "") != FR_OK) {
 			sci_puts("Can't open dir\n");
@@ -168,6 +155,11 @@ int main(int argc, char *argv[])
 			}
 		}
 
+	}
+	return false;
+}
+
+#if 0
 		const char* file_name = "OHAYODEL.WAV";
 		if(pf_open(file_name) != FR_OK) {
 			sci_puts("Can't open file: '");
@@ -189,16 +181,68 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
+#endif
+
+//  __attribute__ ((section (".exttext")))
+int main(int argc, char *argv[])
+{
+	using namespace device;
+
+// クロック関係レジスタ・プロテクト解除
+	PRCR.PRC0 = 1;
+
+// 高速オンチップオシレーターへ切り替え(20MHz)
+// ※ F_CLK を設定する事（Makefile内）
+	OCOCR.HOCOE = 1;
+	utils::delay::micro_second(1);  // >=30us(125KHz)
+	SCKCR.HSCKSEL = 1;
+	CKSTPR.SCKSEL = 1;
+
+	// ポートの設定
+	{
+		utils::PORT_MAP(utils::port_map::P13::PORT);
+		PD1.B3 = 0;
 	}
 
-	command_.set_prompt("# ");
+	// タイマーＢ初期化
+	{
+		uint8_t intr_level = 2;
+		timer_b_.start_timer(60, intr_level);
+	}
 
+	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
+	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
+	{
+		utils::PORT_MAP(utils::port_map::P14::TXD0);
+		utils::PORT_MAP(utils::port_map::P15::RXD0);
+		uint8_t intr_level = 1;
+		uart0_.start(19200, intr_level);
+	}
+
+	// spi_base, spi_ctrl ポートの初期化
+	{
+		spi_ctrl_.init();
+		spi_base_.init();
+	}
+
+	sci_puts("Start R8C SD monitor\n");
+
+	// メイン・ループ
+	command_.set_prompt("# ");
 	while(1) {
 		timer_b_.sync();
+		mount_service_();
 
 		// コマンド入力と、コマンド解析
 		if(command_.service()) {
-//			uint8_t ws = command_.get_words();
+			uint8_t ws = command_.get_words();
+			if(ws == 0) ;
+			else if(ls_(ws)) ;
+			else {
+				sci_puts("Command error: ");
+				sci_puts(command_.get_command());
+				sci_putch('\n');
+			}
 		}
 	}
 }
