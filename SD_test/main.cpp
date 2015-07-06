@@ -15,21 +15,11 @@
 #include "common/format.hpp"
 #include "pfatfs/src/pff.h"
 
-static void wait_(uint16_t n)
-{
-	while(n > 0) {
-		asm("nop");
-		--n;
-	}
-}
-
 static timer_b timer_b_;
 static uart0 uart0_;
 static utils::command<64> command_;
 static spi_base spi_base_;
 static spi_ctrl spi_ctrl_;
-// static lcd lcd_;
-// static mono_graph bitmap_;
 
 extern "C" {
 	void sci_putch(char ch) {
@@ -93,30 +83,6 @@ extern "C" {
 	};
 }
 
-// static uint8_t v_ = 91;
-// static uint8_t m_ = 123;
-
-#if 0
-static void randmize_(uint8_t v, uint8_t m)
-{
-	v_ = v;
-	m_ = m;
-}
-#endif
-
-#if 0
-static uint8_t rand_()
-{
-	v_ += v_ << 2;
-	++v_;
-	uint8_t n = 0;
-	if(m_ & 0x02) n = 1;
-	if(m_ & 0x40) n ^= 1;
-	m_ += m_;
-	if(n == 0) ++m_;
-	return v_ ^ m_;
-}
-#endif
 
 //  __attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])
@@ -129,7 +95,7 @@ int main(int argc, char *argv[])
 // 高速オンチップオシレーターへ切り替え(20MHz)
 // ※ F_CLK を設定する事（Makefile内）
 	OCOCR.HOCOE = 1;
-	wait_(1000);
+	utils::delay::micro_second(1);	// >=30uS(125KHz)
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
@@ -154,7 +120,7 @@ int main(int argc, char *argv[])
 		spi_base_.init();
 	}
 
-	sci_puts("Start R8C SD monitor\n");
+	sci_puts("Start R8C SD test\n");
 
 	FATFS fatfs;
 	bool mount = false;
@@ -191,6 +157,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
+		// 「LICENSE」ファイルを読み込んで表示
 		const char* file_name = "LICENSE";
 		if(pf_open(file_name) != FR_OK) {
 			sci_puts("Can't open file: '");
@@ -213,44 +180,14 @@ int main(int argc, char *argv[])
 		}
 	}
 
-
-#if 0
-	// LCD を開始
-	{
-		lcd_.start();
-		bitmap_.init();
-		bitmap_.clear(0);
-	}
-#endif
-
 	command_.set_prompt("# ");
 
 	// LED シグナル用ポートを出力
 	PD1.B0 = 1;
 
 	uint8_t cnt = 0;
-//	uint16_t x = rand_() & 127;
-//	uint16_t y = rand_() & 31;
-//	uint16_t xx;
-//	uint16_t yy;
-//	uint8_t loop = 20;
 	while(1) {
 		timer_b_.sync();
-//		lcd_.copy(bitmap_.fb());
-//		if(loop >= 20) {
-//			loop = 0;
-//			bitmap_.clear(0);
-//			bitmap_.frame(0, 0, 128, 32, 1);
-//		}
-//		xx = rand_() & 127;
-//		yy = rand_() & 31;
-//		bitmap_.line(x, y, xx, yy, 1);
-//		x = xx;
-//		y = yy;
-//		++loop;
-
-//		bitmap_.line(0, 0, 127, 31, 1);
-//		bitmap_.line(0, 31, 127, 0, 1);
 
 		if(cnt >= 20) {
 			cnt = 0;
@@ -261,31 +198,7 @@ int main(int argc, char *argv[])
 
 		// コマンド入力と、コマンド解析
 		if(command_.service()) {
-#if 0
-			uint8_t cmdn = command_.get_words();
-			if(cmdn >= 1) {
-				if(check_key_word_(0, "date")) {
-					if(cmdn == 1) {
-						time_t t = get_time_();
-						if(t != 0) {
-							disp_time_(t);
-						}
-					} else {
-						set_time_date_();
-					}
-				} else if(check_key_word_(0, "help")) {
-					sci_puts("date\n");
-					sci_puts("date yyyy/mm/dd hh:mm[:ss]\n");
-				} else {
-					char buff[12];
-					if(command_.get_word(0, sizeof(buff), buff)) {
-						sci_puts("Command error: ");
-						sci_puts(buff);
-						sci_putch('\n');
-					}
-				}
-			}
-#endif
+//			uint8_t cmdn = command_.get_words();
 		}
 	}
 }
