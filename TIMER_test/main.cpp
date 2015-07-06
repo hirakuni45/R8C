@@ -1,6 +1,8 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C メイン
+	@brief	R8C タイマー・メイン @n
+			P1_0: LED @n
+			P1_1: LED
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -13,14 +15,8 @@
 #include "timer_rb.hpp"
 #include "timer_rc.hpp"
 #include "common/trb_io.hpp"
-
-static void wait_(uint16_t n)
-{
-	while(n > 0) {
-		asm("nop");
-		--n;
-	}
-}
+#include "common/delay.hpp"
+#include "common/port_map.hpp"
 
 static volatile uint16_t trb_count_;
 
@@ -88,23 +84,37 @@ int main(int argc, char *argv[])
 // 高速オンチップオシレーターへ切り替え(20MHz)
 // ※ F_CLK を設定する事（Makefile内）
 	OCOCR.HOCOE = 1;
-	wait_(1000);
+	utils::delay::micro_second(1);  // >=30us(125KHz)
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
+	// タイマーの設定
 	{
-		uint8_t ir_lvl = 1;
-		timer_b_.start_timer(60, ir_lvl);
+		uint8_t intr_level = 1;
+		uint16_t freq = 60; // 60Hz
+		timer_b_.start_timer(freq, intr_level);
 	}
 
-	// L チカ・メイン
-	PD1.B0 = 1;
-	uint8_t n = 0;
+	// ポート設定
+	{
+		utils::PORT_MAP(utils::port_map::P10::PORT);
+		utils::PORT_MAP(utils::port_map::P11::PORT);
+		PD1.B0 = 1;
+		PD1.B1 = 1;
+	}
+
+	// タイマー・メイン
+	uint8_t cnt = 0;
 	while(1) {
-		if(n < 20) P1.B0 = 0; 
-		else P1.B0 = 1;
 		timer_b_.sync();
-		++n;
-		if(n >= 60) n = 0;
+		if(cnt < 20) {
+			P1.B0 = 0;
+			P1.B1 = 1;
+		} else {
+			P1.B0 = 1;
+			P1.B1 = 0;
+		}
+		++cnt;
+		if(cnt >= 60) cnt = 0;
 	}
 }
