@@ -21,34 +21,37 @@ R8C sources
 > デバイスＩ／Ｏ操作では、C++ で構成されたクラスライブラリーを活用出来るように専用のヘッダーを用意
 > してあります。
 
- - /r8cprog     --->   R8C フラッシュへのプログラム書き込みツール（Windows、OS-X、Linux 対応）
+ - /r8cprog         --->   R8C フラッシュへのプログラム書き込みツール（Windows、OS-X、Linux 対応）
 
- - /M120AN      --->   M120AN,M110AN デバイス、Ｉ／Ｏポート定義
+ - /M120AN          --->   M120AN,M110AN デバイス、Ｉ／Ｏポート定義
 
- - /common      --->   R8C 共有クラス、小規模なツールキットなど
+ - /common          --->   R8C 共有クラス、小規模なツールキットなど
 
- - /pfatfs      --->   ぷち FatFS 関係ソース、ヘッダー
+ - /pfatfs          --->   ぷち FatFS 関係ソース、ヘッダー
 
- - /LED_test    --->   ＬＥＤ点滅テスト
+ - /LED_test        --->   ＬＥＤ点滅テスト
 
- - /UART_test   --->   シリアルインターフェースの送信、受信テスト
+ - /UART_test       --->   シリアルインターフェースの送信、受信テスト
 
- - /TIMER_test  --->   タイマーＲＢのテスト（インターバルタイマー）
+ - /TIMER_test      --->   タイマーＲＢのテスト（インターバルタイマー）
 
- - /ADC_test    --->   Ａ／Ｄ変換のテスト
+ - /ADC_test        --->   Ａ／Ｄ変換のテスト
 
- - /FLASH_test  --->   フラッシュデータの初期化、リード、ライト
+ - /FLASH_test      --->   フラッシュデータの初期化、リード、ライト
 
- - /PWM_test    --->   タイマーＲＣのテスト（ＰＷＭ出力）
+ - /PWM_test        --->   タイマーＲＣのテスト（ＰＷＭ出力）
 
- - /COMP_test   --->   コンパレーターのテスト
+ - /COMP_test       --->   コンパレーターのテスト
 
  - /I2C_RTC_test    --->  I2C RTC デバイスのテスト
 
- - /I2C_EEPROM_test    --->  I2C EEPROM デバイスのテスト
+ - /I2C_EEPROM_test --->  I2C EEPROM デバイスのテスト
 
- - /LCD_test    --->  128x32 mono color graphics のテスト
+ - /LCD_test        --->  128x32 mono color graphics のテスト
 
+ - /SD_test         --->  pFatFS を使った、SD カードのテスト
+
+ - /SD_monitor      --->  pFatFS を使った、SD カードのモニター
 
 
 ## R8C 開発環境
