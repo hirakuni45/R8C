@@ -3,7 +3,7 @@
 #	R8C Makefile 				        				#
 #														#
 #=======================================================#
-TARGET		=	led_chika
+TARGET		=	led_test
 
 BUILD		=	release
 
