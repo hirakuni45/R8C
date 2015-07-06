@@ -93,8 +93,20 @@ extern "C" {
 	};
 }
 
-static FATFS fatfs_;
-static bool sd_mount_ = false;
+
+#if 0
+class file_system {
+
+	FATFS fatfs_;
+	bool mount_;
+	char path_[128];
+
+public:
+	
+
+};
+
+
 
 static void mount_service_()
 {
@@ -112,6 +124,7 @@ static void mount_service_()
 		sd_mount_ = true;
 	}
 }
+#endif
 
 
 static bool check_key_word_(uint8_t idx, const char* key)
@@ -132,7 +145,7 @@ static bool ls_(uint8_t words)
 		return false;
 	}
 
-	if(sd_mount_) {
+//	if(sd_mount_) {
 		DIR dir;
 		if(pf_opendir(&dir, "") != FR_OK) {
 			sci_puts("Can't open dir\n");
@@ -155,7 +168,19 @@ static bool ls_(uint8_t words)
 			}
 		}
 
+//	}
+	return false;
+}
+
+
+static bool cd_(uint8_t words)
+{
+	if(!check_key_word_(0, "cd")) {
+		return false;
 	}
+
+
+
 	return false;
 }
 
@@ -231,13 +256,14 @@ int main(int argc, char *argv[])
 	command_.set_prompt("# ");
 	while(1) {
 		timer_b_.sync();
-		mount_service_();
+//		mount_service_();
 
 		// コマンド入力と、コマンド解析
 		if(command_.service()) {
 			uint8_t ws = command_.get_words();
 			if(ws == 0) ;
 			else if(ls_(ws)) ;
+			else if(cd_(ws)) ;
 			else {
 				sci_puts("Command error: ");
 				sci_puts(command_.get_command());
