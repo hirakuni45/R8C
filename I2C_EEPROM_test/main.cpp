@@ -222,17 +222,26 @@ static bool type_(uint8_t cmdn) {
 		if(check_key_word_(1, "M256B")) {
 			if(id >= 0 && id <= 7) {
 				eeprom_.start(static_cast<eeprom::M256B>(id), pgs);
+			} else {
+				sci_puts("Invalid ID renge.\n");
 			}
+			return true;
 		} else if(check_key_word_(1, "M64KB")) {
 			if(id >= 0 && id <= 7) {
 				eeprom_.start(static_cast<eeprom::M64KB>(id), pgs);
+			} else {
+				sci_puts("Invalid ID renge.\n");
 			}
+			return true;
 		} else if(check_key_word_(1, "M128KB")) {
 			if(id >= 0 && id <= 3) {
 				eeprom_.start(static_cast<eeprom::M128KB>(id), pgs);
+			} else {
+				sci_puts("Invalid ID renge.\n");
 			}
+			return true;
 		} else {
-			sci_puts("Ivvalid TYPE.\n");
+			sci_puts("Invalid TYPE.\n");
 			return true;
 		}
 	}
