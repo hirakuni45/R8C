@@ -1,6 +1,10 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C メイン
+	@brief	R8C UART メイン @n
+			P1_0: LED1 @n
+			P1_1: LED2 @n
+			P1_4: TXD(output) @n
+			P1_5: RXD(input)
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -10,18 +14,8 @@
 #include "clock.hpp"
 #include "port.hpp"
 #include "intr.hpp"
+#include "common/delay.hpp"
 #include "common/port_map.hpp"
-
-// 割り込みの場合
-#define UART_INTR
-
-static void wait_(uint16_t n)
-{
-	while(n > 0) {
-		asm("nop");
-		--n;
-	}
-}
 
 static uart0 uart0_;
 
@@ -79,37 +73,56 @@ int main(int argc, char *argv[])
 // 高速オンチップオシレーターへ切り替え(20MHz)
 // ※ F_CLK を設定する事（Makefile内）
 	OCOCR.HOCOE = 1;
-	wait_(1000);
+	utils::delay::micro_second(1);  // >=30us(125KHz)
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
 	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
-	utils::PORT_MAP(utils::port_map::P14::TXD0);
-	utils::PORT_MAP(utils::port_map::P15::RXD0);
+	{
+		utils::PORT_MAP(utils::port_map::P14::TXD0);
+		utils::PORT_MAP(utils::port_map::P15::RXD0);
 
-#ifdef UART_INTR
-	uart0_.start(19200, 1);
-#else
-	// ポーリングの場合
-	uart0_.start(19200, 0);
-#endif
+		// ※「0」を設定するとポーリングとなる。
+		uint8_t intr_level = 1;
+		uart0_.start(19200, intr_level);
+	}
 
-	// L チカ・メイン
-	PD1.B0 = 1;
-	uint8_t v = 0;
+	// LED ポート設定
+	{
+		utils::PORT_MAP(utils::port_map::P10::PORT);
+		utils::PORT_MAP(utils::port_map::P11::PORT);
+		PD1.B0 = 1;
+		PD1.B1 = 1;
+	}
+
+	uint8_t cnt = 0;
 	while(1) {
-		P1.B0 = v;
-		for(uint32_t i = 0; i < 50000; ++i) {
-			if(uart0_.length()) {  // UART のレシーブデータがあるか？
-				char ch = uart0_.getch();
-				uart0_.putch(ch);
-			}
+		if(uart0_.length()) {  // UART のレシーブデータがあるか？
+			char ch = uart0_.getch();
+			uart0_.putch(ch);
 		}
+
+		// 文字の出力
 		for(char ch = 0x20; ch < 0x7f; ++ch) {
 			uart0_.putch(ch);
 		} 
 		uart0_.putch('\n');
-		v ^= 1;
+
+		// 10ms ソフトタイマー
+		for(uint16_t i = 0; i < 10; ++i) {
+			utils::delay::micro_second(1000);
+		}
+
+		// LED の点滅
+		++cnt;
+		if(cnt < 50) {
+			P1.B0 = 0;
+			P1.B1 = 1;
+		} else {
+			P1.B0 = 1;
+			P1.B1 = 0;
+		}
+		if(cnt >= 100) cnt = 0;
 	}
 }

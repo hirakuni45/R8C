@@ -9,4 +9,3 @@
 
 typedef device::uart_io<device::UART0, 16, 16> uart0;
 
-
