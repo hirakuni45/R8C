@@ -38,12 +38,12 @@ struct scl_sda {
 		device::POD3.B5 = 1;  // SDA
 		device::POD3.B3 = 1;  // SCL
 	}
-	void scl_dir(bool b) const { device::PD1.B6 = b; }  // SCL 方向 (0:in, 1:out)
-	void scl_out(bool b) const { device::P1.B6 = b; }   // SCL 出力
-	bool scl_inp() const { return device::P1.B6(); }    // SCL 入力
-	void sda_dir(bool b) const { device::PD3.B3 = b; }  // SDA 方向 (0:in, 1:out)
-	void sda_out(bool b) const { device::P3.B3 = b; }   // SDA 出力
-	bool sda_inp() const { return device::P3.B3(); }    // SDA 入力
+	void scl_dir(bool b) const { device::PD3.B3 = b; }  // SCL 方向 (0:in, 1:out)
+	void scl_out(bool b) const { device::P3.B3 = b; }   // SCL 出力
+	bool scl_inp() const { return device::P3.B3(); }    // SCL 入力
+	void sda_dir(bool b) const { device::PD3.B5 = b; }  // SDA 方向 (0:in, 1:out)
+	void sda_out(bool b) const { device::P3.B5 = b; }   // SDA 出力
+	bool sda_inp() const { return device::P3.B5(); }    // SDA 入力
 };
 
 // SPI ベース・ポートの定義クラス
