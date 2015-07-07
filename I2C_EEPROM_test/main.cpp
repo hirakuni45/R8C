@@ -165,7 +165,7 @@ static bool help_(uint8_t cmdn) {
 	if(cmdn >= 1 && check_key_word_(0, "help")) {
 		sci_puts("speed KBPS (KBPS: 10 to 1000 [Kbps])\n");
 		sci_puts("type TYPE ID SIZE (TYPE: M256B/M64KB/M128KB, ID: 0 to 7, SIZE: 1 to 256)\n");
-		sci_puts("read ADRESS [LENGTH]\n");
+		sci_puts("read ADRESS [END-ADDRESS]\n");
 		sci_puts("write ADRESS DATA ...\n");
 		sci_puts("fill ADDRESS LENGTH DATA ...\n");
 		return true;
