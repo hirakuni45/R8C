@@ -14,12 +14,31 @@
 #include "common/format.hpp"
 #include "pfatfs/src/pff.h"
 
-static timer_b timer_b_;
+static timer_c timer_c_;
+
+struct wave_t {
+	uint8_t	left;
+	uint8_t	right;
+};
+
+static volatile wave_t wave_buff_[256];
+static volatile uint8_t wave_put_ = 0;
+static volatile uint8_t wave_get_ = 0;
+class wave_out {
+	public:
+	void operator() () {
+		const volatile wave_t& t = wave_buff_[wave_get_];
+		timer_c_.set_pwm_b(t.left);
+		timer_c_.set_pwm_c(t.right);
+		++wave_get_;		
+	}
+};
+
+typedef device::trb_io<wave_out> timer_audio;
 static uart0 uart0_;
-static utils::command<64> command_;
 static spi_base spi_base_;
 static spi_ctrl spi_ctrl_;
-static timer_c timer_c_;
+static timer_audio timer_b_;
 
 extern "C" {
 	void sci_putch(char ch) {
@@ -100,10 +119,19 @@ int main(int argc, char *argv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
+	// ＰＷＭモード設定
+	{
+		utils::PORT_MAP(utils::port_map::P12::TRCIOB);
+		utils::PORT_MAP(utils::port_map::P13::TRCIOC);
+		bool pfl = 0;  // 0->1
+		timer_c_.start_pwm(0x100, 0, pfl);
+//		uint16_t n = timer_c_.get_pwm_limit();
+	}
+
 	// タイマーＢ初期化
 	{
 		uint8_t ir_level = 2;
-		timer_b_.start_timer(60, ir_level);
+		timer_b_.start_timer(12000, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
@@ -119,17 +147,6 @@ int main(int argc, char *argv[])
 	{
 		spi_ctrl_.init();
 		spi_base_.init();
-	}
-
-	// ＰＷＭモード設定
-	{
-		utils::PORT_MAP(utils::port_map::P12::TRCIOB);
-		utils::PORT_MAP(utils::port_map::P13::TRCIOC);
-		bool pfl = 0;  // 0->1
-		timer_c_.start_pwm(0x100, 0, pfl);
-//		uint16_t n = timer_c_.get_pwm_limit();
-		timer_c_.set_pwm_b(128);
-		timer_c_.set_pwm_c(128);
 	}
 
 	sci_puts("Start R8C SD monitor\n");
@@ -174,15 +191,26 @@ int main(int argc, char *argv[])
 			sci_puts(file_name);
 			sci_puts("'\n");
 		} else {
-			for(;;) {
-				UINT br;
-				char buff[64];
-				if(pf_read(buff, sizeof(buff), &br) == FR_OK) {
-					if(!br) break;
+			sci_puts("Play WAVE: '");
+			sci_puts(file_name);
+			sci_puts("'\n");
 
-					for(UINT i = 0; i < br; i+=2) {
-						timer_c_.set_pwm_b(buff[i]);
-						timer_c_.set_pwm_c(buff[i]);
+			uint16_t n = 0;
+			while(1) {
+				uint8_t d;
+				do {
+					timer_b_.sync();
+					d = wave_get_ - wave_put_;
+				} while(d < 128) ;
+
+				UINT br;
+				if(pf_read((void*)&wave_buff_[wave_put_], 128 * 2, &br) == FR_OK) {
+					if(br == 0) break;
+					wave_put_ += 128;
+					++n;
+					if(n >= (12000 / 128)) {
+						n = 0;
+						sci_putch('.');
 					}
 				} else {
 					break;
@@ -191,14 +219,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	command_.set_prompt("# ");
-
-	while(1) {
-		timer_b_.sync();
-
-		// コマンド入力と、コマンド解析
-		if(command_.service()) {
-//			uint8_t ws = command_.get_words();
-		}
-	}
+	sci_puts("End play.\n");
+	while(1) ;
 }
