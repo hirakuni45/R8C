@@ -13,7 +13,6 @@ ASOURCES	=	common/start.s
 
 CSOURCES	=	common/vect.c \
 				common/init.c \
-				common/time.c \
 				pfatfs/src/pff.c
 
 PSOURCES	=	main.cpp \
