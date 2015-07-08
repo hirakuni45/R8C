@@ -72,25 +72,32 @@ BYTE CardType;			/* b0:MMC, b1:SDv1, b2:SDv2, b3:Block addressing */
 /*-----------------------------------------------------------------------*/
 static void xmit_mmc(BYTE d)
 {
-	spi_base_.sda_out(d & 0x80);
+	bool f = (d >> 7) & 1;
+	spi_base_.sda_out(f);
 	spi_base_.scl_out(1);
 	spi_base_.scl_out(0);
-	spi_base_.sda_out(d & 0x40);
+	f = (d >> 6) & 1;
+	spi_base_.sda_out(f);
 	spi_base_.scl_out(1);
 	spi_base_.scl_out(0);
-	spi_base_.sda_out(d & 0x20);
+	f = (d >> 5) & 1;
+	spi_base_.sda_out(f);
 	spi_base_.scl_out(1);
 	spi_base_.scl_out(0);
-	spi_base_.sda_out(d & 0x10);
+	f = (d >> 4) & 1;
+	spi_base_.sda_out(f);
 	spi_base_.scl_out(1);
 	spi_base_.scl_out(0);
-	spi_base_.sda_out(d & 0x08);
+	f = (d >> 3) & 1;
+	spi_base_.sda_out(f);
 	spi_base_.scl_out(1);
 	spi_base_.scl_out(0);
-	spi_base_.sda_out(d & 0x04);
+	f = (d >> 2) & 1;
+	spi_base_.sda_out(f);
 	spi_base_.scl_out(1);
 	spi_base_.scl_out(0);
-	spi_base_.sda_out(d & 0x02);
+	f = (d >> 1) & 1;
+	spi_base_.sda_out(f);
 	spi_base_.scl_out(1);
 	spi_base_.scl_out(0);
 	spi_base_.sda_out(d & 0x01);
@@ -104,40 +111,38 @@ static void xmit_mmc(BYTE d)
 /*-----------------------------------------------------------------------*/
 static BYTE rcvr_mmc()
 {
-	BYTE r = 0;
 	spi_base_.sda_out(1);
 
-	if(spi_base_.sda_inp()) ++r; // B7
+	BYTE r = spi_base_.sda_inp(); // B7
 	spi_base_.scl_out(1);
 	r <<= 1;
 	spi_base_.scl_out(0);
-	if(spi_base_.sda_inp()) ++r; // B6
+	r |= static_cast<BYTE>(spi_base_.sda_inp()); // B6
 	spi_base_.scl_out(1);
 	r <<= 1;
 	spi_base_.scl_out(0);
-	if(spi_base_.sda_inp()) ++r; // B5
+	r |= static_cast<BYTE>(spi_base_.sda_inp()); // B5
 	spi_base_.scl_out(1);
 	r <<= 1;
 	spi_base_.scl_out(0);
-	if(spi_base_.sda_inp()) ++r; // B4
+	r |= static_cast<BYTE>(spi_base_.sda_inp()); // B4
 	spi_base_.scl_out(1);
 	r <<= 1;
 	spi_base_.scl_out(0);
-	if(spi_base_.sda_inp()) ++r; // B3
+	r |= static_cast<BYTE>(spi_base_.sda_inp()); // B3
 	spi_base_.scl_out(1);
 	r <<= 1;
 	spi_base_.scl_out(0);
-	if(spi_base_.sda_inp()) ++r; // B2
+	r |= static_cast<BYTE>(spi_base_.sda_inp()); // B2
 	spi_base_.scl_out(1);
 	r <<= 1;
 	spi_base_.scl_out(0);
-	if(spi_base_.sda_inp()) ++r; // B1
+	r |= static_cast<BYTE>(spi_base_.sda_inp()); // B1
 	spi_base_.scl_out(1);
 	r <<= 1;
 	spi_base_.scl_out(0);
-	if(spi_base_.sda_inp()) ++r; // B0
+	r |= static_cast<BYTE>(spi_base_.sda_inp()); // B0
 	spi_base_.scl_out(1);
-
 	spi_base_.scl_out(0);
 
 	return r;
