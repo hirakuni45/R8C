@@ -1,6 +1,6 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C SD モニター
+	@brief	R8C SD WAVE Player
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -21,7 +21,7 @@ struct wave_t {
 	uint8_t	right;
 };
 
-static volatile wave_t wave_buff_[256];
+static wave_t wave_buff_[256];
 static volatile uint8_t wave_put_ = 0;
 static volatile uint8_t wave_get_ = 0;
 class wave_out {
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 		spi_base_.init();
 	}
 
-	sci_puts("Start R8C SD monitor\n");
+	sci_puts("Start R8C SD WAVE Player\n");
 
 	bool mount = false;
 	// pfatfs を開始
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 				} while(d < 128) ;
 
 				UINT br;
-				if(pf_read((void*)&wave_buff_[wave_put_], 128 * 2, &br) == FR_OK) {
+				if(pf_read(&wave_buff_[wave_put_], 128 * 2, &br) == FR_OK) {
 					if(br == 0) break;
 					wave_put_ += 128;
 					++n;
