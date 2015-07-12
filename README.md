@@ -53,6 +53,9 @@ R8C sources
 
  - /SD_monitor      --->  pFatFS を使った、SD カードのモニター
 
+ - /PLUSE_OUT_test  ---> 　タイマーＲＪを使ったパルス出力テスト
+
+ - /PLUSE_INP_test  ---> 　タイマーＲＪを使った周波数計測、パルス幅計測テスト
 
 ## R8C 開発環境
 
