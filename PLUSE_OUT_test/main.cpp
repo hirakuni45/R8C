@@ -1,44 +1,21 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C SD WAVE Player
+	@brief	R8C PWM メイン
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
 #include "main.hpp"
+#include <cstring>
 #include "system.hpp"
 #include "clock.hpp"
+#include "port.hpp"
+#include "common/command.hpp"
 #include "common/delay.hpp"
 #include "common/port_map.hpp"
-#include "common/command.hpp"
-#include <cstring>
-#include "common/format.hpp"
-#include "pfatfs/src/pff.h"
 
-static timer_c timer_c_;
-
-struct wave_t {
-	uint8_t	left;
-	uint8_t	right;
-};
-
-static wave_t wave_buff_[256];
-static volatile uint8_t wave_put_ = 0;
-static volatile uint8_t wave_get_ = 0;
-class wave_out {
-	public:
-	void operator() () {
-		const volatile wave_t& t = wave_buff_[wave_get_];
-		timer_c_.set_pwm_b(t.left);
-		timer_c_.set_pwm_c(t.right);
-		++wave_get_;		
-	}
-};
-
-typedef device::trb_io<wave_out> timer_audio;
+static timer_b timer_b_;
 static uart0 uart0_;
-static spi_base spi_base_;
-static spi_ctrl spi_ctrl_;
-static timer_audio timer_b_;
+static utils::command<64> command_;
 
 extern "C" {
 	void sci_putch(char ch) {
@@ -57,6 +34,8 @@ extern "C" {
 		uart0_.puts(str);
 	}
 }
+
+static timer_j timer_j_;
 
 extern "C" {
 	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
@@ -102,9 +81,68 @@ extern "C" {
 	};
 }
 
-static FATFS fatfs_;
 
-//  __attribute__ ((section (".exttext")))
+static bool check_key_word_(uint8_t idx, const char* key)
+{
+	char buff[12];
+	if(command_.get_word(idx, sizeof(buff), buff)) {
+		if(strcmp(buff, key) == 0) {
+			return true;
+		}				
+	}
+	return false;
+}
+
+
+static bool get_dec_(const char* text, uint32_t& val) {
+	val = 0;
+	char ch;
+	while((ch = *text++) != 0) {
+		if(ch >= '0' && ch <= '9') {
+			ch -= '0';
+		} else {
+			return false;
+		}
+		val *= 10;
+		val += ch;
+	}
+	return true;
+}
+
+
+static bool get_decimal_(uint8_t no, uint32_t& val) {
+	char buff[9];
+	if(command_.get_word(no, sizeof(buff), buff)) {
+		if(get_dec_(buff, val)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+static bool help_(uint8_t cmdn) {
+	if(cmdn >= 1 && check_key_word_(0, "help")) {
+		sci_puts("freq OUTPUT-FREQUENCY[Hz}\n");
+		return true;
+	}
+	return false;
+}
+
+
+static bool freq_(uint8_t cmdn) {
+	if(cmdn >= 2) {
+		uint32_t val;
+		if(get_decimal_(1, val)) {
+			if(!timer_j_.set_cycle(val)) {
+				sci_puts("TRJ out of range.\n");
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
 int main(int argc, char *argv[])
 {
 	using namespace device;
@@ -115,110 +153,51 @@ int main(int argc, char *argv[])
 // 高速オンチップオシレーターへ切り替え(20MHz)
 // ※ F_CLK を設定する事（Makefile内）
 	OCOCR.HOCOE = 1;
-	utils::delay::micro_second(1);  // >=30us(125KHz)
+	utils::delay::micro_second(1);	// >=30uS(125KHz)
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
-
-	// ＰＷＭモード設定
-	{
-		utils::PORT_MAP(utils::port_map::P12::TRCIOB);
-		utils::PORT_MAP(utils::port_map::P13::TRCIOC);
-		bool pfl = 0;  // 0->1
-		timer_c_.start_pwm(0x100, 0, pfl);
-//		uint16_t n = timer_c_.get_pwm_limit();
-	}
 
 	// タイマーＢ初期化
 	{
 		uint8_t ir_level = 2;
-		timer_b_.start_timer(11025, ir_level);
+		timer_b_.start_timer(60, ir_level);
 	}
 
-	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
+	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
 	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
 	{
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
 		utils::PORT_MAP(utils::port_map::P15::RXD0);
-		uint8_t intr_level = 1;
-		uart0_.start(19200, intr_level);
+		uint8_t ir_level = 1;
+		uart0_.start(19200, ir_level);
 	}
 
-	// spi_base, spi_ctrl ポートの初期化
+	// TRJ のパルス出力設定
 	{
-		spi_ctrl_.init();
-		spi_base_.init();
-	}
-
-	sci_puts("Start R8C SD WAVE Player\n");
-
-	bool mount = false;
-	// pfatfs を開始
-	{
-		if(pf_mount(&fatfs_) != FR_OK) {
-			sci_puts("SD mount error\n");
-		} else {
-			sci_puts("SD mount OK!\n");
-			mount = true;
+		utils::PORT_MAP(utils::port_map::P17::TRJIO);
+		if(!timer_j_.pluse_out(1000)) {
+			sci_puts("TRJ out of range.\n");
 		}
 	}
 
-	if(mount) {
-		DIR dir;
-		if(pf_opendir(&dir, "") != FR_OK) {
-			sci_puts("Can't open dir\n");
-		} else {
+	sci_puts("Start R8C PLUSE output monitor\n");
 
-			for(;;) {
-				FILINFO fno;
-				// Read a directory item
-				if(pf_readdir(&dir, &fno) != FR_OK) {
-					sci_puts("Can't read dir\n");
-					break;
-				}
-				if(!fno.fname[0]) break;
+	command_.set_prompt("# ");
 
-				if(fno.fattrib & AM_DIR) {
-					utils::format("          /%s\n") % fno.fname;
-				} else {
-					utils::format("%8d  %s\n") % static_cast<uint32_t>(fno.fsize) % fno.fname;
-				}
-			}
-		}
+	while(1) {
+		timer_b_.sync();
 
-		const char* file_name = "OHAYODEL.WAV";
-		if(pf_open(file_name) != FR_OK) {
-			sci_puts("Can't open file: '");
-			sci_puts(file_name);
-			sci_puts("'\n");
-		} else {
-			sci_puts("Play WAVE: '");
-			sci_puts(file_name);
-			sci_puts("'\n");
-
-			uint16_t n = 0;
-			while(1) {
-				uint8_t d;
-				do {
-					timer_b_.sync();
-					d = wave_get_ - wave_put_;
-				} while(d < 128) ;
-
-				UINT br;
-				if(pf_read(&wave_buff_[wave_put_], 128 * 2, &br) == FR_OK) {
-					if(br == 0) break;
-					wave_put_ += 128;
-					++n;
-					if(n >= (11025 / 128)) {
-						n = 0;
-						sci_putch('.');
-					}
-				} else {
-					break;
-				}
+		// コマンド入力と、コマンド解析
+		if(command_.service()) {
+			uint8_t cmdn = command_.get_words();
+			if(cmdn == 0) ;
+			else if(help_(cmdn)) ;
+			else if(freq_(cmdn)) ;
+			else {
+				sci_puts("Command error: ");
+				sci_puts(command_.get_command());
+				sci_putch('\n');
 			}
 		}
 	}
-
-	sci_puts("End play.\n");
-	while(1) ;
 }

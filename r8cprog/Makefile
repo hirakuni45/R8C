@@ -18,8 +18,11 @@ PSOURCES	=	main.cpp \
 
 STDLIBS		=
 OPTLIBS		=
-
+ifeq ($(OS),Windows_NT)
+INC_SYS		=	/mingw64/include
+else
 INC_SYS		=	/usr/local/include/boost
+endif
 
 INC_LIB		=
 
@@ -45,7 +48,7 @@ CP	=	g++
 CC	=	gcc
 LK	=	g++
 RC	=
-PINCS += -isystem/mingw64/include
+PINCS += '-isystem /mingw64/include'
 else
 CP	=	clang++
 CC	=	clang
