@@ -30,11 +30,36 @@ namespace device {
 		static TASK task_;
 
 	public:
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  パルス計測モード
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class measurement {
+			low_width,	///< Low レベル幅測定
+			high_width,	///< High レベル幅測定
+			freq,		///< 周波数測定
+		};
+
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  フィルタータイプ
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class filter {
+			none,		///< 無し
+			f1 = 1,		///< f1 フィルター
+			f8 = 2,		///< f8 フィルター
+			f32 = 3,	///< f32 フィルター
+		};
+
+
 		static INTERRUPT_FUNC void itask() {
 			task_();
 		}
 
-
+	private:
 		bool set_freq_(uint32_t freq) const {
 			uint32_t tn = F_CLK / (freq * 2);
 			uint8_t cks = 0;
@@ -46,6 +71,8 @@ namespace device {
 				}
 				if(cks >= 3) return false;
 			}
+			if(tn) --tn;
+
 			static const uint8_t tbl_[3] = { 0, 3, 1 };
 
 			TRJMR = TRJMR.TCK.b(tbl_[cks]) | TRJMR.TCKCUT.b(0) | TRJMR.TMOD.b(1);  // パルス出力モード
@@ -83,6 +110,13 @@ namespace device {
 			TRJIOC.TEDGSEL = 1;  // L から出力
 			TRJIOC.TOPCR = 0;    // トグル出力
 
+			ILVLB.B01 = ir_lvl;
+			if(ir_lvl) {
+				TRJIR.TRJIE = 1;
+			} else {
+				TRJIR.TRJIE = 0;
+			}
+
 			TRJCR.TSTART = 1;  // カウンタを開始
 
 			return true;
@@ -98,6 +132,28 @@ namespace device {
 		//-----------------------------------------------------------------//
 		bool set_cycle(uint32_t freq) const {
 			return set_freq_(freq);
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  パルス計測の開始（TRJIO 端子から、パルスを入力）
+			@param[in]	measur	パルス計測のモード
+			@param[in]	fil		入力フィルター
+			@param[in]	ir_lvl	割り込みレベル（０の場合割り込みを使用しない）
+		*/
+		//-----------------------------------------------------------------//
+		void pluse_inp(measurement measur, filter fil = filter::none, uint8_t ir_lvl = 0) const {
+			MSTCR.MSTTRJ = 0;  // モジュールスタンバイ解除
+
+			TRJCR.TSTART = 0;  // カウンタを停止
+
+			TRJIOC = TRJIOC.TIPF.b(static_cast<uint8_t>(fil)) | TRJIOC.TOPCR.b(1);
+//			TRJMR  = 
+
+			TRJ = 0;
+
+			TRJCR.TSTART = 1;  // カウンタを開始
 		}
 
 
