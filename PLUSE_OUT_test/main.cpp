@@ -123,7 +123,7 @@ static bool get_decimal_(uint8_t no, uint32_t& val) {
 
 static bool help_(uint8_t cmdn) {
 	if(cmdn >= 1 && check_key_word_(0, "help")) {
-		sci_puts("freq OUTPUT-FREQUENCY[Hz}\n");
+		sci_puts("freq FREQUENCY[Hz]\n");
 		return true;
 	}
 	return false;
