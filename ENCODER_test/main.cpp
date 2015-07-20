@@ -85,10 +85,10 @@ static uint16_t enc_count_ = 0;
 
 static void encoder_service_()
 {
-	uint8_t lvl = ~device::P1();
-	enc_pos_ = ~enc_lvl_ &  lvl; 
-	enc_neg_ =  enc_lvl_ & ~lvl;
-	enc_lvl_ = lvl;
+	uint8_t lvl = ~device::P1();  ///< 状態の取得
+	enc_pos_ = ~enc_lvl_ &  lvl;  ///< 立ち上がりエッジ検出
+	enc_neg_ =  enc_lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
+	enc_lvl_ = lvl;  ///< 状態のセーブ
 
 	if(enc_pos_ & device::P1.B0.b()) {
 		if(enc_lvl_ & device::P1.B1.b()) {
