@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 		uart0_.start(19200, ir_level);
 	}
 
-	// エンコーダー入力の設定 P10: (Phi_A), P11: (Phi_B)
+	// エンコーダー入力の設定 P10: (Phi_A), P11: (Phi_B), Vss: (COM)
 	{
 		utils::PORT_MAP(utils::port_map::P10::PORT);
 		utils::PORT_MAP(utils::port_map::P11::PORT);
