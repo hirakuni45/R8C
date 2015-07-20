@@ -72,8 +72,9 @@ namespace device {
 				if(cks >= 3) return false;
 			}
 			if(tn) --tn;
+			else return false;
 
-			static const uint8_t tbl_[3] = { 0, 3, 1 };
+			static const uint8_t tbl_[3] = { 0, 3, 1 }; // 1/1, 1/2, 1/8
 
 			TRJMR = TRJMR.TCK.b(tbl_[cks]) | TRJMR.TCKCUT.b(0) | TRJMR.TMOD.b(1);  // パルス出力モード
 			TRJ = tn;
