@@ -13,7 +13,51 @@
 #include "common/port_map.hpp"
 #include "common/format.hpp"
 
-static timer_b timer_b_;
+static uint8_t enc_lvl_ = 0;
+static uint8_t enc_pos_ = 0;
+static uint8_t enc_neg_ = 0;
+static volatile int8_t enc_cnt_ = 0;
+
+class encoder {
+public:
+	void operator() () {
+		uint8_t lvl = device::P1();  ///< 状態の取得
+		enc_pos_ = ~enc_lvl_ &  lvl;  ///< 立ち上がりエッジ検出
+		enc_neg_ =  enc_lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
+		enc_lvl_ = lvl;  ///< 状態のセーブ
+
+		if(enc_pos_ & device::P1.B0.b()) {
+			if(enc_lvl_ & device::P1.B1.b()) {
+				--enc_cnt_;
+			} else {
+				++enc_cnt_;
+			}
+		}
+		if(enc_neg_ & device::P1.B0.b()) {
+			if(enc_lvl_ & device::P1.B1.b()) {
+				++enc_cnt_;
+			} else {
+				--enc_cnt_;
+			}
+		}
+		if(enc_pos_ & device::P1.B1.b()) {
+			if(enc_lvl_ & device::P1.B0.b()) {
+				++enc_cnt_;
+			} else {
+				--enc_cnt_;
+			}
+		}
+		if(enc_neg_ & device::P1.B1.b()) {
+			if(enc_lvl_ & device::P1.B0.b()) {
+				--enc_cnt_;
+			} else {
+				++enc_cnt_;
+			}
+		}
+	}
+};
+
+static device::trb_io<encoder> timer_b_;
 static uart0 uart0_;
 
 extern "C" {
@@ -78,49 +122,6 @@ extern "C" {
 	};
 }
 
-static uint8_t enc_lvl_ = 0;
-static uint8_t enc_pos_ = 0;
-static uint8_t enc_neg_ = 0;
-static uint16_t enc_count_ = 0;
-
-static void encoder_service_()
-{
-	uint8_t lvl = ~device::P1();  ///< 状態の取得
-	enc_pos_ = ~enc_lvl_ &  lvl;  ///< 立ち上がりエッジ検出
-	enc_neg_ =  enc_lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
-	enc_lvl_ = lvl;  ///< 状態のセーブ
-
-	if(enc_pos_ & device::P1.B0.b()) {
-		if(enc_lvl_ & device::P1.B1.b()) {
-			--enc_count_;
-		} else {
-			++enc_count_;
-		}
-	}
-	if(enc_neg_ & device::P1.B0.b()) {
-		if(enc_lvl_ & device::P1.B1.b()) {
-			++enc_count_;
-		} else {
-			--enc_count_;
-		}
-	}
-	if(enc_pos_ & device::P1.B1.b()) {
-		if(enc_lvl_ & device::P1.B0.b()) {
-			++enc_count_;
-		} else {
-			--enc_count_;
-		}
-	}
-	if(enc_neg_ & device::P1.B1.b()) {
-		if(enc_lvl_ & device::P1.B0.b()) {
-			--enc_count_;
-		} else {
-			++enc_count_;
-		}
-	}
-}
-
-
 int main(int argc, char *argv[])
 {
 	using namespace device;
@@ -134,6 +135,16 @@ int main(int argc, char *argv[])
 	utils::delay::micro_second(1);	// >=30uS(125KHz)
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
+
+	// エンコーダー入力の設定 P10: (Phi_A), P11: (Phi_B), Vss: (COM)
+	{
+		utils::PORT_MAP(utils::port_map::P10::PORT);
+		utils::PORT_MAP(utils::port_map::P11::PORT);
+		device::PD1.B0 = 0;
+		device::PD1.B1 = 0;
+		device::PUR1.B0 = 1;	///< プルアップ
+		device::PUR1.B1 = 1;	///< プルアップ
+	}
 
 	// タイマーＢ初期化
 	{
@@ -150,34 +161,27 @@ int main(int argc, char *argv[])
 		uart0_.start(19200, ir_level);
 	}
 
-	// エンコーダー入力の設定 P10: (Phi_A), P11: (Phi_B), Vss: (COM)
-	{
-		utils::PORT_MAP(utils::port_map::P10::PORT);
-		utils::PORT_MAP(utils::port_map::P11::PORT);
-		device::PD1.B0 = 0;
-		device::PD1.B1 = 0;
-		device::PUR1.B0 = 1;	///< プルアップ
-		device::PUR1.B1 = 1;	///< プルアップ
-	}
-
 	sci_puts("Start R8C ENCODER monitor\n");
 
 	uint8_t cnt = 0;
+	int8_t enc_cnt = 0;
 	uint16_t count = 0;
 	while(1) {
 		timer_b_.sync();
 
-		encoder_service_();
-
-		// エンコーダー値の表示
-		if(count != enc_count_) {
-			count = enc_count_;
-			utils::format("%05d\n") % static_cast<uint32_t>(enc_count_);
+		if((cnt & 3) == 0) {
+			// エンコーダー値の表示
+			if(enc_cnt != enc_cnt_) {
+				int8_t d = enc_cnt - enc_cnt_;
+				if(d >= 3 || d <= -3) { 
+					enc_cnt = enc_cnt_;
+					if(d > 0) ++count;
+					else --count;
+					utils::format("%05d\n") % static_cast<uint32_t>(count);
+				}
+			}
 		}
 
 		++cnt;
-		if(cnt >= 4) {
-			cnt = 0;
-		}
 	}
 }
