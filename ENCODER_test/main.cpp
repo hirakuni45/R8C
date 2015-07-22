@@ -166,19 +166,25 @@ int main(int argc, char *argv[])
 	uint8_t cnt = 0;
 	int8_t enc_cnt = 0;
 	uint16_t count = 0;
+	uint16_t value = 0;
 	while(1) {
 		timer_b_.sync();
 
+		// エンコーダー値の増減
+		if(enc_cnt != enc_cnt_) {
+			int8_t d = enc_cnt - enc_cnt_;
+			if(d >= 4 || d <= -4) { 
+				enc_cnt = enc_cnt_;
+				if(d > 0) ++count;
+				else --count;
+			}
+		}
+
+		// 表示ループは１／６０秒で動かす
 		if((cnt & 3) == 0) {
-			// エンコーダー値の表示
-			if(enc_cnt != enc_cnt_) {
-				int8_t d = enc_cnt - enc_cnt_;
-				if(d >= 3 || d <= -3) { 
-					enc_cnt = enc_cnt_;
-					if(d > 0) ++count;
-					else --count;
-					utils::format("%05d\n") % static_cast<uint32_t>(count);
-				}
+			if(count != value) {
+				value = count;
+				utils::format("%05d\n") % static_cast<uint32_t>(count);
 			}
 		}
 
