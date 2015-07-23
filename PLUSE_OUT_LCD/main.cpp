@@ -207,6 +207,7 @@ int main(int argc, char *argv[])
 
 	uint8_t cnt = 0;
 	uint32_t count = 0;
+	uint32_t value = 0;
 	while(1) {
 		timer_b_.sync();
 
@@ -238,6 +239,15 @@ int main(int argc, char *argv[])
 			else if(count > 10000000) count = 10000000;
 
 			timer_j_.set_cycle(count);
+		}
+
+		if(value != count) {
+			value = count;
+			if(count > 99999) {
+				utils::format("%dKHz\n") % (count / 1000);
+			} else {
+				utils::format("%dHz\n") % count;
+			}
 		}
 
 		// 15Hz
