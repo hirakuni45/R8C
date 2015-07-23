@@ -3,7 +3,7 @@
 #	R8C Makefile 				        				#
 #														#
 #=======================================================#
-TARGET		=	pluse_out_test
+TARGET		=	pluse_out_lcd
 
 BUILD		=	release
 
