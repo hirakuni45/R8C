@@ -14,41 +14,39 @@
 #include "common/format.hpp"
 
 static uint8_t enc_lvl_ = 0;
-static uint8_t enc_pos_ = 0;
-static uint8_t enc_neg_ = 0;
 static volatile int8_t enc_cnt_ = 0;
 
 class encoder {
 public:
 	void operator() () {
 		uint8_t lvl = device::P1();  ///< 状態の取得
-		enc_pos_ = ~enc_lvl_ &  lvl;  ///< 立ち上がりエッジ検出
-		enc_neg_ =  enc_lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
+		uint8_t enc_pos = ~enc_lvl_ &  lvl;  ///< 立ち上がりエッジ検出
+		uint8_t enc_neg =  enc_lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
 		enc_lvl_ = lvl;  ///< 状態のセーブ
 
-		if(enc_pos_ & device::P1.B0.b()) {
-			if(enc_lvl_ & device::P1.B1.b()) {
+		if(enc_pos & device::P1.B0.b()) {
+			if(lvl & device::P1.B1.b()) {
 				--enc_cnt_;
 			} else {
 				++enc_cnt_;
 			}
 		}
-		if(enc_neg_ & device::P1.B0.b()) {
-			if(enc_lvl_ & device::P1.B1.b()) {
+		if(enc_neg & device::P1.B0.b()) {
+			if(lvl & device::P1.B1.b()) {
 				++enc_cnt_;
 			} else {
 				--enc_cnt_;
 			}
 		}
-		if(enc_pos_ & device::P1.B1.b()) {
-			if(enc_lvl_ & device::P1.B0.b()) {
+		if(enc_pos & device::P1.B1.b()) {
+			if(lvl & device::P1.B0.b()) {
 				++enc_cnt_;
 			} else {
 				--enc_cnt_;
 			}
 		}
-		if(enc_neg_ & device::P1.B1.b()) {
-			if(enc_lvl_ & device::P1.B0.b()) {
+		if(enc_neg & device::P1.B1.b()) {
+			if(lvl & device::P1.B0.b()) {
 				--enc_cnt_;
 			} else {
 				++enc_cnt_;
@@ -164,20 +162,18 @@ int main(int argc, char *argv[])
 	sci_puts("Start R8C ENCODER monitor\n");
 
 	uint8_t cnt = 0;
-	int8_t enc_cnt = 0;
 	uint16_t count = 0;
 	uint16_t value = 0;
 	while(1) {
 		timer_b_.sync();
 
 		// エンコーダー値の増減
-		if(enc_cnt != enc_cnt_) {
-			int8_t d = enc_cnt - enc_cnt_;
-			if(d >= 4 || d <= -4) { 
-				enc_cnt = enc_cnt_;
-				if(d > 0) ++count;
-				else --count;
-			}
+		if(enc_cnt_ >= 4) {
+			enc_cnt_ = 0;
+			--count;
+		} else if(enc_cnt_ <= -4) { 
+			enc_cnt_ = 0;
+			++count;
 		}
 
 		// 表示ループは１／６０秒で動かす
