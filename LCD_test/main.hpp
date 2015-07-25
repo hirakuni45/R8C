@@ -62,7 +62,7 @@ struct spi_ctrl {
 		device::PD3.B7 = 1;
 	}
 	void a0_out(bool b) const { device::P3.B3 = b; }
-	void cs0_out(bool b) const { device::P3.B7 = b; }
+	void lcd_sel(bool b) const { device::P3.B7 = b; }
 };
 
 typedef device::lcd_io<spi_base, spi_ctrl> lcd;
