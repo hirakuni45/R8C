@@ -55,12 +55,30 @@ namespace device {
 		*/
 		//-----------------------------------------------------------------//
 		void write(uint8_t d) const {
-			for(uint8_t i = 0; i < 8; ++i) {
-				port_.scl_out(0);
-				port_.sda_out(d & 0x80);
-				port_.scl_out(1);
-				d <<= 1;
-			}
+			port_.scl_out(0);
+			port_.sda_out((d >> 7) & 1);
+			port_.scl_out(1);
+			port_.scl_out(0);
+			port_.sda_out((d >> 6) & 1);
+			port_.scl_out(1);
+			port_.scl_out(0);
+			port_.sda_out((d >> 5) & 1);
+			port_.scl_out(1);
+			port_.scl_out(0);
+			port_.sda_out((d >> 4) & 1);
+			port_.scl_out(1);
+			port_.scl_out(0);
+			port_.sda_out((d >> 3) & 1);
+			port_.scl_out(1);
+			port_.scl_out(0);
+			port_.sda_out((d >> 2) & 1);
+			port_.scl_out(1);
+			port_.scl_out(0);
+			port_.sda_out((d >> 1) & 1);
+			port_.scl_out(1);
+			port_.scl_out(0);
+			port_.sda_out(d & 1);
+			port_.scl_out(1);
 		}
 
 
