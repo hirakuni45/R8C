@@ -37,7 +37,7 @@ namespace device {
 		bool	crlf_;
 
 	public:
-		static INTERRUPT_FUNC void recv_task() {
+		static INTERRUPT_FUNC void irecv() {
 			uint16_t ch = UART::URB();
 			///< フレーミングエラー/パリティエラー状態確認
 			if(ch & (UART::URB.OER.b() | UART::URB.FER.b() | UART::URB.PER.b() | UART::URB.SUM.b())) {
@@ -52,7 +52,7 @@ namespace device {
 				| (r & (UART::UIR.UTIE.b() | UART::UIR.URIE.b()));
 		}
 
-		static INTERRUPT_FUNC void send_task() {
+		static INTERRUPT_FUNC void isend() {
 			if(send_.length()) {
 				UART::UTBL = send_.get();
 			} else {

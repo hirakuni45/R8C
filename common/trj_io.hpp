@@ -54,13 +54,24 @@ namespace device {
 			f32 = 3,	///< f32 フィルター
 		};
 
+		static volatile uint8_t trjmr_;
+		static volatile uint16_t trj_;
 
-		static INTERRUPT_FUNC void itask() {
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  パルス出力用割り込み関数
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		static INTERRUPT_FUNC void itask_out() {
+			TRJMR = trjmr_;
+			TRJ = trj_;
 			task_();
+			volatile uint8_t v = TRJIR();
+			TRJIR = 0x00;
 		}
 
 	private:
-		bool set_freq_(uint32_t freq) const {
+		bool set_freq_(uint32_t freq, uint16_t& trj, uint8_t& tck) const {
 			uint32_t tn = F_CLK / (freq * 2);
 			uint8_t cks = 0;
 			while(tn > 65536) {
@@ -75,9 +86,8 @@ namespace device {
 			else return false;
 
 			static const uint8_t tbl_[3] = { 0, 3, 1 }; // 1/1, 1/2, 1/8
-
-			TRJMR = TRJMR.TCK.b(tbl_[cks]) | TRJMR.TCKCUT.b(0) | TRJMR.TMOD.b(1);  // パルス出力モード
-			TRJ = tn;
+			tck = tbl_[cks];
+			trj = tn;
 
 			return true;
 		}
@@ -104,18 +114,23 @@ namespace device {
 
 			TRJCR.TSTART = 0;  // カウンタを停止
 
-			if(!set_freq_(freq)) {
+			uint16_t trj;
+			uint8_t tck;
+			if(!set_freq_(freq, trj, tck)) {
 				return false;
 			}
+
+			TRJMR = trjmr_ = TRJMR.TCK.b(tck) | TRJMR.TCKCUT.b(0) | TRJMR.TMOD.b(1);  // パルス出力モード
+			TRJ = trj_ = trj;
 
 			TRJIOC.TEDGSEL = 1;  // L から出力
 			TRJIOC.TOPCR = 0;    // トグル出力
 
 			ILVLB.B01 = ir_lvl;
 			if(ir_lvl) {
-				TRJIR.TRJIE = 1;
+				TRJIR = TRJIR.TRJIE.b(1);
 			} else {
-				TRJIR.TRJIE = 0;
+				TRJIR = TRJIR.TRJIE.b(0);
 			}
 
 			TRJCR.TSTART = 1;  // カウンタを開始
@@ -126,13 +141,32 @@ namespace device {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief  TRJ 出力周波数の設定
+			@brief  TRJ 出力周波数の再設定
 			@param[in]	freq	周波数
 			@return 設定範囲を超えたら「false」
 		*/
 		//-----------------------------------------------------------------//
 		bool set_cycle(uint32_t freq) const {
-			return set_freq_(freq);
+			uint16_t trj;
+			uint8_t tck;
+			if(!set_freq_(freq, trj, tck)) {
+				return false;
+			}
+
+			// パルス出力モード
+			// TRJ = 0 だと、割り込みが発生しないので、ダイレクト出力する
+			if(trj_ != 0 && ILVLB.B01()) {
+				trjmr_ = TRJMR.TCK.b(tck) | TRJMR.TCKCUT.b(0) | TRJMR.TMOD.b(1);
+				trj_ = trj;
+				di();
+				volatile uint8_t v = TRJIR();
+				TRJIR = TRJIR.TRJIE.b(1);
+				ei();
+			} else {
+				TRJMR = TRJMR.TCK.b(tck) | TRJMR.TCKCUT.b(0) | TRJMR.TMOD.b(1);
+				TRJ = trj;
+			}
+			return true;
 		}
 
 
@@ -169,4 +203,11 @@ namespace device {
 		}
 
 	};
+
+	// スタティック実態定義
+	template<class TASK>
+	volatile uint8_t trj_io<TASK>::trjmr_;
+	template<class TASK>
+	volatile uint16_t trj_io<TASK>::trj_;
+
 }
