@@ -194,10 +194,12 @@ int main(int argc, char *argv[])
 //		bitmap_.frame(0, 0, 128, 32, 1);
 	}
 
+	uint32_t count = 20;
+
 	// TRJ のパルス出力設定
 	{
 		utils::PORT_MAP(utils::port_map::P17::TRJIO);
-		if(!timer_j_.pluse_out(1000)) {
+		if(!timer_j_.pluse_out(count)) {
 			sci_puts("TRJ out of range.\n");
 		}
 	}
@@ -206,7 +208,6 @@ int main(int argc, char *argv[])
 	command_.set_prompt("# ");
 
 	uint8_t cnt = 0;
-	uint32_t count = 0;
 	uint32_t value = 0;
 	while(1) {
 		timer_b_.sync();
@@ -250,7 +251,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		// 15Hz
+		// 1/15 sec
 		if((cnt & 15) == 0) {
 			bitmap_.clear(0);
 			uint32_t n = count;
