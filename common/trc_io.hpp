@@ -21,21 +21,21 @@ namespace device {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  TimerRC I/O 制御クラス
+		@param[in]	TASK 割り込み内で実行されるクラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	template <class TASK>
 	class trc_io {
 
+		static TASK task_;
 
 	public:
-		static INTERRUPT_FUNC void trc_task() {
+		static INTERRUPT_FUNC void itask() {
+			task_();
 		}
 
 
 	private:
-		// ※同期が必要なら、実装する
-		void sleep_() const {
-			asm("nop");
-		}
 
 	public:
 		//-----------------------------------------------------------------//
@@ -76,6 +76,13 @@ namespace device {
 			TRCCR2 = TRCCR2.POLB.b(pfl) | TRCCR2.POLC.b(pfl) | TRCCR2.POLD.b(pfl);
 
 			TRCOER = TRCOER.EB.b(0) | TRCOER.EC.b(0) | TRCOER.ED.b(0);
+
+			ILVLB.B01 = ir_lvl;
+			if(ir_lvl) {
+				//TRJIR = TRJIR.TRJIE.b(1);
+			} else {
+				//TRJIR = TRJIR.TRJIE.b(0);
+			}
 
 			TRCMR.CTS = 1;  // カウント開始
 		}

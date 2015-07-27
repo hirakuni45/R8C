@@ -43,19 +43,27 @@ R8C sources
 
  - /COMP_test       --->   コンパレーターのテスト
 
- - /I2C_RTC_test    --->  I2C RTC デバイスのテスト
+ - /I2C_RTC_test    --->   I2C RTC デバイスのテスト
 
- - /I2C_EEPROM_test --->  I2C EEPROM デバイスのテスト
+ - /I2C_EEPROM_test --->   I2C EEPROM デバイスのテスト
 
- - /LCD_test        --->  128x32 mono color graphics のテスト
+ - /LCD_test        --->   128x32 mono color graphics のテスト
 
- - /SD_test         --->  pFatFS を使った、SD カードのテスト
+ - /SD_test         --->   pFatFS を使った、SD カードのテスト
 
- - /SD_monitor      --->  pFatFS を使った、SD カードのモニター
+ - /SD_monitor      --->   pFatFS を使った、SD カードのモニター
 
- - /PLUSE_OUT_test  ---> 　タイマーＲＪを使ったパルス出力テスト
+ - /SD_WAV_play     --->   SD カード上の WAV 形式ファイルの PWM 再生
 
- - /PLUSE_INP_test  ---> 　タイマーＲＪを使った周波数計測、パルス幅計測テスト
+ - /PLUSE_OUT_test  --->   タイマーＲＪを使ったパルス出力テスト
+
+ - /SWITCH_test     --->   スイッチ入力テスト（チャタリング除去とトリガー判定）
+
+ - /ENCODER_test    --->   エンコーダー入力テスト
+
+ - /PLUSE_OUT_LCD   --->   タイマーＲＪ、ＬＣＤ、エンコーダー
+
+ - /PLUSE_INP_test  --->   タイマーＲＪを使った周波数計測、パルス幅計測テスト
 
 ## R8C 開発環境
 
