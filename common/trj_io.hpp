@@ -80,9 +80,9 @@ namespace device {
 		static INTERRUPT_FUNC void iout() {
 			TRJMR = trjmr_;
 			TRJ = trj_;
-			volatile uint8_t v = TRJIR();
-			TRJIR = 0x00;
 			task_();
+			volatile uint8_t tmp = TRJIR();
+			TRJIR = 0x00;
 		}
 
 
@@ -92,18 +92,10 @@ namespace device {
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		static INTERRUPT_FUNC void iinp() {
-			uint8_t trjir = TRJIR.TRJIE.b(1);
-			if(TRJCR.TEDGF()) {
-				if(trjmr_ == 0) {
-					trj_ = TRJ();
-					trjir = 0x00;
-				} else {
-					--trjmr_;
-				}
-			}
-			volatile uint8_t v = TRJIR();
-			TRJIR = trjir;
+			trj_ = TRJ();
  			task_();
+			volatile uint8_t tmp = TRJIR();
+			TRJIR = 0x00;
 		}
 
 
@@ -212,7 +204,7 @@ namespace device {
 			@brief  パルス計測の開始（TRJIO 端子から、パルスを入力）@n
 					※VCOUT1 端子から入力する場合は、TRJIOSEL を設定する。
 			@param[in]	measur	パルス計測のモード
-			@param[in]	s		カウンターソース（countの場合は無効）
+			@param[in]	s		クロック選択（measur::countの場合は無効）
 			@param[in]	ir_lvl	割り込みレベル（０の場合割り込みを使用しない）
 		*/
 		//-----------------------------------------------------------------//
@@ -234,18 +226,36 @@ namespace device {
 			}
 			TRJIOC = TRJIOC.TEDGSEL.b(f) | TRJIOC.TIPF.b(0) | TRJIOC.TOPCR.b(0);
 			TRJMR = TRJMR.TMOD.b(md) | TRJMR.TCK.b(static_cast<uint8_t>(s))
-						   | TRJMR.TEDGPL.b(0) | TRJMR.TCKCUT.b(0);
+						   | TRJMR.TEDGPL.b(1) | TRJMR.TCKCUT.b(0);
 
 			ILVLB.B01 = ir_lvl;
 			if(ir_lvl) {
 				TRJIR = TRJIR.TRJIE.b(1);
 			} else {
-				TRJIR = TRJIR.TRJIE.b(0);
+				TRJIR = 0x00;
 			}
 
-			trjmr_ = 2;
 			TRJ = trj_ = 0xffff;
 			TRJCR = TRJCR.TSTART.b(1);  // カウンタを開始、アンダーフロー・クリア
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  計測をリスタート
+			@param[in]	s		クロック選択（measur::countの場合は無効）
+		*/
+		//-----------------------------------------------------------------//
+		void restart_inp(source s) {
+			TRJCR = 0x00;  // カウンタ停止
+
+			TRJMR.TCK = static_cast<uint8_t>(s);
+
+			if(ILVLB.B01()) {
+				TRJIR = TRJIR.TRJIE.b(1);
+			}
+			TRJ = trj_ = 0xffff;
+			TRJCR = TRJCR.TSTART.b(1);  // カウンタを再開、アンダーフロー・クリア
 		}
 
 
