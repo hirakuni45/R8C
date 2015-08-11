@@ -22,8 +22,8 @@ _start:
 	nop
 	fset i
 
-	.extern _init
-	jmp.w _init
+	.extern __init
+	jmp.w __init
 
 	.global _exit
 _exit:
