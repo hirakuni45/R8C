@@ -21,7 +21,7 @@ typedef device::uart_io<device::UART0, 16, 16> uart0;
 
 typedef device::trb_io<utils::null_task> timer_b;
 
-typedef device::trc_io timer_c;
+typedef device::trc_io<utils::null_task> timer_c;
 
 typedef device::adc_io adc;
 

@@ -121,11 +121,12 @@ int main(int argc, char *argv[])
 
 	// ＰＷＭモード設定
 	{
+		// PWM cycle F_CLK(20MHz / 2 / 256 ---> 39.0625KHz
 		utils::PORT_MAP(utils::port_map::P12::TRCIOB);
 		utils::PORT_MAP(utils::port_map::P13::TRCIOC);
 		bool pfl = 0;  // 0->1
-		timer_c_.start_pwm(0x100, 0, pfl);
-//		uint16_t n = timer_c_.get_pwm_limit();
+		uint8_t ir_level = 2;
+		timer_c_.start_pwm(0x100, timer_c::divide::f2, pfl, ir_level);
 	}
 
 	// タイマーＢ初期化
