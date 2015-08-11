@@ -139,7 +139,7 @@ namespace device {
 			if(tn) --tn;
 			if(tn == 0) return false;
 
-			start_pwm(tn, cks, pfl, ir_lvl);
+			start_pwm(tn, static_cast<divide>(cks), pfl, ir_lvl);
 
 			return true;
 		}
