@@ -34,8 +34,8 @@ namespace device {
 		bit_t<trjcr_io, 0> TSTART;
 		bit_t<trjcr_io, 1> TCSTF;
 		bit_t<trjcr_io, 2> TSTOP;
-		bit_t<trjcr_io, 5> TEDGF;
-		bit_t<trjcr_io, 6> TUNDF;
+		bit_t<trjcr_io, 4> TEDGF;
+		bit_t<trjcr_io, 5> TUNDF;
 	};
 	static trjcr_t TRJCR;
 
