@@ -123,7 +123,7 @@ extern "C" {
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (20)
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (21) /INT2
-		reinterpret_cast<void*>(timer_j_.itask_out),nullptr,	// (22) タイマＲＪ２
+		reinterpret_cast<void*>(timer_j_.iout),	nullptr,	// (22) タイマＲＪ２
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (23) 周期タイマ
 
 		reinterpret_cast<void*>(timer_b_.itask),nullptr,	// (24) タイマＲＢ２
