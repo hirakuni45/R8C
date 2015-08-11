@@ -30,10 +30,37 @@ namespace device {
 		static TASK task_;
 
 	public:
+		static volatile uint16_t	pwm_b_;
+		static volatile uint16_t	pwm_c_;
+		static volatile uint16_t	pwm_d_;
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  PWM-A 割り込み
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		static INTERRUPT_FUNC void itask() {
 			task_();
+			TRCGRB = pwm_b_;
+			TRCGRC = pwm_c_;
+			TRCGRD = pwm_d_;
+			volatile uint8_t tmp = TRCSR();
+			TRCSR = 0x00;
 		}
 
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  カウンターディバイド
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class divide : uint8_t {
+			f1,		/// 1 / 1
+			f2,		/// 1 / 2
+			f4,		/// 1 / 4
+			f8,		/// 1 / 8
+			f32		/// 1 / 32
+		};
 
 	private:
 
@@ -50,13 +77,13 @@ namespace device {
 		/*!
 			@brief  ＰＷＭモード開始（最大３チャネルのＰＷＭ出力）
 			@param[in]	limit	リミット
-			@param[in]	cks		クロック選択（0:f1, 1:f2, 2:f4, 3:f8, 4:f32）
+			@param[in]	cks		クロック選択
 			@param[in]	pfl ポートの初期レベル「fasle」0->1、「true」1->0
 			@param[in]	ir_lvl	割り込みレベル（０の場合割り込みを使用しない）
 			@return 設定範囲を超えたら「false」
 		*/
 		//-----------------------------------------------------------------//
-		void start_pwm(uint16_t limit, uint8_t cks, bool pfl, uint8_t ir_lvl = 0) const {
+		void start_pwm(uint16_t limit, divide cks, bool pfl, uint8_t ir_lvl = 0) const {
 			MSTCR.MSTTRC = 0;  // モジュールスタンバイ解除
 
 			TRCMR.CTS = 0;  // カウント停止
@@ -67,7 +94,7 @@ namespace device {
 			TRCMR = TRCMR.PWM2.b(1) | TRCMR.PWMB.b(1) | TRCMR.PWMC.b(1) | TRCMR.PWMD.b(1);
 
 			// コンペア一致Ａでカウンタクリア
-			TRCCR1 = TRCCR1.CCLR.b(1) | TRCCR1.TOA.b(0) | TRCCR1.CKS.b(cks)
+			TRCCR1 = TRCCR1.CCLR.b(1) | TRCCR1.TOA.b(0) | TRCCR1.CKS.b(static_cast<uint8_t>(cks))
 				   | TRCCR1.TOB.b(0) | TRCCR1.TOC.b(0) | TRCCR1.TOD.b(0);
 
 			TRCIOR0 = TRCIOR0.IOA.b(0) | TRCIOR0.IOB.b(2);
@@ -77,11 +104,11 @@ namespace device {
 
 			TRCOER = TRCOER.EB.b(0) | TRCOER.EC.b(0) | TRCOER.ED.b(0);
 
-			ILVLB.B01 = ir_lvl;
+			ILVL3.B45 = ir_lvl;
 			if(ir_lvl) {
-				//TRJIR = TRJIR.TRJIE.b(1);
+				TRCIER = TRCIER.IMIEA.b(1);
 			} else {
-				//TRJIR = TRJIR.TRJIE.b(0);
+				TRCIER = 0x00;
 			}
 
 			TRCMR.CTS = 1;  // カウント開始
@@ -136,7 +163,11 @@ namespace device {
 		*/
 		//-----------------------------------------------------------------//
 		void set_pwm_b(uint16_t val) const {
-			TRCGRB = val;
+			if(ILVL3.B45()) {
+				pwm_b_ = val;
+			} else {
+				TRCGRB = val;
+			}
 		}
 
 
@@ -147,7 +178,11 @@ namespace device {
 		*/
 		//-----------------------------------------------------------------//
 		void set_pwm_c(uint16_t val) const {
-			TRCGRC = val;
+			if(ILVL3.B45()) {
+				pwm_c_ = val;
+			} else {
+				TRCGRC = val;
+			}
 		}
 
 
@@ -158,8 +193,21 @@ namespace device {
 		*/
 		//-----------------------------------------------------------------//
 		void set_pwm_d(uint16_t val) const {
-			TRCGRD = val;
+			if(ILVL3.B45()) {
+				pwm_d_ = val;
+			} else {
+				TRCGRD = val;
+			}
 		}
 
 	};
+
+	// スタティック実態定義
+	template<class TASK>
+	volatile uint16_t trc_io<TASK>::pwm_b_;
+	template<class TASK>
+	volatile uint16_t trc_io<TASK>::pwm_c_;
+	template<class TASK>
+	volatile uint16_t trc_io<TASK>::pwm_d_;
+
 }
