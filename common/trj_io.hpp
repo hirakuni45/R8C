@@ -35,10 +35,11 @@ namespace device {
 			@brief  パルス計測モード
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		enum class measurement {
+		enum class measurement : uint8_t {
 			low_width,	///< Low レベル幅測定
 			high_width,	///< High レベル幅測定
-			freq,		///< 周波数測定
+			count,		///< パルス数測定
+			freq,		///< 周期測定
 		};
 
 
@@ -47,12 +48,26 @@ namespace device {
 			@brief  フィルタータイプ
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		enum class filter {
+		enum class filter : uint8_t {
 			none,		///< 無し
 			f1 = 1,		///< f1 フィルター
 			f8 = 2,		///< f8 フィルター
 			f32 = 3,	///< f32 フィルター
 		};
+
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  カウンターソース
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class source : uint8_t {
+			f1 = 0,		///< f1
+			f2 = 3,		///< f2
+			f8 = 1,		///< f8
+			fHOCO = 2	///< fHOCO
+		};
+
 
 		static volatile uint8_t trjmr_;
 		static volatile uint16_t trj_;
@@ -62,13 +77,35 @@ namespace device {
 			@brief  パルス出力用割り込み関数
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		static INTERRUPT_FUNC void itask_out() {
+		static INTERRUPT_FUNC void iout() {
 			TRJMR = trjmr_;
 			TRJ = trj_;
-			task_();
 			volatile uint8_t v = TRJIR();
 			TRJIR = 0x00;
+			task_();
 		}
+
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  パルス入力用割り込み関数
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		static INTERRUPT_FUNC void iinp() {
+			uint8_t trjir = TRJIR.TRJIE.b(1);
+			if(TRJCR.TEDGF()) {
+				if(trjmr_ == 0) {
+					trj_ = TRJ();
+					trjir = 0x00;
+				} else {
+					--trjmr_;
+				}
+			}
+			volatile uint8_t v = TRJIR();
+			TRJIR = trjir;
+ 			task_();
+		}
+
 
 	private:
 		bool set_freq_(uint32_t freq, uint16_t& trj, uint8_t& tck) const {
@@ -154,7 +191,7 @@ namespace device {
 			}
 
 			// パルス出力モード
-			// TRJ = 0 だと、割り込みが発生しないので、ダイレクト出力する
+			// TRJ = 0 だと、割り込みが発生しないので、直接設定する
 			if(trj_ != 0 && ILVLB.B01()) {
 				trjmr_ = TRJMR.TCK.b(tck) | TRJMR.TCKCUT.b(0) | TRJMR.TMOD.b(1);
 				trj_ = trj;
@@ -172,34 +209,60 @@ namespace device {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief  パルス計測の開始（TRJIO 端子から、パルスを入力）
+			@brief  パルス計測の開始（TRJIO 端子から、パルスを入力）@n
+					※VCOUT1 端子から入力する場合は、TRJIOSEL を設定する。
 			@param[in]	measur	パルス計測のモード
-			@param[in]	fil		入力フィルター
+			@param[in]	s		カウンターソース（countの場合は無効）
 			@param[in]	ir_lvl	割り込みレベル（０の場合割り込みを使用しない）
 		*/
 		//-----------------------------------------------------------------//
-		void pluse_inp(measurement measur, filter fil = filter::none, uint8_t ir_lvl = 0) const {
+		void pluse_inp(measurement measur, source s, uint8_t ir_lvl = 0) const {
 			MSTCR.MSTTRJ = 0;  // モジュールスタンバイ解除
 
-			TRJCR.TSTART = 0;  // カウンタを停止
+			TRJCR = 0x00;  // カウンタ停止
 
-			TRJIOC = TRJIOC.TIPF.b(static_cast<uint8_t>(fil)) | TRJIOC.TOPCR.b(1);
-//			TRJMR  = 
+			bool f = TRJIOC.TEDGSEL();
+			uint8_t md = 3;
+			if(measur == measurement::low_width) {
+				f = 0;
+			} else if(measur == measurement::high_width) {
+				f = 1;
+			} else if(measur == measurement::count) {
+				md = 2;
+			} else if(measur == measurement::freq) {
+				md = 4;
+			}
+			TRJIOC = TRJIOC.TEDGSEL.b(f) | TRJIOC.TIPF.b(0) | TRJIOC.TOPCR.b(0);
+			TRJMR = TRJMR.TMOD.b(md) | TRJMR.TCK.b(static_cast<uint8_t>(s))
+						   | TRJMR.TEDGPL.b(0) | TRJMR.TCKCUT.b(0);
 
-			TRJ = 0;
+			ILVLB.B01 = ir_lvl;
+			if(ir_lvl) {
+				TRJIR = TRJIR.TRJIE.b(1);
+			} else {
+				TRJIR = TRJIR.TRJIE.b(0);
+			}
 
-			TRJCR.TSTART = 1;  // カウンタを開始
+			trjmr_ = 2;
+			TRJ = trj_ = 0xffff;
+			TRJCR = TRJCR.TSTART.b(1);  // カウンタを開始、アンダーフロー・クリア
 		}
 
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief  TRJ カウント値を取得
-			@return カウント値
+			@brief  TRJ カウント値を取得（割り込み内で設定された値）
+			@param[out]	count	カウント値
+			@return アンダーフローの場合「false」
 		*/
 		//-----------------------------------------------------------------//
-		uint16_t get_count() const {
-			return TRJ();
+		bool get_count(uint16_t& count) const {
+			if(ILVLB.B01()) {
+				count = ~trj_;
+			} else {
+				count = ~TRJ();
+			}
+			return !TRJCR.TUNDF();
 		}
 
 	};
