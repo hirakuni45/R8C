@@ -13,6 +13,7 @@
 #include <cstring>
 #include "common/format.hpp"
 #include "pfatfs/src/pff.h"
+#include "wav_in.hpp"
 
 static timer_c timer_c_;
 
@@ -24,13 +25,21 @@ struct wave_t {
 static wave_t wave_buff_[256];
 static volatile uint8_t wave_put_ = 0;
 static volatile uint8_t wave_get_ = 0;
+
+static void clear_wave_() {
+	for(uint16_t i = 0; i < sizeof(wave_buff_); ++i) {
+		wave_buff_[i].left  = 128;
+		wave_buff_[i].right = 128;
+	}
+}
+
 class wave_out {
 	public:
 	void operator() () {
 		const volatile wave_t& t = wave_buff_[wave_get_];
 		timer_c_.set_pwm_b(t.left);
 		timer_c_.set_pwm_c(t.right);
-		++wave_get_;		
+		++wave_get_;
 	}
 };
 
@@ -39,6 +48,8 @@ static uart0 uart0_;
 static spi_base spi_base_;
 static spi_ctrl spi_ctrl_;
 static timer_audio timer_b_;
+
+static audio::wav_in wav_in_;
 
 extern "C" {
 	void sci_putch(char ch) {
@@ -68,7 +79,7 @@ extern "C" {
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (4) コンパレーターB1
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (5) コンパレーターB3
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (6)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (7) タイマＲＣ
+		reinterpret_cast<void*>(timer_c_.itask),nullptr,	// (7) タイマＲＣ
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (8)
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (9)
@@ -104,6 +115,35 @@ extern "C" {
 
 static FATFS fatfs_;
 
+static void play_wav_()
+{
+//	uint32_t pos = 0;
+	uint16_t n = 0;
+//	while(pos < wav_in_.get_size()) {
+	while(1) {
+		uint8_t d;
+		do {
+			timer_b_.sync();
+			d = wave_get_ - wave_put_;
+		} while(d < 128) ;
+		UINT br;
+		if(pf_read(&wave_buff_[wave_put_], 128 * 2, &br) == FR_OK) {
+			if(br == 0) break;
+			wave_put_ += 128;
+//			pos += 256;
+//			++n;
+//			if(n >= (11025 / 128)) {
+//				n = 0;
+//				sci_putch('.');
+//			}
+		} else {
+			break;
+		}
+	}
+	clear_wave_();
+}
+
+
 //  __attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])
 {
@@ -119,6 +159,8 @@ int main(int argc, char *argv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
+	clear_wave_();
+
 	// ＰＷＭモード設定
 	{
 		// PWM cycle F_CLK(20MHz / 2 / 256 ---> 39.0625KHz
@@ -126,7 +168,7 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P13::TRCIOC);
 		bool pfl = 0;  // 0->1
 		uint8_t ir_level = 2;
-		timer_c_.start_pwm(0x100, timer_c::divide::f2, pfl, ir_level);
+		timer_c_.start_pwm(255, timer_c::divide::f4, pfl, ir_level);
 	}
 
 	// タイマーＢ初期化
@@ -192,30 +234,24 @@ int main(int argc, char *argv[])
 			sci_puts(file_name);
 			sci_puts("'\n");
 		} else {
-			sci_puts("Play WAVE: '");
-			sci_puts(file_name);
-			sci_puts("'\n");
-
-			uint16_t n = 0;
-			while(1) {
-				uint8_t d;
-				do {
-					timer_b_.sync();
-					d = wave_get_ - wave_put_;
-				} while(d < 128) ;
-
-				UINT br;
-				if(pf_read(&wave_buff_[wave_put_], 128 * 2, &br) == FR_OK) {
-					if(br == 0) break;
-					wave_put_ += 128;
-					++n;
-					if(n >= (11025 / 128)) {
-						n = 0;
-						sci_putch('.');
-					}
-				} else {
-					break;
-				}
+			if(!wav_in_.load_header()) {
+				sci_puts("WAV file header error: '");
+				sci_puts(file_name);
+				sci_puts("'\n");		
+			} else if(wav_in_.get_chanel() != 2) {
+				utils::format("WAV chanel error(2): %d '%s'\n")
+					% static_cast<uint32_t>(wav_in_.get_chanel()) % file_name;
+			} else if(wav_in_.get_rate() != 11025) {
+				utils::format("WAV sample rate error(11025): %d '%s'\n")
+					% static_cast<uint32_t>(wav_in_.get_rate()) % file_name;
+			} else if(wav_in_.get_bits() != 8) {
+				utils::format("WAV sample bits error(8): %d '%s'\n")
+					% static_cast<uint32_t>(wav_in_.get_bits()) % file_name;
+			} else {
+				sci_puts("Play WAVE: '");
+				sci_puts(file_name);
+				sci_puts("'\n");
+				play_wav_();
 			}
 		}
 	}
