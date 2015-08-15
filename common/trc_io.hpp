@@ -26,10 +26,9 @@ namespace device {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <class TASK>
 	class trc_io {
-
+	public:
 		static TASK task_;
 
-	public:
 		static volatile uint16_t	pwm_b_;
 		static volatile uint16_t	pwm_c_;
 		static volatile uint16_t	pwm_d_;
@@ -203,6 +202,8 @@ namespace device {
 	};
 
 	// スタティック実態定義
+	template<class TASK>
+	TASK trc_io<TASK>::task_;
 	template<class TASK>
 	volatile uint16_t trc_io<TASK>::pwm_b_;
 	template<class TASK>

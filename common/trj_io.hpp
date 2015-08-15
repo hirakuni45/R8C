@@ -26,10 +26,9 @@ namespace device {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <class TASK>
 	class trj_io {
-
+	public:
 		static TASK task_;
 
-	public:
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
 			@brief  パルス計測モード
@@ -278,6 +277,8 @@ namespace device {
 	};
 
 	// スタティック実態定義
+	template<class TASK>
+	TASK trj_io<TASK>::task_;
 	template<class TASK>
 	volatile uint8_t trj_io<TASK>::trjmr_;
 	template<class TASK>
