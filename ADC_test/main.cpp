@@ -122,10 +122,9 @@ int main(int argc, char *argv[])
 	uart0_.puts("Start R8C ADC\n");
 
 	// ADC の設定（CH1のサイクルモード）
-	// port1.b1 の A/D 変換
 	{
-		PD1.B1 = 0;
-		adc_.setup(true, device::adc_io::cnv_type::chanel1, 0);
+		utils::PORT_MAP(utils::port_map::P11::AN1);
+		adc_.setup(adc::cnv_type::CH1, adc::ch_grp::AN0_AN1, true);
 		adc_.start();
 	}
 
