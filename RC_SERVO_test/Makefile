@@ -3,7 +3,7 @@
 #	R8C Makefile 				        				#
 #														#
 #=======================================================#
-TARGET		=	uart_test
+TARGET		=	pwm_test
 
 BUILD		=	release
 
@@ -15,7 +15,6 @@ CSOURCES	=	common/vect.c \
 				common/init.c
 
 PSOURCES	=	main.cpp
-
 
 USER_LIBS	=	stdc++
 
@@ -158,7 +157,7 @@ bin_zip:
 	zip $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H)_bin.zip *.exe *.dll res/*.*
 
 run:
-	r8c_prog -d R5F2M120 -s 57600 --progress -e -w -v $(TARGET).mot
+	r8c_prog -d R5F2M120 -s 57600 -e -w -v $(TARGET).mot
 
 verify:
 	r8c_prog -d R5F2M120 -s 57600 -v $(TARGET).mot
