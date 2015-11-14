@@ -40,10 +40,10 @@ namespace device {
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		static INTERRUPT_FUNC void itask() {
 			task_();
+			volatile uint8_t f = TRCSR();
 			TRCGRB = pwm_b_;
 			TRCGRC = pwm_c_;
 			TRCGRD = pwm_d_;
-			volatile uint8_t tmp = TRCSR();
 			TRCSR = 0x00;
 		}
 
@@ -89,6 +89,9 @@ namespace device {
 
 			TRCCNT = 0x0000;
 			TRCGRA = limit;
+			TRCGRB = pwm_b_ = 128;
+			TRCGRC = pwm_c_ = 128;
+			TRCGRD = pwm_d_ = 128;
 
 			TRCMR = TRCMR.PWM2.b(1) | TRCMR.PWMB.b(1) | TRCMR.PWMC.b(1) | TRCMR.PWMD.b(1);
 
@@ -105,7 +108,9 @@ namespace device {
 
 			ILVL3.B45 = ir_lvl;
 			if(ir_lvl) {
-				TRCIER = TRCIER.IMIEA.b(1);
+				TRCIER = TRCIER.IMIEA.b(1);  // カウンターＡのマッチをトリガーにして割り込み
+//				TRCIER = TRCIER.IMIEB.b(1);
+//				TRCIER = TRCIER.IMIEC.b(1);
 			} else {
 				TRCIER = 0x00;
 			}
@@ -124,7 +129,7 @@ namespace device {
 		*/
 		//-----------------------------------------------------------------//
 		bool start_pwm(uint16_t hz, bool pfl, uint8_t ir_lvl = 0) const {
-
+			// 周波数から最適な、カウント値を計算
 			uint32_t tn = F_CLK / hz;
 			uint8_t cks = 0;
 			while(tn > 65536) {
