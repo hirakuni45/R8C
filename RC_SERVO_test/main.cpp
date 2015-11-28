@@ -11,6 +11,20 @@
 #include "common/delay.hpp"
 #include "common/port_map.hpp"
 
+// どちらか片方を有効にする
+#define JR_TYPE_SERVO
+// #define FUTABA_TYPE_SERVO
+
+#ifdef JR_TYPE_SERVO
+static const uint16_t rcs_n_ =  3750;  // ニュートラル(JR)：  1500uS --> 3750
+static const uint16_t rcs_d_ =  1500;  // 可動範囲(JR)：+-600uS --> +-1500
+#endif
+
+#ifdef FUTABA_TYPE_SERVO
+static const uint16_t rcs_n_ =  3800;  // ニュートラル(FUTABA)：  1520uS --> 3800
+static const uint16_t rcs_d_ =  1500;  // 可動範囲(JR)：+-600uS --> +-1500
+#endif
+
 class timer_intr {
 	static volatile uint8_t trc_sync_;
 
@@ -94,12 +108,9 @@ extern "C" {
 	};
 }
 
-static const uint16_t rcs_n_ = 3750;  // ニュートラル(JR)：  1500uS --> 3750
-static const uint16_t rcs_d_ = 1500;  // 可動範囲(JR)：+-600uS --> +-1500
-
 static uint16_t calc_pwm_(uint16_t adc_value)
 {
-	auto v = (static_cast<uint32_t>(adc_value) * rcs_d_ * 2) >> 10;
+	auto v = (static_cast<uint32_t>(adc_value) * (rcs_d_ * 2)) >> 10;
 	return v - rcs_d_ + rcs_n_;
 }
 

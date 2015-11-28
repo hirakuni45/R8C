@@ -3,7 +3,7 @@
 #	R8C Makefile 				        				#
 #														#
 #=======================================================#
-TARGET		=	pwm_test
+TARGET		=	rc_servo_test
 
 BUILD		=	release
 
