@@ -13,6 +13,7 @@
 #include "common/adc_io.hpp"
 #include "common/flash_io.hpp"
 #include "common/ds1371_io.hpp"
+#include "common/ds3231_io.hpp"
 
 
 typedef device::uart_io<device::UART0, 16, 16> uart0;
@@ -43,5 +44,6 @@ struct scl_sda {
 
 typedef device::i2c_io<scl_sda> i2c_io;
 typedef device::ds1371_io<scl_sda> ds1371;
+typedef device::ds3231_io<scl_sda> ds3231;
 
 

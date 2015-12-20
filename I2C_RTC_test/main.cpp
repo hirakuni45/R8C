@@ -12,6 +12,10 @@
 #include "common/command.hpp"
 #include "common/format.hpp"
 
+// 対象の RTC を有効にする
+// #define DS1371
+#define DS3231
+
 static void wait_(uint16_t n)
 {
 	while(n > 0) {
@@ -24,7 +28,12 @@ static timer_b timer_b_;
 static uart0 uart0_;
 static utils::command<64> command_;
 static i2c_io i2c_io_;
+#ifdef DS1371
 static ds1371 rtc_(i2c_io_);
+#endif
+#ifdef DS3231
+static ds3231 rtc_(i2c_io_);
+#endif
 
 extern "C" {
 	void sci_putch(char ch) {
