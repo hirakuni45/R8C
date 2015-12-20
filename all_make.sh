@@ -22,9 +22,6 @@ cd ..
 cd LED_test
 make
 cd ..
-cd L_chika
-make
-cd ..
 cd PLUSE_INP_test
 make
 cd ..
