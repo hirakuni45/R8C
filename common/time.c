@@ -14,7 +14,7 @@ static const char mday_tbl_[] = {
 	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
 
-/// 大阪、札幌、東京のタイムゾーン +9
+/// 大阪、札幌、東京のタイムゾーン +9 hour
 static char timezone_offset_ = 9;
 static struct tm time_st_;
 
