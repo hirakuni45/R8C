@@ -120,7 +120,6 @@ static const char* mon_[] = {
 
 static void disp_time_(time_t t) {
 	struct tm *m = gmtime(&t);
-
 	utils::format("%s %s %d %02d:%02d:%02d  %4d\n")
 		% wday_[m->tm_wday]
 		% mon_[m->tm_mon]
@@ -259,7 +258,7 @@ int main(int argc, char *argv[])
 		i2c_io_.init();
 	}
 
-	// DS1371 RTC を開始
+	// RTC を開始
 	{
 		rtc_.start();
 	}
