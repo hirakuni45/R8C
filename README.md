@@ -75,9 +75,9 @@ R8C sources
 
 ## R8C 開発環境
 
-・R8C 用コンパイラ（m32c-elf）は gcc-4.74 を使っています。
-・現状、m32-elf をビルドする為には、少し古い、MSYS 環境が必要です 
-・Windows では、事前に MSYS、MSYS2 環境をインストールしておきます。
+ - R8C 用コンパイラ（m32c-elf）は gcc-4.74 を使っています。
+ - 現状、m32-elf をビルドする為には、少し古い、MSYS 環境が必要です 
+ - Windows では、事前に MSYS、MSYS2 環境をインストールしておきます。
 
 コンパイラのビルド方法：（MSYS）
 
@@ -96,9 +96,7 @@ R8C sources
 ```
 
  -  /usr/local/m32c-elf/bin へパスを通す
-
  -  コンソールを開きなおす。
-
  -  C コンパイラをビルド
 ``` sh
     cd
@@ -142,8 +140,8 @@ R8C sources
     cp r8c_prog.conf ~/bin/.
 　　※~/bin にパスを通しておく。
 ```
-※r8c_prog.conf を編集して、接続する COM ポート、ボーレートの設定をする。
-
+ - r8c_prog.conf を編集して、接続する COM ポート、ボーレートの設定をする。
+ - /dev/ttyS10 ---> COM11 に相当します。
 
 ## 各プロジェクトの動作
 
