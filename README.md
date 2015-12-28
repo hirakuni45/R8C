@@ -77,17 +77,25 @@ R8C sources
 
  - R8C 用コンパイラ（m32c-elf）は gcc-4.74 を使っています。
  - 現状、m32-elf をビルドする為には、少し古い、MSYS 環境が必要です 
- - Windows では、事前に MSYS、MSYS2 環境をインストールしておきます。
+ - Windows では、事前に MSYS2 環境をインストールしておきます。
 
-コンパイラのビルド方法：（MSYS）
+コンパイラのビルド方法：（MSYS2）
 
- - gmp、mpfr、mpc コマンドをインストール
+ - gcc、texinfo、gmp、mpfr、mpc、diffutils コマンドなどをインストール
+```sh
+   pacman -S gcc
+   pacman -S texinfo
+   pacman -S gmp-devel
+   pacman -S mpfr-devel
+   pacman -S mpc-devel
+   pacman -S diffutils
+```
 
- - binutils-2.25 をビルド
+ - binutils-2.25-1 をビルド
 ```sh
    cd
-   tar xfvz binutils-2.25.tar.gz
-   cd binutils-2.25
+   tar xfvz binutils-2.25-1.tar.gz
+   cd binutils-2.25-1
    mkdir m32c_build
    cd m32c_build
    ../configure --target=m32c-elf --prefix=/usr/local/m32c-elf --disable-nls
@@ -100,11 +108,11 @@ R8C sources
  -  C コンパイラをビルド
 ``` sh
     cd
-    tar xfvz gcc-4.7.4.tar.gz
-    cd gcc-4.7.4
+    tar xfvz gcc-5.2.0.tar.gz
+    cd gcc-5.2.0
     mkdir m32c_build
 	cd m32c_build
-    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c --disable-libssp --with-newlib --disable-nls
+    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --disable-bootstrap
     make
     make install
 ```
@@ -112,8 +120,8 @@ R8C sources
  -  newlib をビルド
 ``` sh
     cd
-    tar xfvz newlib-2.1.0.tar.gz
-	cd newlib-2.1.0
+    tar xfvz newlib-2.2.0.tar.gz
+	cd newlib-2.2.0
     mkdir m32c_build
     cd m32c_build
     ../configure --target=m32c-elf --prefix=/usr/local/m32c-elf
@@ -124,9 +132,9 @@ R8C sources
  -  C++ コンパイラをビルド
 ``` sh
     cd
-    cd gcc-4.7.4
+    cd gcc-5.2.0
     cd m32c_build
-    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c,c++ --disable-libssp --with-newlib --disable-nls --disable-libstdcxx-pch
+    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c,c++ --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --disable-bootstrap
     make
     make install
 ```
@@ -142,6 +150,7 @@ R8C sources
 ```
  - r8c_prog.conf を編集して、接続する COM ポート、ボーレートの設定をする。
  - /dev/ttyS10 ---> COM11 に相当します。
+ - r8cprog/KiCAD/ に、R8C プログラマー（書き込み機）の参考回路などが含まれます。
 
 ## 各プロジェクトの動作
 
