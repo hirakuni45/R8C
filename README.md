@@ -91,11 +91,11 @@ R8C sources
    pacman -S diffutils
 ```
 
- - binutils-2.25-1 をビルド
+ - binutils-2.25.1 をビルド
 ```sh
    cd
-   tar xfvz binutils-2.25-1.tar.gz
-   cd binutils-2.25-1
+   tar xfvz binutils-2.25.1.tar.gz
+   cd binutils-2.25.1
    mkdir m32c_build
    cd m32c_build
    ../configure --target=m32c-elf --prefix=/usr/local/m32c-elf --disable-nls
