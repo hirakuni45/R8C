@@ -5,7 +5,7 @@ R8C sources
 
 ## R8C 各ディレクトリー、及び概要など
 
-> これは R8C と、そのコンパイラである gcc-m32c-elf によるプログラムです。
+> これは R8C と、そのコンパイラである m32c-elf-gcc,g++ によるプログラムです。
 >
 > 現在は、主に「R5F2M110ANDD」及び「R5F2M120ANDD」に対応した、ヘッダー、関連ライブラリーなどです。
 >
@@ -75,8 +75,7 @@ R8C sources
 
 ## R8C 開発環境
 
- - R8C 用コンパイラ（m32c-elf）は gcc-4.74 を使っています。
- - 現状、m32-elf をビルドする為には、少し古い、MSYS 環境が必要です 
+ - R8C 用コンパイラ（m32c-elf）は gcc-4.8.3 を使っています。 
  - Windows では、事前に MSYS2 環境をインストールしておきます。
 
 コンパイラのビルド方法：（MSYS2）
@@ -85,10 +84,9 @@ R8C sources
 ```sh
    pacman -S gcc
    pacman -S texinfo
-   pacman -S gmp-devel
-   pacman -S mpfr-devel
    pacman -S mpc-devel
    pacman -S diffutils
+   pacman -S automake
 ```
 
  - binutils-2.25.1 をビルド
@@ -106,10 +104,12 @@ R8C sources
  -  /usr/local/m32c-elf/bin へパスを通す
  -  コンソールを開きなおす。
  -  C コンパイラをビルド
+ -  ※少し古い gcc では、MSYS2 環境を認識しない為、automake の設定をコピーする
 ``` sh
     cd
-    tar xfvz gcc-5.2.0.tar.gz
-    cd gcc-5.2.0
+    tar xfvz gcc-4.8.3.tar.gz
+    cd gcc-4.8.3
+    cp /usr/share/automake-1.9/config.guess .
     mkdir m32c_build
 	cd m32c_build
     ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --disable-bootstrap
@@ -149,7 +149,7 @@ R8C sources
 　　※~/bin にパスを通しておく。
 ```
  - r8c_prog.conf を編集して、接続する COM ポート、ボーレートの設定をする。
- - /dev/ttyS10 ---> COM11 に相当します。
+ - /dev/ttyS10 ---> COM11 に相当します。（数字に＋１する）
  - r8cprog/KiCAD/ に、R8C プログラマー（書き込み機）の参考回路などが含まれます。
 
 ## 各プロジェクトの動作
