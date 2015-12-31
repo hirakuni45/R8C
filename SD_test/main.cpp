@@ -84,7 +84,7 @@ extern "C" {
 }
 
 
-//  __attribute__ ((section (".exttext")))
+__attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])
 {
 	using namespace device;

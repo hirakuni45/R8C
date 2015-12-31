@@ -27,7 +27,7 @@ static volatile uint8_t wave_put_ = 0;
 static volatile uint8_t wave_get_ = 0;
 
 static void clear_wave_() {
-	for(uint16_t i = 0; i < sizeof(wave_buff_); ++i) {
+	for(uint16_t i = 0; i < 256; ++i) {
 		wave_buff_[i].left  = 128;
 		wave_buff_[i].right = 128;
 	}
@@ -144,7 +144,7 @@ static void play_wav_()
 }
 
 
-//  __attribute__ ((section (".exttext")))
+__attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])
 {
 	using namespace device;
