@@ -75,8 +75,20 @@ R8C sources
 
 ## R8C 開発環境
 
- - R8C 用コンパイラ（m32c-elf）は gcc-4.8.3 を使っています。 
+ - R8C 用コンパイラ（m32c-elf）は gcc-4.9.3 を使っています。 
  - Windows では、事前に MSYS2 環境をインストールしておきます。
+
+ - msys のアップグレード
+
+```sh
+   update-core
+```
+
+ - コンソールを開きなおす
+
+```sh
+   pacman -Su
+```
 
 コンパイラのビルド方法：（MSYS2）
 
@@ -107,8 +119,8 @@ R8C sources
  -  ※少し古い gcc では、MSYS2 環境を認識しない為、automake の設定をコピーする
 ``` sh
     cd
-    tar xfvz gcc-4.8.3.tar.gz
-    cd gcc-4.8.3
+    tar xfvz gcc-4.9.3.tar.gz
+    cd gcc-4.9.3
     cp /usr/share/automake-1.9/config.guess .
     mkdir m32c_build
 	cd m32c_build
@@ -132,7 +144,7 @@ R8C sources
  -  C++ コンパイラをビルド
 ``` sh
     cd
-    cd gcc-5.2.0
+    cd gcc-4.9.3
     cd m32c_build
     ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c,c++ --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --disable-bootstrap
     make
