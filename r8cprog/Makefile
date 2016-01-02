@@ -19,10 +19,9 @@ PSOURCES	=	main.cpp \
 STDLIBS		=
 OPTLIBS		=
 ifeq ($(OS),Windows_NT)
-# INC_SYS		=	/mingw64/include
-INC_SYS		=
+INC_SYS		=	/usr/local/boost_1_60_0
 else
-INC_SYS		=	/usr/local/include/boost
+INC_SYS		=
 endif
 
 INC_LIB		=
@@ -57,7 +56,7 @@ LK	=	clang++
 RC	=
 endif
 
-POPT	=	-O2 -std=gnu++11
+POPT	=	-O2 -std=gnu++14
 COPT	=	-O2
 LOPT	=
 

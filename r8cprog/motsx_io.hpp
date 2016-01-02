@@ -11,7 +11,6 @@
 #include <array>
 #include "file_io.hpp"
 #include <iomanip>
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
 namespace utils {
@@ -288,7 +287,7 @@ namespace utils {
 				return false;
 			}
 
-			BOOST_FOREACH(const memory_map::value_type& m, memory_map_) {
+			for(const auto& m : memory_map_) {
 				if(!save_(fio, m)) {
 					return false;
 				}
@@ -338,7 +337,7 @@ namespace utils {
 			uint32_t fin = 0;
 			bool first = true;
 			uint32_t total = 0;
-			BOOST_FOREACH(const memory_map::value_type& m, memory_map_) {
+			for(const auto& m : memory_map_) {
 				if(first) {
 					std::cout << boost::format("  0x%06X to ") % m.second.min_;
 					org = fin = m.second.min_;

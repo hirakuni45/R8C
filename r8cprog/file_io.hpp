@@ -7,6 +7,7 @@
 */
 //=====================================================================//
 #include <cstdio>
+#include <cstring>
 #include <memory>
 #include "string_utils.hpp"
 
@@ -21,6 +22,16 @@ namespace utils {
 	*/
 	//-----------------------------------------------------------------//
 	std::FILE* wfopen(const utils::lstring& fn, const std::string& md);
+
+
+	//-----------------------------------------------------------------//
+	/*!
+		@brief	ディレクトリーを作成する（UTF8）
+		@param[in]	dir	ディレクトリー名
+		@return 作成出来たら「true」
+	*/
+	//-----------------------------------------------------------------//
+	bool create_directory(const std::string& dir);
 
 
 	//-----------------------------------------------------------------//
@@ -83,6 +94,28 @@ namespace utils {
 	size_t get_file_size(const std::string& fn);
 
 
+	//-----------------------------------------------------------------//
+	/*!
+		@brief	ファイルを消去
+		@param[in]	fn	ファイル名
+		@return 成功なら「true」
+	*/
+	//-----------------------------------------------------------------//
+	bool remove_file(const std::string& fn);
+
+
+	//-----------------------------------------------------------------//
+	/*!
+		@brief	ファイルをコピー
+		@param[in]	src	ソース・ファイル名（コピー元）
+		@param[in]	dst	デスティネーション・ファイル名（コピー先）
+		@param[in]	dup	コピー先ファイルを上書きする場合「true」
+		@return 成功なら「true」
+	*/
+	//-----------------------------------------------------------------//
+	bool copy_file(const std::string& src, const std::string& dst, bool dup = false);
+
+
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief	ファイル入出力・クラス
@@ -136,6 +169,9 @@ namespace utils {
 			if(::strrchr(mode, 'a')) append_mode_ = true;
 			else append_mode_ = false;
 		}
+
+		bool	cr_;
+
 	public:
 
 		//-----------------------------------------------------------------//
@@ -144,8 +180,9 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		file_io() : count_(0), open_(false), file_(false),
-		  fp_(0), w_buff_(0), rbuff_(0), fpos_(0), size_(0),
-		  binary_mode_(true), read_mode_(false), write_mode_(false) { }
+					fp_(0), w_buff_(0), rbuff_(0), fpos_(0), size_(0),
+					binary_mode_(true), read_mode_(false), write_mode_(false),
+					cr_(false) { }
 
 
 		//-----------------------------------------------------------------//
@@ -288,7 +325,7 @@ namespace utils {
 			if(open_) return false;
 
 			if(count_ == 0) return false;
- 
+
 			if(file_) {
 				std::string fn = fpath_;
 				std::string md = mode_;
@@ -538,6 +575,40 @@ namespace utils {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief	リトルエンディアン 16 bits 読み込み
+			@param[out]	val	読み込み先
+			@return	ファイルの終端なら「false」
+		*/
+		//-----------------------------------------------------------------//
+		bool get16(uint16_t& val) {
+			uint8_t tmp[2];
+			if(read(tmp, 2) != 2) {
+				return false;
+			}
+			val = tmp[0] | (tmp[1] << 8);
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	リトルエンディアン 32 bits 読み込み
+			@param[out]	val	読み込み先
+			@return	ファイルの終端なら「false」
+		*/
+		//-----------------------------------------------------------------//
+		bool get32(uint32_t& val) {
+			uint8_t tmp[4];
+			if(read(tmp, 4) != 4) {
+				return false;
+			}
+			val = tmp[0] | (tmp[1] << 8) | (tmp[2] << 16) | (tmp[3] << 24);
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief	１バイト書き出し
 			@param[in]	c	書き出しデータ
 			@return	エラーなら「false」
@@ -556,7 +627,7 @@ namespace utils {
 		size_t put(const std::string& text) {
 			if(text.empty()) return 0;
 			size_t n = 0;
-			BOOST_FOREACH(char ch, text) {
+			for(auto ch : text) {
 				if(!put_char(ch)) {
 					return n;
 				}
@@ -607,6 +678,44 @@ namespace utils {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief	リトルエンディアン 16 bits 書き込み
+			@param[in]	val	書き込み元
+			@return	正常なら「true」
+		*/
+		//-----------------------------------------------------------------//
+		bool put16(uint16_t val) {
+			uint8_t tmp[2];
+			tmp[0] = val & 255;
+			tmp[1] = val >> 8;			
+			if(write(tmp, 2) != 2) {
+				return false;
+			}
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	リトルエンディアン 32 bits 書き込み
+			@param[in]	val	書き込み元
+			@return	正常なら「true」
+		*/
+		//-----------------------------------------------------------------//
+		bool put32(uint32_t val) {
+			uint8_t tmp[4];
+			tmp[0] = val & 255;
+			tmp[1] = val >> 8;
+			tmp[2] = val >> 16;
+			tmp[2] = val >> 24;
+			if(write(tmp, 4) != 4) {
+				return false;
+			}
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief	複数バイト書き出し
 			@param[in]	ptr	書き出し元
 			@param[in]	size	オブジェクトのサイズ
@@ -633,7 +742,7 @@ namespace utils {
 			@return	書き出した数
 		*/
 		//-----------------------------------------------------------------//
-		size_t write(const void* ptr, size_t size) { return write(ptr, 1,size); }
+		size_t write(const void* ptr, size_t size) { return write(ptr, 1, size); }
 
 
 		//-----------------------------------------------------------------//
@@ -687,11 +796,37 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	1 行読み込み
-			@param[out]	buff	読み込み先
-			@return	ファイルの終端なら「false」
+			@return	読み込んだ行
 		*/
 		//-----------------------------------------------------------------//
-		bool get_line(std::string& buff);
+		std::string get_line();
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	改行にCRが含まれるか
+			@return	含まれる場合「true」
+		*/
+		//-----------------------------------------------------------------//
+		bool is_cr() const { return cr_; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	1 行書き込み
+			@param[in]	buff	ソース
+			@param[in]	cr		CR/LF の場合「true」
+			@return	エラーなら「false」
+		*/
+		//-----------------------------------------------------------------//
+		bool put_line(const std::string& buff, bool cr = false) {
+			for(auto ch : buff) {
+				if(!put_char(ch)) return false;
+			}
+			if(cr) put_char('\r');
+			put_char('\n');
+			return true;
+		}
 
 
 		//-----------------------------------------------------------------//

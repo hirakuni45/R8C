@@ -6,7 +6,6 @@
 */
 //=====================================================================//
 #include <string>
-#include <boost/foreach.hpp>
 #include <vector>
 // #include "utils/mtx.hpp"
 
@@ -148,14 +147,14 @@ namespace utils {
 	template <class T>
 	T to_lower_text(const T& src) {
 		T dst;
-		BOOST_FOREACH(typename T::value_type ch, src) {
+		for(auto ch : src) {
 			if(ch >= 'A' && ch <= 'Z') {
 				dst += (ch + 0x20);
 			} else {
 				dst += ch;
 			}
 		}
-		return std::move(dst);
+		return dst;
 	}
 
 
@@ -197,6 +196,20 @@ namespace utils {
 
 	//-----------------------------------------------------------------//
 	/*!
+		@brief	UTF-8 から UTF-16 への変換
+		@param[in]	src	UTF-8 ソース
+		@return	UTF-16
+	*/
+	//-----------------------------------------------------------------//
+	inline wstring utf8_to_utf16(const std::string& src) noexcept {
+		wstring dst;
+		utf8_to_utf16(src, dst);
+		return dst;
+	}
+
+
+	//-----------------------------------------------------------------//
+	/*!
 		@brief	UTF-8 から UTF-32 への変換
 		@param[in]	src	UTF-8 ソース
 		@param[out]	dst	UTF-32（追記）
@@ -204,6 +217,20 @@ namespace utils {
 	*/
 	//-----------------------------------------------------------------//
 	bool utf8_to_utf32(const std::string& src, lstring& dst) noexcept;
+
+
+	//-----------------------------------------------------------------//
+	/*!
+		@brief	UTF-8 から UTF-32 への変換
+		@param[in]	src	UTF-8 ソース
+		@return	UTF-32
+	*/
+	//-----------------------------------------------------------------//
+	inline lstring utf8_to_utf32(const std::string& src) noexcept {
+		lstring dst;
+		utf8_to_utf32(src, dst);
+		return dst;
+	}
 
 
 	//-----------------------------------------------------------------//
@@ -219,16 +246,45 @@ namespace utils {
 
 	//-----------------------------------------------------------------//
 	/*!
+		@brief	UTF-16 から UTF-8 への変換
+		@param[in]	src	UTF-16 ソース
+		@return	UTF-8
+	*/
+	//-----------------------------------------------------------------//
+	inline std::string utf16_to_utf8(const wstring& src) noexcept {
+		std::string dst;
+		utf16_to_utf8(src, dst);
+		return dst;
+	}
+
+
+	//-----------------------------------------------------------------//
+	/*!
 		@brief	UTF-16 から UTF-32 への変換（単なるコピー）
 		@param[in]	src	UTF-16 ソース文字列
 		@param[out]	dst	UTF-32（追記）
+		@return 変換が正常なら「true」
 	*/
 	//-----------------------------------------------------------------//
 	inline bool utf16_to_utf32(const wstring& src, lstring& dst) noexcept {
-		BOOST_FOREACH(uint16_t ch, src) {
+		for(auto ch : src) {
 			dst += ch;
 		}
 		return true;
+	}
+
+
+	//-----------------------------------------------------------------//
+	/*!
+		@brief	UTF-16 から UTF-32 への変換（単なるコピー）
+		@param[in]	src	UTF-16 ソース文字列
+		@return	UTF-32
+	*/
+	//-----------------------------------------------------------------//
+	inline lstring utf16_to_utf32(const wstring& src) noexcept {
+		lstring dst;
+		utf16_to_utf32(src, dst);
+		return dst;
 	}
 
 
@@ -245,6 +301,20 @@ namespace utils {
 
 	//-----------------------------------------------------------------//
 	/*!
+		@brief	UTF-32 から UTF-8 への変換
+		@param[in]	src	UTF-32 ソース
+		@return	UTF-8
+	*/
+	//-----------------------------------------------------------------//
+	inline std::string utf32_to_utf8(const lstring& src) noexcept {
+		std::string dst;
+		utf32_to_utf8(src, dst);
+		return dst;
+	}
+
+
+	//-----------------------------------------------------------------//
+	/*!
 		@brief	Shift-JIS から UTF-8 への変換
 		@param[in]	src	Shift-JIS ソース
 		@param[out]	dst	UTF-8（追記）
@@ -252,6 +322,20 @@ namespace utils {
 	*/
 	//-----------------------------------------------------------------//
 	bool sjis_to_utf8(const std::string& src, std::string& dst) noexcept;
+
+
+	//-----------------------------------------------------------------//
+	/*!
+		@brief	Shift-JIS から UTF-8 への変換
+		@param[in]	src	Shift-JIS ソース
+		@return	UTF-8
+	*/
+	//-----------------------------------------------------------------//
+	inline std::string sjis_to_utf8(const std::string& src) noexcept {
+		std::string dst;
+		sjis_to_utf8(src, dst);
+		return dst;
+	}
 
 
 	//-----------------------------------------------------------------//
@@ -267,6 +351,20 @@ namespace utils {
 
 	//-----------------------------------------------------------------//
 	/*!
+		@brief	Shift-JIS から UTF-16 への変換
+		@param[in]	src	Shift-JIS ソース
+		@return	UTF-16（追記）
+	*/
+	//-----------------------------------------------------------------//
+	inline wstring sjis_to_utf16(const std::string& src) noexcept {
+		wstring dst;
+		sjis_to_utf16(src, dst);
+		return dst;
+	}
+
+
+	//-----------------------------------------------------------------//
+	/*!
 		@brief	UTF-8 から Shift-JIS への変換
 		@param[in]	src	UTF8 ソース
 		@param[out]	dst	Shift-JIS 出力
@@ -274,6 +372,20 @@ namespace utils {
 	*/
 	//-----------------------------------------------------------------//
 	bool utf8_to_sjis(const std::string& src, std::string& dst) noexcept;
+
+
+	//-----------------------------------------------------------------//
+	/*!
+		@brief	UTF-8 から Shift-JIS への変換
+		@param[in]	src	UTF8 ソース
+		@return	Shift-JIS 出力
+	*/
+	//-----------------------------------------------------------------//
+	inline std::string utf8_to_sjis(const std::string& src) noexcept {
+		std::string dst;
+		utf8_to_sjis(src, dst);
+		return dst;
+	}
 
 
 	//-----------------------------------------------------------------//
@@ -289,6 +401,21 @@ namespace utils {
 
 	//-----------------------------------------------------------------//
 	/*!
+		@brief	UTF-16 から Shift-JIS への変換
+		@param[in]	src	UTF16 ソース
+		@param[out]	dst	Shift-JIS 出力
+		@return 変換が正常なら「true」
+	*/
+	//-----------------------------------------------------------------//
+	inline std::string utf16_to_sjis(const wstring& src) noexcept {
+		std::string dst;
+		utf16_to_sjis(src, dst);
+		return dst;
+	}
+
+
+	//-----------------------------------------------------------------//
+	/*!
 		@brief	文字列リストの変換
 		@param[in]	src		入力文字列リスト
 		@return	文字列リスト
@@ -296,12 +423,11 @@ namespace utils {
 	//-----------------------------------------------------------------//
 	inline strings strings_to_strings(const wstrings& src) noexcept {
 		strings dst;
-		BOOST_FOREACH(const wstring& ws, src) {
-			std::string tmp;
-			utf16_to_utf8(ws, tmp);
+		for(const auto& ws : src) {
+			auto tmp = utf16_to_utf8(ws);
 			dst.push_back(tmp);
 		}
-		return std::move(dst);
+		return dst;
 	}
 
 
@@ -314,12 +440,11 @@ namespace utils {
 	//-----------------------------------------------------------------//
 	inline wstrings strings_to_strings(const strings& src) noexcept {
 		wstrings dst;
-		BOOST_FOREACH(const std::string& s, src) {
-			wstring tmp;
-			utf8_to_utf16(s, tmp);
+		for(const auto& s : src) {
+			auto tmp = utf8_to_utf16(s);
 			dst.push_back(tmp);
 		}
-		return std::move(dst);
+		return dst;
 	}
 
 
@@ -333,11 +458,11 @@ namespace utils {
 	//-----------------------------------------------------------------//
 	inline wstring strings_to_string(const wstrings& src, bool crlf) noexcept {
 		wstring dst;
-		BOOST_FOREACH(const wstring& ws, src) {
+		for(const auto& ws : src) {
 			dst += ws;
 			if(crlf) dst += '\n';
 		}
-		return std::move(dst);
+		return dst;
 	}
 
 
@@ -351,11 +476,11 @@ namespace utils {
 	//-----------------------------------------------------------------//
 	inline std::string strings_to_string(const strings& src, bool crlf) noexcept {
 		std::string dst;
-		BOOST_FOREACH(const std::string& s, src) {
+		for(const auto& s : src) {
 			dst += s;
 			if(crlf) dst += '\n';
 		}
-		return std::move(dst);
+		return dst;
 	}
 
 
@@ -371,11 +496,11 @@ namespace utils {
 	template <class T, class M>
 	int strip_char(const T& src, const M& list, T& out) {
 		int n = 0;
-		BOOST_FOREACH(typename T::value_type c, src) {
-			if(string_strchr(list, static_cast<typename M::value_type>(c))) {
+		for(auto ch : src) {
+			if(string_strchr(list, static_cast<typename M::value_type>(ch))) {
 				++n;
 			} else {
-				out += c;
+				out += ch;
 			}
 		}
 		return n;
@@ -399,7 +524,7 @@ namespace utils {
 		SS dst;
 		bool tab_back = true;
 		typename SS::value_type word;
-		BOOST_FOREACH(typename SS::value_type::value_type ch, src) {
+		for(auto ch : src) {
 			bool tab = false;
 			if(limit <= 0 || static_cast<int>(dst.size()) < (limit - 1)) {
 				if(string_strchr(list, ch)) {
@@ -416,7 +541,7 @@ namespace utils {
 		if(!word.empty()) {
 			dst.push_back(word);
 		}
-		return std::move(dst);
+		return dst;
 	}
 
 	inline strings split_text(const std::string& src, const std::string& list, int limit = 0) noexcept {
@@ -443,9 +568,9 @@ namespace utils {
 	template <class ST, class DT>
 	int code_conv(const ST& src, typename ST::value_type a, typename ST::value_type b, DT& dst) {
 		int n = 0;
-		BOOST_FOREACH(typename ST::value_type c, src) {
-			if(c == a) { c = b; n++; }
-			dst += static_cast<typename DT::value_type>(c);
+		for(auto ch : src) {
+			if(ch == a) { ch = b; n++; }
+			dst += static_cast<typename DT::value_type>(ch);
 		}
 		return n;
 	}
@@ -466,7 +591,7 @@ namespace utils {
 		int n = 0;
 		uint32_t tsz = tbl.size();
 		if(tsz & 1) --tsz;
-		BOOST_FOREACH(typename STR::value_type ch, src) {
+		for(auto ch : src) {
 			for(uint32_t i = 0; i < tsz; i += 2) {
 				if(ch == tbl[i]) {
 					ch = tbl[i + 1];
@@ -536,24 +661,24 @@ namespace utils {
 	*/
 	//-----------------------------------------------------------------//
 	template <class T>
-	inline const typename T::value_type* get_file_nameT(const T& src) {
-		if(src.empty()) return 0;
+	inline T get_file_nameT(const T& src) {
+		if(src.empty()) return T();
 		const typename T::value_type* p = string_strrchr(src, '/');
-		if(p != 0) {
+		if(p != nullptr) {
 			++p;
-			return p;
+			return T(p);
 		} else {
 			const typename T::value_type* p = string_strrchr(src, ':');
-			if(p != 0) {
+			if(p != nullptr) {
 				++p;
-				return p;
+				return T(p);
 			}
 		}
-		return src.c_str();
+		return src;
 	}
-	inline const char* get_file_name(const std::string& src) { return get_file_nameT(src); }
-	inline const uint16_t* get_file_name(const wstring& src) { return get_file_nameT(src); }
-	inline const uint32_t* get_file_name(const lstring& src) { return get_file_nameT(src); }
+	inline std::string get_file_name(const std::string& src) { return get_file_nameT(src); }
+	inline wstring get_file_name(const wstring& src) { return get_file_nameT(src); }
+	inline lstring get_file_name(const lstring& src) { return get_file_nameT(src); }
 
 
 	//-----------------------------------------------------------------//
@@ -564,16 +689,8 @@ namespace utils {
 	*/
 	//-----------------------------------------------------------------//
 	inline std::string get_file_base(const std::string& src) {
-		std::string fn = get_file_name(src);
-		// ピリオドがあるか？
-		std::string::size_type pos = fn.find_last_of('.');
-		std::string dst;
-		if(pos != std::string::npos) {
-			dst += fn.substr(0, pos);
-		} else {
-			dst += fn;
-		}
-		return std::move(dst);
+		auto tmp = get_file_name(src);
+		return tmp.substr(0, tmp.find_last_of('.'));
 	}
 
 
@@ -586,26 +703,29 @@ namespace utils {
 	//-----------------------------------------------------------------//
 	template <class T>
 	inline T get_file_extT(const T& src) {
-		static T empty;
-		if(src.empty()) return empty;
-		const typename T::value_type* p = string_strrchr(src, '.');
-		if(p) {
+		T s;
+		if(src.empty()) return s;
+		auto p = string_strrchr(src, '.');
+		if(p != nullptr) {
 			++p;
-			if((p - &src[0]) <= 0) {
-				return empty;
+			auto q = string_strrchr(p, '/');
+			if(q != nullptr) {
+				s = q + 1;
+			} else {
+				s = p;
 			}
-			if(string_strchr(p, '/')) {
-				return empty;
-			}
-			return p;
 		}
-		return empty;
+		return s;
 	}
+
 	inline std::string get_file_ext(const std::string& src) {
 		return get_file_extT<std::string>(src);
 	}
 	inline wstring get_file_ext(const wstring& src) {
 		return get_file_extT<wstring>(src);
+	}
+	inline lstring get_file_ext(const lstring& src) {
+		return get_file_extT<lstring>(src);
 	}
 
 
@@ -613,18 +733,11 @@ namespace utils {
 	/*!
 		@brief	ファイル・パスを取得
 		@param[in]	src	フルパス文字列
-		@param[out]	dst ファイルパス
-		@return 取得できたら「true」
+		@return	ファイルパス
 	*/
 	//-----------------------------------------------------------------//
-	inline bool get_file_path(const std::string& src, std::string& dst) {
-		const char* p = strrchr(src.c_str(), '/');
-		if(p) {
-			dst.append(src.c_str(), p - src.c_str());
-			return true;
-		} else {
-			return false;
-		}
+	inline std::string get_file_path(const std::string& src) {
+		return src.substr(0, src.find_last_of('/'));
 	}
 
 
@@ -632,18 +745,17 @@ namespace utils {
 	/*!
 		@brief	文字列終端が「/」なら取り除く
 		@param[in]	src	ソースパス
-		@param[out]	dst	出力パス
-		@return 取り除いたら「true」
+		@return	出力パス
 	*/
 	//-----------------------------------------------------------------//
-	inline bool strip_last_of_delimita_path(const std::string& src, std::string& dst) {
-		if(src.size() > 0 && src[src.size() - 1] == '/') {
+	inline std::string strip_last_of_delimita_path(const std::string& src) {
+		std::string dst;
+		if(!src.empty() && src[src.size() - 1] == '/') {
 			dst = src.substr(0, src.size() - 1);
-			return true;
 		} else {
 			dst = src;
-			return false;
 		}
+		return dst;
 	}
 
 
@@ -684,7 +796,7 @@ namespace utils {
 	/*!
 		@brief	拡張子フィルター
 		@param[in]	src	ソース
-		@param[in]	ext	拡張子
+		@param[in]	ext	拡張子（「,」で複数指定）
 		@param[in]	cap	「false」なら大文字小文字を判定する
 		@return リスト
 	*/
@@ -696,15 +808,15 @@ namespace utils {
 	/*!
 		@brief	マッチする文字をカウントする
 		@param[in]	s	文字列
-		@param[in]	ch	カウントする文字
+		@param[in]	cha	カウントする文字
 		@return 数
 	*/
 	//-----------------------------------------------------------------//
 	template <class T>
-	inline uint32_t count_char(const T& src, typename T::value_type ch) noexcept {
+	inline uint32_t count_char(const T& src, typename T::value_type cha) noexcept {
 		uint32_t cnt = 0;
-		BOOST_FOREACH(typename T::value_type c, src) {
-			if(c == ch) ++cnt;
+		for(auto ch : src) {
+			if(ch == cha) ++cnt;
 		}
 		return cnt;
 	}

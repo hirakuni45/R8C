@@ -18,7 +18,7 @@ namespace utils {
 	bool string_to_hex(const std::string& src, uint32_t& dst)
 	{
 		uint32_t v = 0;
-		BOOST_FOREACH(char ch, src) {
+		for(auto ch : src) {
 			v <<= 4;
 			if(ch >= '0' && ch <= '9') v |= ch - '0';
 			else if(ch >= 'A' && ch <= 'F') v |= ch - 'A' + 10;
@@ -33,7 +33,7 @@ namespace utils {
 	bool string_to_hex(const std::string& src, std::vector<uint32_t>& dst, const std::string& spc)
 	{
 		string s;
-		BOOST_FOREACH(char ch, src) {
+		for(auto ch : src) {
 			if(string_strchr(spc, ch) != nullptr) {
 				uint32_t v;
 				if(string_to_hex(s, v)) {
@@ -73,7 +73,7 @@ namespace utils {
 	{
 		try {
 			string s;
-			BOOST_FOREACH(char ch, src) {
+			for(auto ch : src) {
 				if(string_strchr(spc, ch) != nullptr) {
 					int32_t v = boost::lexical_cast<int32_t>(s);
 					dst.push_back(v);
@@ -108,7 +108,7 @@ namespace utils {
 	{
 		try {
 			string s;
-			BOOST_FOREACH(char ch, src) {
+			for(auto ch : src) {
 				if(string_strchr(spc, ch) != nullptr) {
 					float v = boost::lexical_cast<float>(s);
 					dst.push_back(v);
@@ -161,7 +161,7 @@ namespace utils {
 		bool f = true;
 		int cnt = 0;
 		uint16_t code = 0;
-		BOOST_FOREACH(char tc, src) {
+		for(auto tc : src) {
 			uint8_t c = static_cast<uint8_t>(tc);
 			if(c < 0x80) { code = c; cnt = 0; }
 			else if((c & 0xf0) == 0xe0) { code = (c & 0x0f); cnt = 2; }
@@ -201,7 +201,7 @@ namespace utils {
 		bool f = true;
 		int cnt = 0;
 		uint32_t code = 0;
-		BOOST_FOREACH(char tc, src) {
+		for(auto tc : src) {
 			uint8_t c = static_cast<uint8_t>(tc);
 			if(c < 0x80) { code = c; cnt = 0; }
 			else if((c & 0xfe) == 0xfc) { code = (c & 0x03); cnt = 5; }
@@ -242,7 +242,7 @@ namespace utils {
 		if(src.empty()) return false;
 
 		bool f = true;
-		BOOST_FOREACH(uint16_t code, src) {
+		for(auto code : src) {
 			if(code < 0x0080) {
 				dst += code;
 			} else if(code >= 0x0080 && code <= 0x07ff) {
@@ -273,7 +273,7 @@ namespace utils {
 		if(src.empty()) return false;
 
 		bool f = true;
-		BOOST_FOREACH(uint32_t code, src) {
+		for(auto code : src) {
 			if(code < 0x0080) {
 				dst += code;
 			} else if(code >= 0x0080 && code <= 0x07ff) {
@@ -322,7 +322,7 @@ namespace utils {
 		if(src.empty()) return false;
 		wstring ws;
 		uint16_t wc = 0;
-		BOOST_FOREACH(char ch, src) {
+		for(auto ch : src) {
 			uint8_t c = static_cast<uint8_t>(ch);
 			if(wc) {
 				if(0x40 <= c && c <= 0x7e) {
@@ -378,10 +378,14 @@ namespace utils {
 
 		wstring ws;
 		utf8_to_utf16(src, ws);
-		BOOST_FOREACH(uint16_t wc, ws) {
+		for(auto wc : ws) {
 			uint16_t ww = utf16_to_sjis(wc);
-			dst += ww >> 8;
-			dst += ww & 0xff;
+			if(ww <= 255) {
+				dst += ww;
+			} else {
+				dst += ww >> 8;
+				dst += ww & 0xff;
+			}
 		}
 		return true;
 	}
@@ -429,7 +433,7 @@ namespace utils {
 		lstring spc = { ' ' };
 		lstrings ss = split_text(s, spc);
 
-		BOOST_FOREACH(const lstring& l, ss) {
+		for(const auto& l : ss) {
 			dst += l;
 			dst += ' ';
 		}
@@ -460,11 +464,11 @@ namespace utils {
 		lstrings bb = split_text(b, spcs);
 
 		uint32_t anum = 0;
-		BOOST_FOREACH(const lstring& s, aa) {
+		for(const auto& s : aa) {
 			anum += s.size();
 		}
 		uint32_t bnum = 0;
-		BOOST_FOREACH(const lstring& s, bb) {
+		for(const auto& s : bb) {
 			bnum += s.size();
 		}
 
@@ -523,20 +527,19 @@ namespace utils {
 	{
 		std::string dst;
 		if(src.empty()) {
-			return std::move(dst);
+			return dst;
 		}
-		std::string tmp;
-		strip_last_of_delimita_path(src, tmp);
+		auto tmp = strip_last_of_delimita_path(src);
 		std::string::size_type n = tmp.find_last_of('/');
 		if(n == std::string::npos) {
-			return std::move(dst);
+			return dst;
 		}
 		dst = tmp.substr(0, n);
 		// ルートの場合
 		if(dst.find('/') == std::string::npos) {
 			dst += '/';
 		}
-		return std::move(dst);
+		return dst;
 	}
 
 
@@ -559,11 +562,10 @@ namespace utils {
 				return std::string();
 			}
 		} else {
-			std::string tmp;
-			strip_last_of_delimita_path(src, tmp);
+			auto tmp = strip_last_of_delimita_path(src);
 			dst = tmp + '/' + add;
 		}
-		return std::move(dst);
+		return dst;
 	}
 
 
@@ -580,7 +582,7 @@ namespace utils {
 	{
 		char back = 0;
 		std::string dst;
-		BOOST_FOREACH(char ch, src) {
+		for(auto ch : src) {
 			if(ch == org_ch) {
 				if(back != 0 && back != cnv_ch) ch = cnv_ch;
 			}
@@ -589,7 +591,7 @@ namespace utils {
 		}
 		if(back) dst += back;
 
-		return std::move(dst);
+		return dst;
 	}
 
 
@@ -597,7 +599,7 @@ namespace utils {
 	/*!
 		@brief	拡張子フィルター
 		@param[in]	src	ソース
-		@param[in]	ext	拡張子
+		@param[in]	ext	拡張子（「,」で複数指定）
 		@param[in]	cap	「false」なら大文字小文字を判定する
 		@return リスト
 	*/
@@ -606,9 +608,9 @@ namespace utils {
 	{
 		strings dst;
 		strings exts = split_text(ext, ",");
-		BOOST_FOREACH(const std::string& s, src) {
+		for(const auto& s : src) {
 			std::string src_ext = get_file_ext(s);
-			BOOST_FOREACH(const std::string& ex, exts) {
+			for(const auto& ex : exts) {
 				if(cap) {
 					if(no_capital_strcmp(src_ext, ex) == 0) {
 						dst.push_back(s);
@@ -620,7 +622,7 @@ namespace utils {
 				}
 			}
 		}
-		return std::move(dst);
+		return dst;
 	}
 
 }

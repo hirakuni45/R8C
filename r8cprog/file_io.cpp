@@ -19,7 +19,6 @@
 #endif
 
 #include <iostream>
-#include <boost/format.hpp>
 
 namespace utils {
 
@@ -66,6 +65,28 @@ namespace utils {
 		}
 #endif
 		return fp;
+	}
+
+
+	//-----------------------------------------------------------------//
+	/*!
+		@brief	ディレクトリーを作成する（UTF8）
+		@param[in]	dir	ディレクトリー名
+		@return 作成出来たら「true」
+	*/
+	//-----------------------------------------------------------------//
+	bool create_directory(const std::string& dir)
+	{
+		bool ret = true;
+#ifdef WIN32
+		utils::wstring ws;
+		utf8_to_utf16(dir, ws);
+		if(_wmkdir((const wchar_t*)ws.c_str()) != 0) ret = false;
+#else
+		mode_t t = S_IRWXU | (S_IRGRP | S_IXGRP) | (S_IROTH | S_IXOTH);
+		if(mkdir(dir.c_str(), t) != 0) ret = false;
+#endif
+		return ret;
 	}
 
 
@@ -158,6 +179,68 @@ namespace utils {
 
 	//-----------------------------------------------------------------//
 	/*!
+		@brief	ファイルを消去
+		@param[in]	fn	ファイル名
+		@return 成功なら「true」
+	*/
+	//-----------------------------------------------------------------//
+	bool remove_file(const std::string& fn)
+	{
+#ifdef WIN32
+		auto fname = utf8_to_sjis(fn);
+//		std::cout << fname << std::endl;
+		return remove(fname.c_str()) == 0;
+#else
+		return remove(fn.c_str()) == 0;
+#endif
+	}
+
+
+	//-----------------------------------------------------------------//
+	/*!
+		@brief	ファイルをコピー
+		@param[in]	src	ソース・ファイル名（コピー元）
+		@param[in]	dst	デスティネーション・ファイル名（コピー先）
+		@param[in]	dup	コピー先ファイルを上書きする場合「true」
+		@return 成功なら「true」
+	*/
+	//-----------------------------------------------------------------//
+	bool copy_file(const std::string& src, const std::string& dst, bool dup)
+	{
+		if(src.empty() || dst.empty()) return false;
+
+		auto f = probe_file(dst);
+		if(!dup && f) {
+			return false;
+		}
+		if(dup && f) {
+			remove_file(dst);
+		}
+
+		utils::file_io fin;
+		if(!fin.open(src, "rb")) {
+			return false;
+		}
+		utils::file_io fout;
+		if(!fout.open(dst, "wb")) {
+			return false;
+		}
+
+		std::vector<uint8_t> buff;
+		buff.resize(4096);
+
+		uint32_t sz = 0;
+		do {
+			sz = fin.read(&buff[0], buff.size());
+			if(fout.write(&buff[0], sz) != sz) return false;
+		} while(sz >= buff.size()) ;
+
+		return true;
+	}
+
+
+	//-----------------------------------------------------------------//
+	/*!
 		@brief	１バイト読み出し
 		@param[out]	ch	読み込み先
 		@return	ファイルの終端なら「false」
@@ -226,24 +309,25 @@ namespace utils {
 	//-----------------------------------------------------------------//
 	/*!
 		@brief	1 行読み込み
-		@param[out]	buff	読み込み先
-		@return	ファイルの終端なら「false」
+		@return	読み込んだ行
 	*/
 	//-----------------------------------------------------------------//
-	bool file_io::get_line(std::string& buff)
+	std::string file_io::get_line()
 	{
-		if(open_ == false) return false;
+		std::string tmp;
+		if(!open_) return tmp;
 
 		char ch;
 		while(get_char(ch) == true) {
-			if(ch == 0x0d) ;
-			else if(ch == 0x0a) {
-				return true;
+			if(ch == 0x0d) {
+				cr_ = true;
+			} else if(ch == 0x0a) {
+				break;
 			} else {
-				buff.append(1, ch);
+				tmp += ch;
 			}
 		}
-		return false;
+		return tmp;
 	}
 
 

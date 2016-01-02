@@ -8,7 +8,6 @@
 #include "string_utils.hpp"
 #include "file_io.hpp"
 #include "area.hpp"
-#include <boost/foreach.hpp>
 #include <utility>
 
 namespace utils {
@@ -73,7 +72,7 @@ namespace utils {
 			std::string comment_;
 
 			bool analize(const units& us) {
-				BOOST_FOREACH(const unit& u, us) {
+				for(const auto& u : us) {
 					if(u.symbol_ == "comment") comment_ = u.body_;
 					else {
 						std::cerr << boost::format("(%d) Programmer error: '") % u.lno_;
@@ -114,7 +113,7 @@ namespace utils {
 
 			bool analize(const units& us) {
 				bool err = false;
-				BOOST_FOREACH(const unit& u, us) {
+				for(const auto& u : us) {
 					if(u.symbol_ == "group") group_ = u.body_;
 					else if(u.symbol_ == "rom") rom_ = u.body_;
 					else if(u.symbol_ == "data") data_ = u.body_;
@@ -185,7 +184,7 @@ namespace utils {
 		bool analize_(const std::string& org, uint32_t lno) {
 			if(org.empty()) return true;
 
-			BOOST_FOREACH(char ch, org) {
+			for(auto ch : org) {
 				switch(ana_mode_) {
 				case ana_mode::name:
 					if(ch == ' ' || ch == '\t') ;
@@ -280,19 +279,17 @@ namespace utils {
 				return false;
 			}
 
-			std::string line;
 			int mode = -1;
 			uint32_t lno = 0;
 			uint32_t err = 0;
-			while(fio.get_line(line)) {
+			while(!fio.eof()) {
+				auto line = fio.get_line();
 				++lno;
-				std::string org = line;
-				line.clear();
 
-				if(org.empty()) continue;
+				if(line.empty()) continue;
 
 				std::string cmd;
-				utils::strip_char(org, std::string(" \t"), cmd);
+				utils::strip_char(line, std::string(" \t"), cmd);
 				if(cmd.empty()) ;
 				else if(cmd[0] == '#') {
 					continue;
@@ -316,13 +313,13 @@ namespace utils {
 					if(!default_.analize(cmd)) {
 						++err;
 						std::cerr << "(" << lno << ") ";
-						std::cerr << "Default section error: " << org << "'" << std::endl; 
+						std::cerr << "Default section error: " << line << "'" << std::endl; 
 						break;
 					}
 				} else if(mode == 1) {
-					if(!analize_(org, lno)) {
+					if(!analize_(line, lno)) {
 						std::cerr << "(" << lno << ") ";
-						std::cerr << "Programmer section error: '" << org << "'" << std::endl; 
+						std::cerr << "Programmer section error: '" << line << "'" << std::endl; 
 						break;
 					}
 					if(ana_mode_ == ana_mode::fin) {
@@ -334,9 +331,9 @@ namespace utils {
 						reset_ana_();
 					}
 				} else if(mode == 2) {
-					if(!analize_(org, lno)) {
+					if(!analize_(line, lno)) {
 						std::cerr << "(" << lno << ") ";
-						std::cerr << "Device section error: '" << org << "'" << std::endl; 
+						std::cerr << "Device section error: '" << line << "'" << std::endl; 
 					}
 					if(ana_mode_ == ana_mode::fin) {
 						std::string ins;

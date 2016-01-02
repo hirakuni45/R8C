@@ -14,7 +14,6 @@
 #include "conf_in.hpp"
 #include "area.hpp"
 #include <boost/format.hpp>
-#include <boost/foreach.hpp>
 
 static const std::string version_ = "0.72b";
 static const uint32_t progress_num_ = 50;
@@ -58,7 +57,7 @@ static void progress_(uint32_t page, uint32_t n, uint32_t& pcn)
 static bool read_(r8c_prog& prog, utils::motsx_io& motr, const utils::areas& as)
 {
 	uint32_t tpage = 0;
-	BOOST_FOREACH(const utils::area_t& t, as) {
+	for(const auto& t : as) {
 		tpage += ((t.end_ | 0xff) + 1 - (t.org_ & 0xffffff00)) >> 8;
 	}
 	if(tpage == 0) return true;
@@ -68,7 +67,7 @@ static bool read_(r8c_prog& prog, utils::motsx_io& motr, const utils::areas& as)
 	int err = 0;
 	uint32_t pcn = 0;
 	uint32_t n = 0;
-	BOOST_FOREACH(const utils::area_t& t, as) {
+	for(const auto& t : as) {
 		uint32_t sadr = t.org_;
 		uint32_t eadr = t.end_;
 		while(sadr <= eadr && err == 0) {
@@ -96,8 +95,8 @@ static bool erase_(r8c_prog& prog, const utils::areas& as)
 	bool noerr = true;
 	uint32_t pcn = 0;
 	uint32_t n = 0;
-	BOOST_FOREACH(const utils::area_t& a, as) {
-   		if(!prog.erase(a.org_)) {
+	for(const auto& t : as) {
+   		if(!prog.erase(t.org_)) {
    			noerr = false;
    			break;
    		}
@@ -273,7 +272,7 @@ struct options {
 
 
 	bool area_check(uint32_t adr) {
-		BOOST_FOREACH(const utils::area_t& t, area_val) {
+		for(const auto& t : area_val) {
 			if(t.org_ <= adr && adr <= t.end_) return true;
 		}
 		return false;
@@ -283,7 +282,7 @@ struct options {
 
 static void dump_areas_(utils::motsx_io& motr, const utils::areas& as)
 {
-	BOOST_FOREACH(const utils::area_t& t, as) {
+	for(const auto& t : as) {
 		uint32_t org = t.org_;
 		uint32_t end = t.end_;
 		while(org <= end) {
@@ -370,7 +369,7 @@ static const std::string get_current_path_(const std::string& exec)
 #endif
 	}
 	utils::strings ss = utils::split_text(env, spch); 
-	BOOST_FOREACH(const std::string& s, ss) {
+	for(const auto& s : ss) {
 		std::string path = s + '/' + base;
 		if(utils::probe_file(path)) {
 			return std::move(s);
@@ -475,7 +474,7 @@ int main(int argc, char* argv[])
 
 	// デバイス・リスト表示
 	if(opt.device_list) {
-		BOOST_FOREACH(const std::string& s, conf.get_device_list()) {
+		for(const auto& s : conf.get_device_list()) {
 			std::cout << s << std::endl;
 		}
 	}
