@@ -6,7 +6,7 @@
 //=====================================================================//
 #include <stdlib.h>
 #include <string.h>
-#include "common/time.h"
+#include "time.h"
 // #include "xitoa.h"
 
 // 各月に対する日数（通常年）
@@ -140,7 +140,7 @@ struct tm *gmtime(const time_t *tp)
 	time_st_.tm_wday = (t + 4) % 7;
 
 	j = 1970;
-	while(t > (i = get_yday(j))) {
+	while(t >= (i = get_yday(j))) {
 		t -= (time_t)i;
 		j++;
 	}
