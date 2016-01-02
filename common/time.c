@@ -149,7 +149,7 @@ struct tm *gmtime(const time_t *tp)
 	time_st_.tm_yday = t;
 
 	k = 0;
-	while(t > (i = get_mday(j, k))) {
+	while(t >= (i = get_mday(j, k))) {
 		t -= (time_t)i;
 		k++;
 	}
