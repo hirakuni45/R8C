@@ -6,6 +6,7 @@
 */
 //=====================================================================//
 #include "common/uart_io.hpp"
+#include "common/fifo.hpp"
 
-typedef device::uart_io<device::UART0, 16, 16> uart0;
-
+typedef utils::fifo<16> buffer;
+typedef device::uart_io<device::UART0, buffer, buffer> uart0;
