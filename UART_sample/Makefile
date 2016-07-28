@@ -3,7 +3,7 @@
 #	R8C Makefile 				        				#
 #														#
 #=======================================================#
-TARGET		=	uart_test
+TARGET		=	uart_sample
 
 BUILD		=	release
 
