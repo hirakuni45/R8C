@@ -10,8 +10,6 @@
 #include "system.hpp"
 #include "intr.hpp"
 #include "uart.hpp"
-#include "fifo.hpp"
-
 
 /// F_CLK はボーレートパラメーター計算で必要で、設定が無いとエラーにします。
 #ifndef F_CLK
@@ -23,16 +21,16 @@ namespace device {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  UART I/O 制御クラス
-		@param[in]	UART		UARTx 定義クラス
-		@param[in]	recv_size	受信バッファサイズ（最低８バイト）
-		@param[in]	send_size	送信バッファサイズ（最低８バイト）
+		@param[in]	UART	UARTx 定義クラス
+		@param[in]	SEND	送信バッファサイズ（最低８バイト）
+		@param[in]	RECV	受信バッファサイズ（最低８バイト）
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class UART, uint16_t recv_size, uint16_t send_size>
+	template <class UART, class SEND, class RECV>
 	class uart_io {
 
-		static utils::fifo<recv_size>	recv_;
-		static utils::fifo<send_size>	send_;
+		static SEND	send_;
+		static RECV	recv_;
 		static volatile bool	send_stall_;
 		bool	crlf_;
 
@@ -234,10 +232,10 @@ private:
 	};
 
 	// 受信、送信バッファのテンプレート内スタティック実態定義
-	template<class UART, uint16_t recv_size, uint16_t send_size>
-	utils::fifo<recv_size> uart_io<UART, recv_size, send_size>::recv_;
-	template<class UART, uint16_t recv_size, uint16_t send_size>
-	utils::fifo<send_size> uart_io<UART, recv_size, send_size>::send_;
-	template<class UART, uint16_t recv_size, uint16_t send_size>
-	volatile bool uart_io<UART, recv_size, send_size>::send_stall_ = true; 
+	template<class UART, class SEND, class RECV>
+		SEND uart_io<UART, SEND, RECV>::send_;
+	template<class UART, class SEND, class RECV>
+		RECV uart_io<UART, SEND, RECV>::recv_;
+	template<class UART, class SEND, class RECV>
+		volatile bool uart_io<UART, SEND, RECV>::send_stall_ = true; 
 }
