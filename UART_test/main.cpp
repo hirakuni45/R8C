@@ -9,15 +9,20 @@
 */
 //=====================================================================//
 #include "common/vect.h"
-#include "main.hpp"
 #include "system.hpp"
 #include "clock.hpp"
 #include "port.hpp"
 #include "intr.hpp"
 #include "common/delay.hpp"
 #include "common/port_map.hpp"
+#include "common/uart_io.hpp"
+#include "common/fifo.hpp"
 
-static uart0 uart0_;
+namespace {
+	typedef utils::fifo<16> buffer;
+	typedef device::uart_io<device::UART0, buffer, buffer> uart0;
+	uart0 uart0_;
+}
 
 extern "C" {
 	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
