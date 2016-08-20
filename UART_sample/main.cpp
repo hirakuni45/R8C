@@ -19,9 +19,9 @@
 #include "common/fifo.hpp"
 
 namespace {
-	typedef utils::fifo<16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart0;
-	uart0 uart0_;
+	typedef utils::fifo<uint8_t, 16> buffer;
+	typedef device::uart_io<device::UART0, buffer, buffer> uart;
+	uart uart_;
 }
 
 extern "C" {
@@ -47,8 +47,8 @@ extern "C" {
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (15)
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (16)
-		reinterpret_cast<void*>(uart0_.isend),	nullptr,	// (17) UART0 送信
-		reinterpret_cast<void*>(uart0_.irecv),	nullptr,	// (18) UART0 受信
+		reinterpret_cast<void*>(uart_.isend),	nullptr,	// (17) UART0 送信
+		reinterpret_cast<void*>(uart_.irecv),	nullptr,	// (18) UART0 受信
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (19)
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (20)
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 
 		// ※「0」を設定するとポーリングとなる。
 		uint8_t intr_level = 1;
-		uart0_.start(19200, intr_level);
+		uart_.start(19200, intr_level);
 	}
 
 	// LED ポート設定
@@ -103,16 +103,16 @@ int main(int argc, char *argv[])
 
 	uint8_t cnt = 0;
 	while(1) {
-		if(uart0_.length()) {  // UART のレシーブデータがあるか？
-			char ch = uart0_.getch();
-			uart0_.putch(ch);
+		if(uart_.length()) {  // UART のレシーブデータがあるか？
+			char ch = uart_.getch();
+			uart_.putch(ch);
 		}
 
 		// 文字の出力
 		for(char ch = 0x20; ch < 0x7f; ++ch) {
-			uart0_.putch(ch);
+			uart_.putch(ch);
 		} 
-		uart0_.putch('\n');
+		uart_.putch('\n');
 
 		// 10ms ソフトタイマー
 		for(uint16_t i = 0; i < 10; ++i) {
