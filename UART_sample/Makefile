@@ -30,7 +30,7 @@ INC_SYS		=
 
 INC_APP		=	. ../ ../M120AN
 
-OPTIMIZE	=	-O2
+OPTIMIZE	=	-Os
 
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
