@@ -1,7 +1,7 @@
 #pragma once
 //=====================================================================//
 /*!	@file
-	@brief	I2C テンプレートクラス (20MHz system clock) @n
+	@brief	IICA(I2C) テンプレートクラス (20MHz system clock) @n
 			Copyright 2015 Kunihito Hiramatsu
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
@@ -28,7 +28,20 @@ namespace device {
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <class PORT>
-	class i2c_io {
+	class iica_io {
+	public:
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  I2C の速度タイプ
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class speed : uint8_t {
+			standard,	///< 100K b.p.s. (Standard mode)
+			fast,		///< 400K b.p.s. (Fast mode)
+			fast_plus,	///< 1M b.p.s. (Fast plus mode)
+		};
+
+	private:
 		PORT		port_;
 		uint8_t		clock_;
 		uint16_t	busy_;
@@ -163,20 +176,31 @@ namespace device {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		i2c_io() : clock_(slow_clock_), busy_(200) { }
+		iica_io() : clock_(slow_clock_), busy_(200) { }
 
 
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  初期化
+			@param[in]	spd	スピード
+			@return 成功なら「true」
 		*/
 		//-----------------------------------------------------------------//
-		void init() const {
+		bool start(speed spd)
+		{
 			port_.init();
 			port_.scl_dir(1);
 			port_.sda_dir(1);
 			port_.scl_out(1);
 			port_.sda_out(1);
+			if(spd == speed::standard) {
+				set_standard();
+			} else if(spd == speed::fast) {
+				set_fast();
+			} else {
+				return false;
+			}
+			return true;
 		}
 
 
@@ -191,10 +215,10 @@ namespace device {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief  低速指定（maybe 100KBPS）
+			@brief  標準速度指定（maybe 100KBPS）
 		*/
 		//-----------------------------------------------------------------//
-		void set_slow() { clock_ = slow_clock_; }
+		void set_standard() { clock_ = slow_clock_; }
 
 
 		//-----------------------------------------------------------------//
