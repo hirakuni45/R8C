@@ -93,7 +93,6 @@ int main(int argc, char *argv[])
 // クロック関係レジスタ・プロテクト解除
 	PRCR.PRC0 = 1;
 
-
 // 高速オンチップオシレーターへ切り替え(20MHz)
 // ※ F_CLK を設定する事（Makefile内）
 	OCOCR.HOCOE = 1;
