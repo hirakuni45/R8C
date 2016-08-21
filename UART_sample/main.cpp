@@ -1,6 +1,7 @@
 //=====================================================================//
 /*!	@file
 	@brief	R8C UART サンプル @n
+			・８ビット１ストップ・ビット
 			P1_0: LED1 @n
 			P1_1: LED2 @n
 			P1_4: TXD(output) @n
@@ -17,6 +18,7 @@
 #include "common/port_map.hpp"
 #include "common/uart_io.hpp"
 #include "common/fifo.hpp"
+#include "common/format.hpp"
 
 namespace {
 	typedef utils::fifo<uint8_t, 16> buffer;
@@ -25,6 +27,22 @@ namespace {
 }
 
 extern "C" {
+	void sci_putch(char ch) {
+		uart_.putch(ch);
+	}
+
+	char sci_getch(void) {
+		return uart_.getch();
+	}
+
+	uint16_t sci_length() {
+		return uart_.length();
+	}
+
+	void sci_puts(const char* str) {
+		uart_.puts(str);
+	}
+
 	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
 		reinterpret_cast<void*>(brk_inst_),		nullptr,	// (0)
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (1) flash_ready
@@ -75,6 +93,7 @@ int main(int argc, char *argv[])
 // クロック関係レジスタ・プロテクト解除
 	PRCR.PRC0 = 1;
 
+
 // 高速オンチップオシレーターへ切り替え(20MHz)
 // ※ F_CLK を設定する事（Makefile内）
 	OCOCR.HOCOE = 1;
@@ -90,7 +109,7 @@ int main(int argc, char *argv[])
 
 		// ※「0」を設定するとポーリングとなる。
 		uint8_t intr_level = 1;
-		uart_.start(19200, intr_level);
+		uart_.start(57600, intr_level);
 	}
 
 	// LED ポート設定
@@ -101,6 +120,10 @@ int main(int argc, char *argv[])
 		PD1.B1 = 1;
 	}
 
+	uart_.puts("Start R8C UART sample\n");
+	float a = 1000.0005f;
+	utils::format("%4.4f\n") % a;
+
 	uint8_t cnt = 0;
 	while(1) {
 		if(uart_.length()) {  // UART のレシーブデータがあるか？
@@ -108,11 +131,13 @@ int main(int argc, char *argv[])
 			uart_.putch(ch);
 		}
 
+#if 0
 		// 文字の出力
 		for(char ch = 0x20; ch < 0x7f; ++ch) {
 			uart_.putch(ch);
 		} 
 		uart_.putch('\n');
+#endif
 
 		// 10ms ソフトタイマー
 		for(uint16_t i = 0; i < 10; ++i) {
