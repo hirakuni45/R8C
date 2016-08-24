@@ -4,18 +4,16 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
-#include <cstring>
 #include "system.hpp"
 #include "clock.hpp"
-#include "port.hpp"
-#include "common/command.hpp"
-#include "common/format.hpp"
 #include "common/intr_utils.hpp"
 #include "common/port_map.hpp"
-#include "common/uart_io.hpp"
 #include "common/fifo.hpp"
+#include "common/uart_io.hpp"
 #include "common/trb_io.hpp"
 #include "chip/MPU6050.hpp"
+#include "common/command.hpp"
+#include "common/format.hpp"
 
 namespace {
 
@@ -113,7 +111,7 @@ extern "C" {
 	};
 }
 
- __attribute__ ((section (".exttext")))
+// __attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])
 {
 	using namespace device;
@@ -155,7 +153,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	sci_puts("Start R8C MPU6050 start\n");
+	sci_puts("Start R8C MPU6050 sample\n");
 	command_.set_prompt("# ");
 
 	// LED シグナル用ポートを出力
