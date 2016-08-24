@@ -41,9 +41,26 @@ namespace device {
 			fast_plus,	///< 1M b.p.s. (Fast plus mode)
 		};
 
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  I2C のエラー
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class error : uint8_t {
+			none,		///< エラー無し
+			start,		///< スタート（初期化）
+			bus_open,	///< バス・オープン
+			address,	///< アドレス転送
+			send_data,	///< 送信データ転送
+			recv_data,	///< 受信データ転送
+			stop,		///< ストップ・コンディション
+		};
+
 	private:
 		PORT		port_;
 		uint8_t		clock_;
+		error		error_;
 		uint16_t	busy_;
 
 		static const uint8_t slow_clock_ = 10 / 2;
@@ -176,7 +193,7 @@ namespace device {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		iica_io() : clock_(slow_clock_), busy_(200) { }
+		iica_io() : clock_(slow_clock_), error_(error::none), busy_(200) { }
 
 
 		//-----------------------------------------------------------------//
@@ -198,6 +215,7 @@ namespace device {
 			} else if(spd == speed::fast) {
 				set_fast();
 			} else {
+				error_ = error::start;
 				return false;
 			}
 			return true;
@@ -240,6 +258,15 @@ namespace device {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief	最終エラーの取得
+			@return エラー・タイプ
+		 */
+		//-----------------------------------------------------------------//
+		error get_last_error() const { return error_; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief  受信（リード）
 			@param[in] address スレーブアドレス（７ビット）
 			@param[out]	dst	先
@@ -247,17 +274,19 @@ namespace device {
 			@return 失敗なら「false」が返る
 		*/
 		//-----------------------------------------------------------------//
-		bool recv(uint8_t address, uint8_t* dst, uint8_t num) const {
+		bool recv(uint8_t address, uint8_t* dst, uint8_t num) {
 			start_();
 			write_((address << 1) | 1, false);
 			if(ack_()) {
 				stop_();
+				error_ = error::address;
 				return false;
 			}
 
 			for(uint8_t n = 0; n < num; ++n) {
 				if(!read_(*dst, true)) {
 					stop_();
+					error_ = error::recv_data;
 					return false;
 				}
 				bool f = 0;
@@ -279,16 +308,18 @@ namespace device {
 			@return 失敗なら「false」が返る
 		*/
 		//-----------------------------------------------------------------//
-		bool send(uint8_t address, const uint8_t* src, uint8_t num) const {
+		bool send(uint8_t address, const uint8_t* src, uint8_t num) {
 			start_();
 			write_(address << 1, false);
 			if(ack_()) {
 				stop_();
+				error_ = error::address;
 				return false;
 			}
 
 			if(!write_(src, num)) {
 				stop_();
+				error_ = error::send_data;
 				return false;
 			}
 			stop_();
@@ -306,21 +337,24 @@ namespace device {
 			@return 失敗なら「false」が返る
 		*/
 		//-----------------------------------------------------------------//
-		bool send(uint8_t address, uint8_t first, const uint8_t* src, uint8_t num) const {
+		bool send(uint8_t address, uint8_t first, const uint8_t* src, uint8_t num) {
 			start_();
 			write_(address << 1, false);
 			if(ack_()) {
 				stop_();
+				error_ = error::address;
 				return false;
 			}
 
 			if(!write_(first)) {
 				stop_();
+				error_ = error::send_data;
 				return false;
 			}
 
 			if(!write_(src, num)) {
 				stop_();
+				error_ = error::send_data;
 				return false;
 			}
 			stop_();
@@ -339,24 +373,28 @@ namespace device {
 			@return 失敗なら「false」が返る
 		*/
 		//-----------------------------------------------------------------//
-		bool send(uint8_t address, uint8_t first, uint8_t second, const uint8_t* src, uint8_t num) const {
+		bool send(uint8_t address, uint8_t first, uint8_t second, const uint8_t* src, uint8_t num) {
 			start_();
 			write_(address << 1, false);
 			if(ack_()) {
 				stop_();
+				error_ = error::address;
 				return false;
 			}
 
 			if(!write_(first)) {
 				stop_();
+				error_ = error::send_data;
 				return false;
 			}
 			if(!write_(second)) {
 				stop_();
+				error_ = error::send_data;
 				return false;
 			}
 			if(!write_(src, num)) {
 				stop_();
+				error_ = error::send_data;
 				return false;
 			}
 			stop_();
