@@ -28,29 +28,31 @@ R8C sources
 
  - /r8cprog         --->   R8C フラッシュへのプログラム書き込みツール（Windows、OS-X、※Linux 対応）
  - /M120AN          --->   M120AN,M110AN デバイス、Ｉ／Ｏポート定義
+ - /chip            --->   チップ固有ヘッダー
  - /common          --->   R8C 共有クラス、小規模なクラスライブラリーなど
  - /pfatfs          --->   ぷち FatFS 関係ソース、ヘッダー
- - /FIRST_sample    --->   ＬＥＤ点滅テスト
- - /UART_sample     --->   シリアルインターフェースの送信、受信テスト
- - /TIMER_sample    --->   タイマーＲＢのテスト（インターバルタイマー）
- - /ADC_sample      --->   Ａ／Ｄ変換のテスト
+ - /FIRST_sample    --->   ＬＥＤ点滅サンプル
+ - /UART_sample     --->   シリアルインターフェースの送信、受信サンプル
+ - /TIMER_sample    --->   タイマーＲＢのサンプル（インターバルタイマー）
+ - /ADC_sample      --->   Ａ／Ｄ変換のサンプル
  - /DATA_FLASH_sample --->   データフラッシュの初期化、リード、ライト
- - /PWM_sample        --->   タイマーＲＣのテスト（ＰＷＭ出力）
+ - /PWM_sample        --->   タイマーＲＣのサンプル（ＰＷＭ出力）
  - /RC_SERVO_sample --->   ラジコン用サーボの動作テスト（ＰＷＭ、２出力）
- - /COMP_sample     --->   コンパレーターのテスト
- - /DS1371_sample   --->   I2C RTC デバイスのテスト（DS1371）
- - /DS3231_sample   --->   I2C RTC デバイスのテスト（DS3231）
+ - /COMP_sample     --->   コンパレーターのサンプル
+ - /DS1371_sample   --->   I2C RTC デバイスのサンプル（DS1371）
+ - /DS3231_sample   --->   I2C RTC デバイスのサンプル（DS3231）
  - /EEPROM_sample   --->   I2C EEPROM デバイスのテスト
-
+ - /SWITCH_sample   --->   スイッチ入力テスト（チャタリング除去とトリガー判定）
+ - /ENCODER_sample  --->   エンコーダー入力テスト
+ - /PLUSE_OUT_sample --->   タイマーＲＪを使ったパルス出力テスト
+ - /PLUSE_INP_sample --->   タイマーＲＪを使った周波数計測テスト
+ - /PLUSE_OUT_LCD   --->   タイマーＲＪ、ＬＣＤ、エンコーダ
  - /LCD_test        --->   128x32 mono color graphics のテスト
  - /SD_test         --->   pFatFS を使った、SD カードのテスト
  - /SD_monitor      --->   pFatFS を使った、SD カードのモニター
  - /SD_WAV_play     --->   SD カード上の WAV 形式ファイルの PWM 再生
- - /PLUSE_OUT_test  --->   タイマーＲＪを使ったパルス出力テスト
- - /SWITCH_test     --->   スイッチ入力テスト（チャタリング除去とトリガー判定）
- - /ENCODER_test    --->   エンコーダー入力テスト
- - /PLUSE_OUT_LCD   --->   タイマーＲＪ、ＬＣＤ、エンコーダー
- - /PLUSE_INP_test  --->   タイマーＲＪを使った周波数計測テスト
+ - /ARITH_sample    --->   数値計算テンプレートサンプル
+
 ---
    
 ## R8C 開発環境
