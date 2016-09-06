@@ -1,7 +1,13 @@
 #pragma once
 //=====================================================================//
 /*! @file
-    @brief  簡易 format クラス @n
+    @brief  format クラス @n
+			・安全性を考慮した、printf 表示に準じたクラス
+			・二進表記として、「%b」をサポート
+			・固定小数点表示「%N.M:Ly」形式をサポート @n
+			※ N：実数部桁数、M：小数部桁数、L：小数部のビット数 @n
+			Ex: %1.2:8y ---> 256 で 1.00、128 で 0.50、384 で 1.50 と @n
+			と表示される。
 			Copyright 2013,2016 Kunihito Hiramatsu
     @author 平松邦仁 (hira@rvf-rc45.net)
 */
@@ -9,9 +15,9 @@
 #include <cstdint>
 
 /// ８進数のサポート
-/// #define WITH_OCTAL_FORMAT
+#define WITH_OCTAL_FORMAT
 /// 浮動小数点(float)のサポート
-#define WITH_FLOAT_FORMAT
+// #define WITH_FLOAT_FORMAT
 /// 浮動小数点(double)のサポート
 /// #define WITH_DOUBLE_FORMAT
 
@@ -332,35 +338,47 @@ namespace utils {
 			return m;
 		}
 
-		void out_fixed_point_(int64_t v, uint8_t fixpoi, bool sign)
+		template <typename VAL>
+		void out_fixed_point_(VAL v, uint8_t fixpoi, bool sign)
 		{
 			decimal_ = fpu_num_;
 
+// std::cout << "Shift: " << static_cast<int>(fixpoi) << std::endl;
 			// 四捨五入処理用 0.5
-			uint64_t m = static_cast<uint64_t>(5) << fixpoi;
-			uint8_t n = decimal_ + 1;
-			while(n > 0) { m /= 10; --n; }
-
+			VAL m = 0;
+			if(fixpoi < (sizeof(VAL) * 8 - 4)) {
+				m = static_cast<VAL>(5) << fixpoi;
+				uint8_t n = decimal_ + 1;
+				while(n > 0) {
+					m /= 10;
+					--n;
+				}
+			}
 			char sch = 0;
 			if(sign) sch = '-';
 			else if(sign_) sch = '+';
-			out_udec_(v >> fixpoi, sch);
+			v += m;
+
+			if(fixpoi < (sizeof(VAL) * 8 - 4)) {
+				out_udec_(v >> fixpoi, sch);
+			} else {
+				out_udec_(0, sch);
+			}
 			if(fpu_num_ == 0) return;
 
 			sci_putch('.');
 
-			uint64_t d;
-			if(v < 0) { d = -v; } else { d = v; }
-			d += m;
-			uint64_t dec = d & make_mask_(fixpoi);
 			uint8_t l = 0;
-			while(dec > 0) {
-				dec *= 10;
-				uint64_t n = dec >> fixpoi;
-				sci_putch(n + '0');
-				dec -= n << fixpoi;
-				++l;
-				if(l >= decimal_) break;
+			if(fixpoi < (sizeof(VAL) * 8 - 4)) {
+				VAL dec = v & make_mask_(fixpoi);
+				while(dec > 0) {
+					dec *= 10;
+					VAL n = dec >> fixpoi;
+					sci_putch(n + '0');
+					dec -= n << fixpoi;
+					++l;
+					if(l >= decimal_) break;
+				}
 			}
 			while(l < decimal_) {
 				sci_putch('0');
@@ -413,7 +431,7 @@ namespace utils {
 				}
 			}
 
-			out_fixed_point_(v64, shift, sign);
+			out_fixed_point_<uint64_t>(v64, shift, sign);
 
 			if(e) {
 				sci_putch(e);
@@ -445,7 +463,16 @@ namespace utils {
 				out_hex_(static_cast<uint32_t>(val), 'A');
 			} else if(mode_ == mode::FIXED_REAL) {
 				if(decimal_ == 0) decimal_ = 3;
-				out_fixed_point_(val, ppos_, false);
+				bool sign = false;
+				if(val < 0) {
+					sign = true;
+					val = -val;
+				}
+#ifdef WITH_FLOAT_FORMAT
+				out_fixed_point_<uint64_t>(val, ppos_, sign);
+#else
+				out_fixed_point_<uint32_t>(val, ppos_, sign);
+#endif
 			} else {
 #ifdef ERROR_MESSAGE
 				err_(error_case::DIFFERENT_TYPE);
@@ -474,7 +501,11 @@ namespace utils {
 				out_hex_(val, 'A');
 			} else if(mode_ == mode::FIXED_REAL) {
 				if(decimal_ == 0) decimal_ = 3;
-				out_fixed_point_(val, ppos_, false);
+#ifdef WITH_FLOAT_FORMAT
+				out_fixed_point_<uint64_t>(val, ppos_, false);
+#else
+				out_fixed_point_<uint32_t>(val, ppos_, false);
+#endif
 			} else {
 #ifdef ERROR_MESSAGE
 				err_(error_case::DIFFERENT_TYPE);
