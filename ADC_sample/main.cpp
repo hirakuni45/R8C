@@ -125,15 +125,16 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
 		utils::PORT_MAP(utils::port_map::P15::RXD0);
 		uint8_t ir_level = 1;
-		uart_.start(19200, ir_level);
+		uart_.start(57600, ir_level);
 	}
 
-	uart_.puts("Start R8C ADC\n");
+	uart_.puts("Start R8C ADC sample\n");
 
 	// ADC の設定（CH1のサイクルモード）
 	{
+		utils::PORT_MAP(utils::port_map::P10::AN0);
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.setup(adc::cnv_type::CH1, adc::ch_grp::AN0_AN1, true);
+		adc_.setup(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
 		adc_.start();
 	}
 
@@ -142,19 +143,22 @@ int main(int argc, char *argv[])
 	// L チカ・メイン
 	PD1.B0 = 1;
 	uint8_t cnt = 0;
-	uint32_t nnn = 0;
+	int nnn = 0;
 	while(1) {
 		timer_b_.sync();
 		++cnt;
 		if(cnt >= 30) {
 			cnt = 0;
 			if(adc_.get_state()) {
-				auto v = adc_.get_value(1);
-				utils::format("(%5d): %1.2:8y[V], %d\n")
-					% static_cast<uint32_t>(nnn)
+				auto v = adc_.get_value(0);
+				utils::format("(%5d) CH0: %1.2:8y[V], %d\n")
+					% nnn
 					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
-					% static_cast<uint32_t>(v);
-				adc_.start();
+					% v;
+				v = adc_.get_value(1);
+				utils::format("        CH1: %1.2:8y[V], %d\n")
+					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
+					% v;
 			}
 			++nnn;
 		}
