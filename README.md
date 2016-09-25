@@ -54,10 +54,9 @@ R8C sources
  - /ARITH_sample    --->   数値計算テンプレートサンプル
 
 ---
-   
-## R8C 開発環境
 
- - R8C 用コンパイラ（m32c-elf）は gcc-4.9.3 を使っています。 
+## R8C 開発環境準備（Windows、MSYS2）
+   
  - Windows では、事前に MSYS2 環境をインストールしておきます。
  - MSYS2 には、msys2、mingw32、mingw64 と３つの異なった環境がありますが、msys2 で行います。 
    
@@ -74,10 +73,6 @@ R8C sources
 ```
  - アップデートは、複数回行われ、その際、コンソールの指示に従う事。
  - ※複数回、コンソールを開きなおす必要がある。
-
----
-
-### m32c-elf-gcc コンパイラのビルド方法：（msys2）
 
  - gcc、texinfo、gmp、mpfr、mpc、diffutils、automake、zlib tar、make、unzip コマンドなどをインストール
 ```sh
@@ -97,8 +92,64 @@ R8C sources
    pacman -S git
 ```
 
+---
+
+## R8C 開発環境準備（OS-X、Linux）
+
+ - OS-X では、事前に macports をインストールしておきます。（brew は柔軟性が低いのでお勧めしません）
+ -  OS−X のバージョンによっては、事前にX−Code、Command Line Tools などのインストールが必要になるかもしれません）
+
+ - macports のアップグレード
+
+```
+   sudo port -d self update
+```
+
+ - ご存知とは思いますが、OS−X では初期段階では、gcc の呼び出しで llvm が起動するようになっています。
+ - しかしながら、現状では llvm では、gcc のクロスコンパイラをビルドする事は出来ません。
+ - そこで、macports で gcc をインストールします、バージョンは５系を使う事とします。
+```
+   sudo port install gcc5
+   sudo ln -sf /opt/local/bin/gcc-mp-5  /usr/local/bin/gcc
+   sudo ln -sf /opt/local/bin/g++-mp-5  /usr/local/bin/g++
+   sudo ln -sf /opt/local/bin/g++-mp-5  /usr/local/bin/c++
+```
+ - 再起動が必要かもしれません。
+ - 一応、確認してみて下さい。
+```
+   gcc --version
+```
+   
+```
+   gcc (MacPorts gcc5 5.4.0_0) 5.4.0
+   Copyright (C) 2015 Free Software Foundation, Inc.
+   This is free software; see the source for copying conditions.  There is NO
+   warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+```
+   
+ - texinfo、gmp、mpfr、mpc、diffutils、automake コマンドなどをインストール
+```
+   sudo port install texinfo
+   sudo port install gmp
+   sudo port install mpfr
+   sudo port install libmpc
+   sudo port install diffutils
+   sudo port install automake
+```
+
+---
+## R8C 開発環境構築
+
+ - R8C は M32C のサブセット版ですので、M32C 用 gcc を構築します。
+ - R8C 用コンパイラ（m32c-elf-gcc,g++）は gcc-4.9.4 を使います。
+ - binutils-2.25.1.tar.gz をダウンロードしておく
+ - gcc-4.9.4.tar.gz をダウンロードしておく
+ - newlib-2.2.0.tar.gz をダウンロードしておく
+   
+---
+   
 #### binutils-2.25.1 をビルド
-```sh
+```
    cd
    tar xfvz binutils-2.25.1.tar.gz
    cd binutils-2.25.1
@@ -106,7 +157,7 @@ R8C sources
    cd m32c_build
    ../configure --target=m32c-elf --prefix=/usr/local/m32c-elf --disable-nls
    make
-   make install
+   make install     OS-X,Linux: (sudo make install)
 ```
 
  -  /usr/local/m32c-elf/bin へパスを通す（.bash_profile を編集して、パスを追加）
@@ -124,17 +175,15 @@ R8C sources
  -  アセンブラコマンドを実行してみて、パスが有効か確かめる。
   
 #### C コンパイラをビルド
- -  gcc-4.9.3では、MSYS2 環境を認識しない為、automake の設定をコピーする
 ``` sh
     cd
-    tar xfvz gcc-4.9.3.tar.gz
-    cd gcc-4.9.3
-    cp /usr/share/automake-1.9/config.guess .
+    tar xfvz gcc-4.9.4.tar.gz
+    cd gcc-4.9.4
     mkdir m32c_build
 	cd m32c_build
-    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --disable-bootstrap
+    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --enable-lto
     make
-    make install
+    make install     OS-X,Linux: (sudo make install)
 ```
   
 #### newlib をビルド
@@ -146,17 +195,17 @@ R8C sources
     cd m32c_build
     ../configure --target=m32c-elf --prefix=/usr/local/m32c-elf
 	make
-    make install
+    make install     OS-X,Linux: (sudo make install)
 ```
   
 #### C++ コンパイラをビルド
 ``` sh
     cd
-    cd gcc-4.9.3
+    cd gcc-4.9.4
     cd m32c_build
-    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c,c++ --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --disable-bootstrap
+    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c,c++ --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --enable-lto
     make
-    make install
+    make install     OS-X,Linux: (sudo make install)
 ```
    
 ---
