@@ -8,89 +8,112 @@
 */
 //=====================================================================//
 #include <cstring>
-#include "main.hpp"
+#include "common/vect.h"
 #include "system.hpp"
 #include "clock.hpp"
+#include "intr.hpp"
+#include "port.hpp"
+#include "common/intr_utils.hpp"
+#include "common/delay.hpp"
+#include "common/port_map.hpp"
+#include "common/fifo.hpp"
+#include "common/uart_io.hpp"
 #include "common/command.hpp"
 #include "common/format.hpp"
+#include "common/trb_io.hpp"
+#include "common/trj_io.hpp"
+#include "common/lcd_io.hpp"
 #include "common/monograph.hpp"
-#include "port_def.hpp"
 
+#include "port_def.hpp"
 #include "bitmap/font32.h"
 
-static const uint8_t* nmbs_[] = {
-	nmb_0, nmb_1, nmb_2, nmb_3, nmb_4,
-	nmb_5, nmb_6, nmb_7, nmb_8, nmb_9,
-	txt_hz, txt_k
-};
+namespace {
 
-static uint8_t enc_lvl_ = 0;
-static volatile int8_t enc_cnt_ = 0;
+	const uint8_t* nmbs_[] = {
+		nmb_0, nmb_1, nmb_2, nmb_3, nmb_4,
+		nmb_5, nmb_6, nmb_7, nmb_8, nmb_9,
+		txt_hz, txt_k
+	};
 
-class encoder {
-public:
-	void operator() () {
-		uint8_t lvl = device::P1();  ///< 状態の取得
-		uint8_t pos = ~enc_lvl_ &  lvl;  ///< 立ち上がりエッジ検出
-		uint8_t neg =  enc_lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
-		enc_lvl_ = lvl;  ///< 状態のセーブ
+	uint8_t enc_lvl_ = 0;
+	volatile int8_t enc_cnt_ = 0;
 
-		if(pos & device::P1.B0.b()) {
-			if(lvl & device::P1.B1.b()) {
-				--enc_cnt_;
-			} else {
-				++enc_cnt_;
+	class encoder {
+	public:
+		void operator() () {
+			uint8_t lvl = device::P1();  ///< 状態の取得
+			uint8_t pos = ~enc_lvl_ &  lvl;  ///< 立ち上がりエッジ検出
+			uint8_t neg =  enc_lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
+			enc_lvl_ = lvl;  ///< 状態のセーブ
+
+			if(pos & device::P1.B0.b()) {
+				if(lvl & device::P1.B1.b()) {
+					--enc_cnt_;
+				} else {
+					++enc_cnt_;
+				}
+			}
+			if(neg & device::P1.B0.b()) {
+				if(lvl & device::P1.B1.b()) {
+					++enc_cnt_;
+				} else {
+					--enc_cnt_;
+				}
+			}
+			if(pos & device::P1.B1.b()) {
+				if(lvl & device::P1.B0.b()) {
+					++enc_cnt_;
+				} else {
+					--enc_cnt_;
+				}
+			}
+			if(neg & device::P1.B1.b()) {
+				if(lvl & device::P1.B0.b()) {
+					--enc_cnt_;
+				} else {
+					++enc_cnt_;
+				}
 			}
 		}
-		if(neg & device::P1.B0.b()) {
-			if(lvl & device::P1.B1.b()) {
-				++enc_cnt_;
-			} else {
-				--enc_cnt_;
-			}
-		}
-		if(pos & device::P1.B1.b()) {
-			if(lvl & device::P1.B0.b()) {
-				++enc_cnt_;
-			} else {
-				--enc_cnt_;
-			}
-		}
-		if(neg & device::P1.B1.b()) {
-			if(lvl & device::P1.B0.b()) {
-				--enc_cnt_;
-			} else {
-				++enc_cnt_;
-			}
-		}
-	}
-};
+	};
 
+	device::trb_io<encoder> timer_b_;
 
-static device::trb_io<encoder> timer_b_;
-static uart0 uart0_;
-static utils::command<64> command_;
-static spi_base spi_base_;
-static spi_ctrl spi_ctrl_;
-static lcd lcd_;
-static graphics::monograph bitmap_;
-static timer_j timer_j_;
+	typedef utils::fifo<uint8_t, 16> buffer;
+	typedef device::uart_io<device::UART0, buffer, buffer> uart;
+	uart uart_;
+
+	utils::command<64> command_;
+
+	spi_base spi_base_;
+	spi_ctrl spi_ctrl_;
+
+	typedef device::lcd_io<spi_base, spi_ctrl> lcd;
+	lcd lcd_;
+
+	typedef graphics::monograph mono_graph;
+	mono_graph bitmap_;
+
+	typedef device::trj_io<utils::null_task> timer_j;
+	timer_j timer_j_;
+}
 
 extern "C" {
 	void sci_putch(char ch) {
-		uart0_.putch(ch);
+		uart_.putch(ch);
 	}
 
 	char sci_getch(void) {
-		return uart0_.getch();
+		return uart_.getch();
 	}
 
 	uint16_t sci_length() {
-		return uart0_.length();
+		return uart_.length();
 	}
 
 	void sci_puts(const char* str) {
-		uart0_.puts(str);
+		uart_.puts(str);
 	}
 }
 
@@ -117,8 +140,8 @@ extern "C" {
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (15)
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (16)
-		reinterpret_cast<void*>(uart0_.isend),	nullptr,	// (17) UART0 送信
-		reinterpret_cast<void*>(uart0_.irecv),	nullptr,	// (18) UART0 受信
+		reinterpret_cast<void*>(uart_.isend),	nullptr,	// (17) UART0 送信
+		reinterpret_cast<void*>(uart_.irecv),	nullptr,	// (18) UART0 受信
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (19)
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (20)
@@ -168,7 +191,7 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
 		utils::PORT_MAP(utils::port_map::P15::RXD0);
 		uint8_t ir_level = 1;
-		uart0_.start(19200, ir_level);
+		uart_.start(19200, ir_level);
 	}
 
 	// エンコーダー入力の設定 P10: (Phi_A), P11: (Phi_B), Vss: (COM)

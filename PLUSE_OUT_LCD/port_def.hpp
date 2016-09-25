@@ -76,4 +76,3 @@ struct spi_ctrl {
 	void sd_sel(bool b) const { device::P3.B4 = b; }
 };
 
-typedef device::lcd_io<spi_base, spi_ctrl> lcd;
