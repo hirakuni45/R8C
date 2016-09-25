@@ -6,43 +6,77 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
-#include "main.hpp"
+#include <cstring>
+#include "common/vect.h"
 #include "system.hpp"
 #include "clock.hpp"
+#include "port.hpp"
+#include "intr.hpp"
+#include "common/intr_utils.hpp"
+#include "common/delay.hpp"
 #include "common/port_map.hpp"
+#include "common/fifo.hpp"
+#include "common/uart_io.hpp"
 #include "common/command.hpp"
-#include <cstring>
 #include "common/format.hpp"
+#include "common/trb_io.hpp"
+#include "common/lcd_io.hpp"
+#include "common/monograph.hpp"
 
-static void wait_(uint16_t n)
-{
-	while(n > 0) {
-		asm("nop");
-		--n;
-	}
+namespace {
+
+	device::trb_io<utils::null_task> timer_b_;
+
+	typedef utils::fifo<uint8_t, 16> buffer;
+	typedef device::uart_io<device::UART0, buffer, buffer> uart;
+	uart uart_;
+
+	utils::command<64> command_;
+
+	// LCD SCL: P4_2(1)
+	// LCD SDA: P4_5(12)
+	// LCD A0:  P3_3(11)
+	// LCD /CS: P3_7(2)
+	struct spi_base {
+		void init() const {
+			device::PD4.B2 = 1;
+			device::PD4.B5 = 1;
+		}
+		void scl_out(bool b) const { device::P4.B2 = b; }
+		void sda_out(bool b) const { device::P4.B5 = b; }
+	};
+
+	struct spi_ctrl {
+		void init() const {
+			device::PD3.B3 = 1;
+			device::PD3.B7 = 1;
+		}
+		void a0_out(bool b) const { device::P3.B3 = b; }
+		void lcd_sel(bool b) const { device::P3.B7 = b; }
+	};
+
+	typedef device::lcd_io<spi_base, spi_ctrl> lcd;
+	lcd lcd_;
+
+	typedef graphics::monograph mono_graph;
+	mono_graph bitmap_;
 }
-
-static timer_b timer_b_;
-static uart0 uart0_;
-static utils::command<64> command_;
-static lcd lcd_;
-static mono_graph bitmap_;
 
 extern "C" {
 	void sci_putch(char ch) {
-		uart0_.putch(ch);
+		uart_.putch(ch);
 	}
 
 	char sci_getch(void) {
-		return uart0_.getch();
+		return uart_.getch();
 	}
 
 	uint16_t sci_length() {
-		return uart0_.length();
+		return uart_.length();
 	}
 
 	void sci_puts(const char* str) {
-		uart0_.puts(str);
+		uart_.puts(str);
 	}
 }
 
@@ -69,8 +103,8 @@ extern "C" {
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (15)
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (16)
-		reinterpret_cast<void*>(uart0_.isend),	nullptr,	// (17) UART0 送信
-		reinterpret_cast<void*>(uart0_.irecv),	nullptr,	// (18) UART0 受信
+		reinterpret_cast<void*>(uart_.isend),	nullptr,	// (17) UART0 送信
+		reinterpret_cast<void*>(uart_.irecv),	nullptr,	// (18) UART0 受信
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (19)
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (20)
@@ -125,7 +159,7 @@ int main(int argc, char *argv[])
 // 高速オンチップオシレーターへ切り替え(20MHz)
 // ※ F_CLK を設定する事（Makefile内）
 	OCOCR.HOCOE = 1;
-	wait_(1000);
+	utils::delay::micro_second(1);  // >=30us(125KHz)
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
@@ -141,7 +175,7 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
 		utils::PORT_MAP(utils::port_map::P15::RXD0);
 		uint8_t ir_level = 1;
-		uart0_.start(19200, ir_level);
+		uart_.start(19200, ir_level);
 	}
 
 	// LCD を開始
