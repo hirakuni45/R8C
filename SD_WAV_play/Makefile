@@ -33,7 +33,7 @@ INC_SYS		=
 
 INC_APP		=	. ../ ../M120AN ../pfatfs/src
 
-OPTIMIZE	=	-O2
+OPTIMIZE	=	-Os -flto
 
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
