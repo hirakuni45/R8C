@@ -6,36 +6,62 @@
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
-#include "main.hpp"
+#include <cstring>
 #include "system.hpp"
 #include "clock.hpp"
+#include "common/delay.hpp"
 #include "common/port_map.hpp"
+#include "common/uart_io.hpp"
+#include "common/fifo.hpp"
 #include "common/command.hpp"
-#include <cstring>
 #include "common/format.hpp"
+#include "common/trb_io.hpp"
+
 #include "pfatfs/src/pff.h"
 
-static timer_b timer_b_;
-static uart0 uart0_;
-static utils::command<64> command_;
-static spi_base spi_base_;
-static spi_ctrl spi_ctrl_;
+#include "port_def.hpp"
+
+namespace {
+
+	volatile uint8_t input_value_ = 0;
+
+	class timer_task {
+	public:
+		void operator() () {
+			input_value_ = device::P1();
+		}
+	};
+
+	typedef device::trb_io<timer_task> timer_bt;
+	timer_bt timer_b_;
+
+	typedef utils::fifo<uint8_t, 16> buffer;
+	typedef device::uart_io<device::UART0, buffer, buffer> uart;
+	uart uart_;
+
+	utils::command<64> command_;
+
+
+	spi_base spi_base_;
+	spi_ctrl spi_ctrl_;
+
+}
 
 extern "C" {
 	void sci_putch(char ch) {
-		uart0_.putch(ch);
+		uart_.putch(ch);
 	}
 
 	char sci_getch(void) {
-		return uart0_.getch();
+		return uart_.getch();
 	}
 
 	uint16_t sci_length() {
-		return uart0_.length();
+		return uart_.length();
 	}
 
 	void sci_puts(const char* str) {
-		uart0_.puts(str);
+		uart_.puts(str);
 	}
 }
 
@@ -62,8 +88,8 @@ extern "C" {
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (15)
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (16)
-		reinterpret_cast<void*>(uart0_.isend),	nullptr,	// (17) UART0 送信
-		reinterpret_cast<void*>(uart0_.irecv),	nullptr,	// (18) UART0 受信
+		reinterpret_cast<void*>(uart_.isend),	nullptr,	// (17) UART0 送信
+		reinterpret_cast<void*>(uart_.irecv),	nullptr,	// (18) UART0 受信
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (19)
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (20)
@@ -111,7 +137,7 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
 		utils::PORT_MAP(utils::port_map::P15::RXD0);
 		uint8_t ir_level = 1;
-		uart0_.start(19200, ir_level);
+		uart_.start(19200, ir_level);
 	}
 
 	// spi_base, spi_ctrl ポートの初期化
