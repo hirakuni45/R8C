@@ -86,6 +86,7 @@ R8C sources
    pacman -S tar
    pacman -S make
    pacman -S unzip
+   pacman -S zlib-devel
 ```
   
  - git コマンドをインストール
