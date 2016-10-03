@@ -286,6 +286,7 @@ make install
  - boost はヘッダーのみ利用なので、ビルドの必要はありません、boost_1_60_0.zip を展開するだけです。
  - 又は、mingw64 環境などに pacman を使い boost をインストールして、そのパスを設定しても良いでしょう。
 
+ - boost の展開は、MSYS2（Windows）の場合だけ必要です。
 ``` 
     cd /usr/local
     unzip boost_1_60_0.zip
@@ -304,6 +305,8 @@ make install
 ```
  - r8c_prog.conf を編集して、接続する COM ポート、ボーレートの設定をする。
  - /dev/ttyS10 -> COM11 に相当します。（数字に＋１する）
+ - OS-X では、/dev/tty.usbserial-xxxxxxxxxx などのデバイス名になります。
+ - Linux では、/dev/ttyUSB[0 to 9] などのデバイス名になります。
  - r8cprog/KiCAD/ に、R8C プログラマー（書き込み機）の参考回路などが含まれます。
   
 ---
