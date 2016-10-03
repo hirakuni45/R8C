@@ -372,7 +372,7 @@ static const std::string get_current_path_(const std::string& exec)
 	for(const auto& s : ss) {
 		std::string path = s + '/' + base;
 		if(utils::probe_file(path)) {
-			return std::move(s);
+			return s;
 		}
 	}
 
