@@ -96,7 +96,7 @@ R8C sources
 
 ---
 
-## R8C 開発環境準備（OS-X、Linux）
+## R8C 開発環境準備（OS-X）
 
  - OS-X では、事前に macports をインストールしておきます。（brew は柔軟性が低いのでお勧めしません）
  -  OS−X のバージョンによっては、事前にX−Code、Command Line Tools などのインストールが必要になるかもしれません）
@@ -140,6 +140,22 @@ R8C sources
 ```
 
 ---
+## RL78 開発環境準備（Ubuntu）
+
+Linux 環境は、複数あるので、ここでは「Ubuntu 16.04 LTS」環境の場合を書いておきます。
+
+ - texinfo、gmp、mpfr、mpc、diffutils、automake コマンドなどをインストール
+```
+   sudo apt-get install texinfo
+   sudo apt-get install libgmp-dev
+   sudo apt-get install libmpfr-dev
+   sudo apt-get install libmpc-dev
+   sudo apt-get install diffutils
+   sudo apt-get install automake
+   sudo apt-get install zlib1g-dev
+```
+
+---
 ## R8C 開発環境構築
 
  - R8C は M32C のサブセット版ですので、M32C 用 gcc を構築します。
@@ -157,7 +173,7 @@ R8C sources
    cd binutils-2.25.1
    mkdir m32c_build
    cd m32c_build
-   ../configure --target=m32c-elf --prefix=/usr/local/m32c-elf --disable-nls
+   ../configure --target=m32c-elf --prefix=/usr/local/m32c-elf --disable-nls --with-system-zlib
    make
    make install     OS-X,Linux: (sudo make install)
 ```
@@ -183,7 +199,7 @@ R8C sources
     cd gcc-4.9.4
     mkdir m32c_build
 	cd m32c_build
-    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --enable-lto
+    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --enable-lto --with-system-zlib
     make
     make install     OS-X,Linux: (sudo make install)
 ```
@@ -199,13 +215,26 @@ R8C sources
 	make
     make install     OS-X,Linux: (sudo make install)
 ```
+ - Linux 環境では、sudo コマンドで、ローカルで設定した binutils のパスを認識しないので、
+「make install」が失敗する、その為、以下のようなスクリプトを書いて実行する。
+```
+#!/bin/sh
+
+PATH=${PATH}:/usr/local/m32c-elf/bin
+make install
+```
+   
+```
+    sudo m32c_install.sh
+```
   
+---  
 #### C++ コンパイラをビルド
 ``` sh
     cd
     cd gcc-4.9.4
     cd m32c_build
-    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c,c++ --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --enable-lto
+    ../configure --prefix=/usr/local/m32c-elf --target=m32c-elf --enable-languages=c,c++ --disable-libssp --with-newlib --disable-nls --disable-threads --disable-libgomp --disable-libmudflap --disable-libstdcxx-pch --disable-multilib --enable-lto --with-system-zlib
     make
     make install     OS-X,Linux: (sudo make install)
 ```
@@ -215,11 +244,16 @@ R8C sources
 ## R8C プロジェクトのソースコードを取得
 
 ```
-   git clone git@github.com:hirakuni45/R8C.git
+   git clone git://github.com/hirakuni45/R8C.git
+```
+   
+ - プロジェクトを全てコンパイル
+```
+   sh all_project_build.sh
 ```
    
 --- 
-
+   
 ## R8C/M120AN, R8C/M110AN デバイスへのプログラム書き込み方法
 
 幾つかの方法がありますが、最も簡単で、コストがかからない方法は、シリアルインターフェースを使って
