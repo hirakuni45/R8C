@@ -213,7 +213,7 @@ Linux 環境は、複数あるので、ここでは「Ubuntu 16.04 LTS」環境�
     cd m32c_build
     ../configure --target=m32c-elf --prefix=/usr/local/m32c-elf
 	make
-    make install     OS-X,Linux: (sudo make install)
+    make install     OS-X: (sudo make install)
 ```
  - Linux 環境では、sudo コマンドで、ローカルで設定した binutils のパスを認識しないので、
 「make install」が失敗する、その為、以下のようなスクリプトを書いて実行する。
@@ -260,8 +260,8 @@ make install
 書き込む方法です。   
    
 シリアルインターフェースからの２つの信号をマイコンと接続する必要があります。   
-※USB シリアル変換モジュールなどを使うと、電源も取れて簡単です。
-※（秋月電子、シリアル変換モジュール）http://akizukidenshi.com/catalog/g/gK-06894/
+※USB シリアル変換モジュールなどを使うと、電源も取れて簡単です。   
+※（秋月電子、シリアル変換モジュール）http://akizukidenshi.com/catalog/g/gK-06894/   
 (1) RXD シリアル受信   
 (2) TXD シリアル送信   
 (3) VCC 電源（５Ｖ又は３．３Ｖ）   
@@ -307,6 +307,7 @@ make install
  - /dev/ttyS10 -> COM11 に相当します。（数字に＋１する）
  - OS-X では、/dev/tty.usbserial-xxxxxxxxxx などのデバイス名になります。
  - Linux では、/dev/ttyUSB[0 to 9] などのデバイス名になります。
+ - Linux では、シリアルデバイスのパーミッションが、標準では設定されていないので、変更します。   
  - r8cprog/KiCAD/ に、R8C プログラマー（書き込み機）の参考回路などが含まれます。
   
 ---
