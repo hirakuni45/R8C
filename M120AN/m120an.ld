@@ -155,11 +155,11 @@ SECTIONS
   PROVIDE (__bsssize = SIZEOF(.bss));
 
   .vvec : {
-    *(.vvec)
+    KEEP( *(.vvec) )
   } > VVEC
 
   .fvec : {
-    *(.fvec)
+    KEEP( *(.fvec) )
   } > FVEC
 
   /* The rest are all not normally part of the runtime image.  */
