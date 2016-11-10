@@ -1,6 +1,6 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C BMP180 サンプル
+	@brief	R8C BMP180/BMP280 サンプル
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -11,9 +11,10 @@
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
 #include "common/trb_io.hpp"
-#include "chip/BMP180.hpp"
 #include "common/command.hpp"
 #include "common/format.hpp"
+#include "chip/BMP180.hpp"
+#include "chip/BMP280.hpp"
 
 namespace {
 
@@ -44,7 +45,8 @@ namespace {
 
 	typedef device::iica_io<scl_sda> iica;
 	iica i2c_;
-	chip::BMP180<iica> bmp180_(i2c_);
+//	chip::BMP180<iica> bmpx_(i2c_);
+	chip::BMP280<iica> bmpx_(i2c_);
 
 	utils::command<64> command_;
 }
@@ -111,7 +113,7 @@ extern "C" {
 	};
 }
 
-//  __attribute__ ((section (".exttext")))
+//__attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])
 {
 	using namespace device;
@@ -146,14 +148,14 @@ int main(int argc, char *argv[])
 		i2c_.start(iica::speed::fast);
 	}
 
-	// BMP180 を開始
+	// BMP180/BMP280 を開始
 	{
-		if(!bmp180_.start()) {
-			utils::format("Stall BMP180 start (%d)\n") % static_cast<uint32_t>(i2c_.get_last_error());
+		if(!bmpx_.start()) {
+			utils::format("Stall BMP180/BMP280 start (%d)\n") % static_cast<uint32_t>(i2c_.get_last_error());
 		}
 	}
 
-	sci_puts("Start R8C BMP180 sample\n");
+	sci_puts("Start R8C BMP180/BMP280 sample\n");
 	command_.set_prompt("# ");
 
 	// LED シグナル用ポートを出力
@@ -175,11 +177,14 @@ int main(int argc, char *argv[])
 		if(n >= 60) {
 			n = 0;
 
-			auto t = bmp180_.get_temperature();
-			utils::format("Temperature: %d.%d C\n") % (t / 10) % (t % 10);
+			auto t = bmpx_.get_temperature();
+			utils::format("Temperature: %d.%d C\n") % (t / 100) % (t % 100);
 
-			auto p = bmp180_.get_pressure();
-			utils::format("Pressure: %d.%02d hPa\n") % (p / 100) % (p % 100);
+			auto p = bmpx_.get_pressure();
+			utils::format("Pressure: %7.2f hPa\n") % p;
+
+//			auto a = bmpx_.get_altitude();
+//			utils::format("Altitude: %7.2f m\n") % 1;
 		}
 
 		// コマンド入力と、コマンド解析

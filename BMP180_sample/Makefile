@@ -17,7 +17,7 @@ CSOURCES	=	common/vect.c \
 PSOURCES	=	main.cpp
 
 
-USER_LIBS	=	stdc++
+USER_LIBS	=	stdc++ m
 
 LDSCRIPT	=	../M120AN/m120an.ld
 
