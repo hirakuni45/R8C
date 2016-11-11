@@ -178,10 +178,10 @@ int main(int argc, char *argv[])
 			n = 0;
 
 			auto t = bmpx_.get_temperature();
-			utils::format("Temperature: %d.%d C\n") % (t / 100) % (t % 100);
+			utils::format("Temperature: %d.%02d C\n") % (t / 100) % (t % 100);
 
 			auto p = bmpx_.get_pressure();
-			utils::format("Pressure: %7.2f hPa\n") % p;
+			utils::format("Pressure: %d.%02d hPa\n") % (p / 100) % (p % 100);
 
 //			auto a = bmpx_.get_altitude();
 //			utils::format("Altitude: %7.2f m\n") % 1;
