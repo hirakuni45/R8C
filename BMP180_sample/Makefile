@@ -57,6 +57,7 @@ AR			=	m32c-elf-ar
 LD			=	m32c-elf-ld
 OBJCOPY		=	m32c-elf-objcopy
 OBJDUMP		=	m32c-elf-objdump
+SIZE		=	m32c-elf-size
 
 # AFLAGS        = -Wa,-adhlns=$(<:.s=.lst),-gstabs
 # AFLAGS        =	-Wa,-adhlns=$(<:.s=.lst)
@@ -91,6 +92,7 @@ all: $(BUILD) $(TARGET).elf text
 
 $(TARGET).elf: $(OBJECTS) $(LDSCRIPT) Makefile
 	$(CC) $(LDFLAGS) $(LIBINCS) -o $@ $(OBJECTS) $(LIBS)
+	$(SIZE) $@
 
 $(BUILD)/%.o: %.s
 	mkdir -p $(dir $@); \
