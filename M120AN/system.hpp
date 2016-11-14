@@ -2,7 +2,7 @@
 //=====================================================================//
 /*!	@file
 	@brief	R8C/M110AN, R8C/M120AN グループ・システム・レジスター定義 @n
-			Copyright 2014 Kunihito Hiramatsu
+			Copyright 2014,2016 Kunihito Hiramatsu
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -15,14 +15,14 @@ namespace device {
 		@brief  プロセッサモードレジスタ０ PM0
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x0010> pm0_io;
-	struct pm0_t : public pm0_io {
-		using pm0_io::operator =;
-		using pm0_io::operator ();
-		using pm0_io::operator |=;
-		using pm0_io::operator &=;
+	struct pm0_t : public rw8_t<0x0010> {
+		typedef rw8_t<0x0010> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<pm0_io, 3> SRST;
+		bit_rw_t<io_, bitpos::B3> SRST;
 	};
 	static pm0_t PM0;
 
@@ -32,19 +32,19 @@ namespace device {
 		@brief  モジュールスタンバイ制御レジスタ MSTCR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x0012> mstcr_io;
-	struct mstcr_t : public mstcr_io {
-		using mstcr_io::operator =;
-		using mstcr_io::operator ();
-		using mstcr_io::operator |=;
-		using mstcr_io::operator &=;
+	struct mstcr_t : public rw8_t<0x0012> {
+		typedef rw8_t<0x0012> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<mstcr_io, 0> MSTTRJ;
-		bit_t<mstcr_io, 1> MSTTRB;
+		bit_rw_t<io_, bitpos::B0> MSTTRJ;
+		bit_rw_t<io_, bitpos::B1> MSTTRB;
 
-		bit_t<mstcr_io, 4> MSTAD;
-		bit_t<mstcr_io, 5> MSTTRC;
-		bit_t<mstcr_io, 6> MSTUART;
+		bit_rw_t<io_, bitpos::B4> MSTAD;
+		bit_rw_t<io_, bitpos::B5> MSTTRC;
+		bit_rw_t<io_, bitpos::B6> MSTUART;
 	};
 	static mstcr_t MSTCR;
 
@@ -54,18 +54,18 @@ namespace device {
 		@brief  プロテクトレジスタ PRCR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x0013> prcr_io;
-	struct prcr_t : public prcr_io {
-		using prcr_io::operator =;
-		using prcr_io::operator ();
-		using prcr_io::operator |=;
-		using prcr_io::operator &=;
+	struct prcr_t : public rw8_t<0x0013> {
+		typedef rw8_t<0x0013> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<prcr_io, 0> PRC0;
-		bit_t<prcr_io, 1> PRC1;
+		bit_rw_t<io_, bitpos::B0> PRC0;
+		bit_rw_t<io_, bitpos::B1> PRC1;
 
-		bit_t<prcr_io, 3> PRC3;
-		bit_t<prcr_io, 4> PRC4;
+		bit_rw_t<io_, bitpos::B3> PRC3;
+		bit_rw_t<io_, bitpos::B4> PRC4;
 	};
 	static prcr_t PRCR;
 
@@ -75,14 +75,14 @@ namespace device {
 		@brief  ハードウェアリセットプロテクトレジスタ HRPR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x0016> hrpr_io;
-	struct hrpr_t : public hrpr_io {
-		using hrpr_io::operator =;
-		using hrpr_io::operator ();
-		using hrpr_io::operator |=;
-		using hrpr_io::operator &=;
+	struct hrpr_t : public rw8_t<0x0016> {
+		typedef rw8_t<0x0016> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<hrpr_io, 0> RAMCRE;
+		bit_rw_t<io_, bitpos::B0> RAMCRE;
 	};
 	static hrpr_t HRPR;
 
@@ -92,21 +92,19 @@ namespace device {
 		@brief  リセット要因判別レジスタ RSTFR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x005f> rstfr_io;
-	typedef io8_ro<0x005f> rstfr_io_ro;
-	struct rstfr_t : public rstfr_io, rstfr_io_ro {
-		using rstfr_io::operator =;
-		using rstfr_io::operator ();
-		using rstfr_io::operator |=;
-		using rstfr_io::operator &=;
+	struct rstfr_t : public rw8_t<0x005f> {
+		typedef rw8_t<0x005f> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		using rstfr_io_ro::operator ();
+		bit_rw_t<io_, bitpos::B0> CWR;
 
-		bit_t<rstfr_io, 0> CWR;
-
-		bit_t<rstfr_io_ro, 1> HWR;
-		bit_t<rstfr_io_ro, 2> SWR;
-		bit_t<rstfr_io_ro, 3> WDR;
+		typedef ro8_t<0x005f> ro_;
+		bit_ro_t<ro_, bitpos::B1> HWR;
+		bit_ro_t<ro_, bitpos::B2> SWR;
+		bit_ro_t<ro_, bitpos::B3> WDR;
 	};
 	static rstfr_t RSTFR;
 
@@ -116,16 +114,16 @@ namespace device {
 		@brief  オプション機能選択レジスタ２ OFS2
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0xffdb> ofs2_io;
-	struct ofs2_t : public ofs2_io {
-		using ofs2_io::operator =;
-		using ofs2_io::operator ();
-		using ofs2_io::operator |=;
-		using ofs2_io::operator &=;
+	struct ofs2_t : public rw8_t<0xFFDB> {
+		typedef rw8_t<0xFFDB> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bits_t<ofs2_io, 0, 2> WDTUFS;
-		bits_t<ofs2_io, 2, 2> WDTRCS;
-		bit_t<ofs2_io, 5> MSTINI;
+		bits_rw_t<io_, bitpos::B0, 2> WDTUFS;
+		bits_rw_t<io_, bitpos::B2, 2> WDTRCS;
+		bit_rw_t <io_, bitpos::B5>    MSTINI;
 	};
 	static ofs2_t OFS2;
 
@@ -135,19 +133,19 @@ namespace device {
 		@brief  オプション機能選択レジスタ OFS
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0xffff> ofs_io;
-	struct ofs_t : public ofs_io {
-		using ofs_io::operator =;
-		using ofs_io::operator ();
-		using ofs_io::operator |=;
-		using ofs_io::operator &=;
+	struct ofs_t : public rw8_t<0xFFFF> {
+		typedef rw8_t<0xFFFF> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<ofs_io, 0> WDTON;
-		bit_t<ofs_io, 2> ROMCR;
-		bit_t<ofs_io, 3> ROMCP1;
-		bits_t<ofs_io, 4, 2> VDSEL;
-		bit_t<ofs_io, 6> LVDAS;
-		bit_t<ofs_io, 7> CSPRONI;
+		bit_rw_t <io_, bitpos::B0>    WDTON;
+		bit_rw_t <io_, bitpos::B2>    ROMCR;
+		bit_rw_t <io_, bitpos::B3>    ROMCP1;
+		bits_rw_t<io_, bitpos::B4, 2> VDSEL;
+		bit_rw_t <io_, bitpos::B6>    LVDAS;
+		bit_rw_t <io_, bitpos::B7>    CSPRONI;
 	};
 	static ofs_t OFS;
 
