@@ -18,7 +18,7 @@ namespace device {
 	struct port1_t {
 		static const uint16_t base_address_ = 0x00A9;
 	};
-	static port1_t PORT1;
+	typedef port1_t PORT1;
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -29,7 +29,7 @@ namespace device {
 	struct port3_t {
 		static const uint16_t base_address_ = 0x00AB;
 	};
-	static port3_t PORT3;
+	typedef port3_t PORT3;
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -40,7 +40,7 @@ namespace device {
 	struct port4_t {
 		static const uint16_t base_address_ = 0x00AC;
 	};
-	static port4_t PORT4;
+	typedef port4_t PORT4;
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -51,7 +51,7 @@ namespace device {
 	struct porta_t {
 		static const uint16_t base_address_ = 0x00AD;
 	};
-	static porta_t PORTA;
+	typedef porta_t PORTA;
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -537,6 +537,44 @@ namespace device {
 		*/
 		//-----------------------------------------------------------------//
 		static bit_rw_t<rw8_t<PORTx::base_address_ + 0x06>, bpos> P;
+
+	};
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  無効ポート定義
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	struct NULL_PORT {
+
+		struct null_t {
+			void operator = (bool f) { }
+			bool operator () () const { return 0; } 
+		};
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  ポート方向レジスタ
+		*/
+		//-----------------------------------------------------------------//
+		static null_t DIR;
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  プルアップ制御・レジスタ
+		*/
+		//-----------------------------------------------------------------//
+		static null_t PU;
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  ポート・レジスタ
+		*/
+		//-----------------------------------------------------------------//
+		static null_t P;
 
 	};
 }
