@@ -4,7 +4,7 @@
 	@brief	R8C/M110AN, R8C/M120AN グループ・シリアルインターフェース定義 @n
    			※複数チャネルを持つデバイスを考慮している為、シングルチャネル@n
 			デバイスでは、レジスター名を読み替える必要があります。@n
-			Copyright 2014,2015 Kunihito Hiramatsu
+			Copyright 2014,2016 Kunihito Hiramatsu
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -18,22 +18,24 @@ namespace device {
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
 			@brief	UART 送受信モードレジスタ UMR
+			@param[in]	ofs	オフセット
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		typedef io8<base> umr_io;
-		struct umr_t : public umr_io {
-			using umr_io::operator =;
-			using umr_io::operator ();
-			using umr_io::operator |=;
-			using umr_io::operator &=;
+		template <uint16_t ofs>
+		struct umr_t : public rw8_t<ofs> {
+			typedef rw8_t<ofs> io_;
+			using io_::operator =;
+			using io_::operator ();
+			using io_::operator |=;
+			using io_::operator &=;
 
-			bits_t<umr_io, 0, 3> SMD;
-			bit_t <umr_io, 3>    CKDIR;
-			bit_t <umr_io, 4>    STPS;
-			bit_t <umr_io, 5>    PRY;
-			bit_t <umr_io, 6>    PRYE;
+			bits_rw_t<io_, bitpos::B0, 3> SMD;
+			bit_rw_t <io_, bitpos::B3>    CKDIR;
+			bit_rw_t <io_, bitpos::B4>    STPS;
+			bit_rw_t <io_, bitpos::B5>    PRY;
+			bit_rw_t <io_, bitpos::B6>    PRYE;
 		};
-		static umr_t UMR;
+		static umr_t<base + 0x00> UMR;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -41,14 +43,7 @@ namespace device {
 			@brief	UART ビットレートレジスタ UBRG
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		typedef io8<base + 1> ubrg_io;
-		struct ubrg_t : public ubrg_io {
-			using ubrg_io::operator =;
-			using ubrg_io::operator ();
-			using ubrg_io::operator |=;
-			using ubrg_io::operator &=;
-		};
-		static ubrg_t UBRG;
+		static rw8_t<base + 0x01> UBRG;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -56,11 +51,7 @@ namespace device {
 			@brief	UART 送信バッファレジスタ UTBL
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		typedef io8<base + 2> utbl_io;
-		struct utbl_t : public utbl_io {
-			using utbl_io::operator =;
-		};
-		static utbl_t UTBL;
+		static wo8_t<base + 0x02> UTBL;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -68,97 +59,104 @@ namespace device {
 			@brief	UART 送信バッファレジスタ UTBH
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		typedef io8<base + 3> utbh_io;
-		struct utbh_t : public utbh_io {
-			using utbh_io::operator =;
-		};
-		static utbh_t UTBH;
+		static wo8_t<base + 0x03> UTBH;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
 			@brief	UART 送受信制御レジスタ０ UC0
+			@param[in]	ofs	オフセット
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		typedef io8<base + 4> uc0_io;
-		struct uc0_t : public uc0_io {
-			using uc0_io::operator =;
-			using uc0_io::operator ();
-			using uc0_io::operator |=;
-			using uc0_io::operator &=;
+		template <uint16_t ofs>
+		struct uc0_t : public rw8_t<ofs> {
+			typedef rw8_t<ofs> io_;
+			using io_::operator =;
+			using io_::operator ();
+			using io_::operator |=;
+			using io_::operator &=;
 
-			bits_t<uc0_io, 0, 2> CLK;
-			bit_t <uc0_io, 3>    TXEPT;
-			bit_t <uc0_io, 4>    DFE;
-			bit_t <uc0_io, 5>    NCH;
-			bit_t <uc0_io, 6>    CKPOL;
-			bit_t <uc0_io, 7>    UFORM;
+			bits_rw_t<io_, bitpos::B0, 2> CLK;
+			bit_rw_t <io_, bitpos::B3>    TXEPT;
+			bit_rw_t <io_, bitpos::B4>    DFE;
+			bit_rw_t <io_, bitpos::B5>    NCH;
+			bit_rw_t <io_, bitpos::B6>    CKPOL;
+			bit_rw_t <io_, bitpos::B7>    UFORM;
 		};
-		static uc0_t UC0;
+		static uc0_t<base + 0x04> UC0;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
 			@brief	UART 送受信制御レジスタ１ UC1
+			@param[in]	ofs	オフセット
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		typedef io8<base + 5> uc1_io;
-		struct uc1_t : public uc1_io {
-			using uc1_io::operator =;
-			using uc1_io::operator ();
-			using uc1_io::operator |=;
-			using uc1_io::operator &=;
+		template <uint16_t ofs>
+		struct uc1_t : public rw8_t<ofs> {
+			typedef rw8_t<ofs> io_;
+			using io_::operator =;
+			using io_::operator ();
+			using io_::operator |=;
+			using io_::operator &=;
 
-			bit_t <uc1_io, 0> TE;
-			bit_t <uc1_io, 1> TI;
-			bit_t <uc1_io, 2> RE;
-			bit_t <uc1_io, 3> RI;
-			bit_t <uc1_io, 4> UIRS;
-			bit_t <uc1_io, 5> URPM;
+			bit_rw_t<io_, bitpos::B0> TE;
+			bit_rw_t<io_, bitpos::B1> TI;
+			bit_rw_t<io_, bitpos::B2> RE;
+			bit_rw_t<io_, bitpos::B3> RI;
+			bit_rw_t<io_, bitpos::B4> UIRS;
+			bit_rw_t<io_, bitpos::B5> URPM;
 		};
-		static uc1_t UC1;
+		static uc1_t<base + 0x05> UC1;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
 			@brief	UART 受信バッファレジスタ URB
+			@param[in]	ofs	オフセット
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		typedef io16_ro<base + 6> urb_io;
-		struct urb_t : public urb_io {
-			using urb_io::operator ();
+		template <uint16_t ofs>
+		struct urb_t : public rw16_t<ofs> {
+			typedef rw16_t<ofs> io_;
+			using io_::operator =;
+			using io_::operator ();
+			using io_::operator |=;
+			using io_::operator &=;
 
-			bits_t<urb_io, 0, 8> URBL;
-			bits_t<urb_io, 8, 8> URBH;
+			bits_rw_t<io_, bitpos::B0, 8> URBL;
+			bits_rw_t<io_, bitpos::B8, 8> URBH;
 
-			bit_t <urb_io, 12> OER;
-			bit_t <urb_io, 13> FER;
-			bit_t <urb_io, 14> PER;
-			bit_t <urb_io, 15> SUM;
+			bit_rw_t <io_, bitpos::B12> OER;
+			bit_rw_t <io_, bitpos::B13> FER;
+			bit_rw_t <io_, bitpos::B14> PER;
+			bit_rw_t <io_, bitpos::B15> SUM;
 		};
-		static urb_t URB;
+		static urb_t<base + 0x06> URB;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
 			@brief	UART 割り込みフラグと許可レジスタ UIR
+			@param[in]	ofs	オフセット
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		typedef io8<base + 8> uir_io;
-		struct uir_t : public uir_io {
-			using uir_io::operator =;
-			using uir_io::operator ();
-			using uir_io::operator |=;
-			using uir_io::operator &=;
+		template <uint16_t ofs>
+		struct uir_t : public rw8_t<ofs> {
+			typedef rw8_t<ofs> io_;
+			using io_::operator =;
+			using io_::operator ();
+			using io_::operator |=;
+			using io_::operator &=;
 
-			bit_t <uir_io, 2> URIE;
-			bit_t <uir_io, 3> UTIE;
-			bit_t <uir_io, 6> URIF;
-			bit_t <uir_io, 7> UTIF;
+			bit_rw_t<io_, bitpos::B2> URIE;
+			bit_rw_t<io_, bitpos::B3> UTIE;
+			bit_rw_t<io_, bitpos::B6> URIF;
+			bit_rw_t<io_, bitpos::B7> UTIF;
 		};
-		static uir_t UIR;
+		static uir_t<base + 0x08> UIR;
 
 	};
 
-	typedef uart<0x80> UART0;
+	typedef uart<0x0080> UART0;
 }

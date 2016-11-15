@@ -6,7 +6,7 @@
 			・波形発生モード（任意もパルス幅を連続して出力）@n
 			・ワンショットモード（ワンショットパルスを出力）@n
 			・ウェエイトワンショットモード（遅延ワンショットパルス出力）@n
-			Copyright 2015 Kunihito Hiramatsu
+			Copyright 2015, 2016 Kunihito Hiramatsu
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -19,16 +19,16 @@ namespace device {
 		@brief  タイマＲＢ制御レジスタ TRBCR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00E0> trbcr_io;
-	struct trbcr_t : public trbcr_io {
-		using trbcr_io::operator =;
-		using trbcr_io::operator ();
-		using trbcr_io::operator |=;
-		using trbcr_io::operator &=;
+	struct trbcr_t : public rw8_t<0x00E0> {
+		typedef rw8_t<0x00E0> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<trbcr_io, 0> TSTART;
-		bit_t<trbcr_io, 1> TCSTF;
-		bit_t<trbcr_io, 2> TSTOP;
+		bit_rw_t<io_, bitpos::B0> TSTART;
+		bit_rw_t<io_, bitpos::B1> TCSTF;
+		bit_rw_t<io_, bitpos::B2> TSTOP;
 	};
 	static trbcr_t TRBCR;
 
@@ -38,16 +38,16 @@ namespace device {
 		@brief  タイマＲＢワンショット制御レジスタ TRBOCR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00E1> trbocr_io;
-	struct trbocr_t : public trbocr_io {
-		using trbocr_io::operator =;
-		using trbocr_io::operator ();
-		using trbocr_io::operator |=;
-		using trbocr_io::operator &=;
+	struct trbocr_t : public rw8_t<0x00E1> {
+		typedef rw8_t<0x00E1> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<trbocr_io, 0> TOSST;
-		bit_t<trbocr_io, 1> TOSSP;
-		bit_t<trbocr_io, 2> TOSSTF;
+		bit_rw_t<io_, bitpos::B0> TOSST;
+		bit_rw_t<io_, bitpos::B1> TOSSP;
+		bit_rw_t<io_, bitpos::B2> TOSSTF;
 	};
 	static trbocr_t TRBOCR;
 
@@ -57,17 +57,17 @@ namespace device {
 		@brief  タイマＲＢ I/O 制御レジスタ TRBIOC
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00E2> trbioc_io;
-	struct trbioc_t : public trbioc_io {
-		using trbioc_io::operator =;
-		using trbioc_io::operator ();
-		using trbioc_io::operator |=;
-		using trbioc_io::operator &=;
+	struct trbioc_t : public rw8_t<0x00E2> {
+		typedef rw8_t<0x00E2> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<trbioc_io, 0> TOPL;
-		bit_t<trbioc_io, 1> TOCNT;
-		bit_t<trbioc_io, 2> INOSTG;
-		bit_t<trbioc_io, 3> INOSEG;
+		bit_rw_t<io_, bitpos::B0> TOPL;
+		bit_rw_t<io_, bitpos::B1> TOCNT;
+		bit_rw_t<io_, bitpos::B2> INOSTG;
+		bit_rw_t<io_, bitpos::B3> INOSEG;
 	};
 	static trbioc_t TRBIOC;
 
@@ -77,18 +77,18 @@ namespace device {
 		@brief  タイマＲＢモードレジスタ TRBMR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00E3> trbmr_io;
-	struct trbmr_t : public trbmr_io {
-		using trbmr_io::operator =;
-		using trbmr_io::operator ();
-		using trbmr_io::operator |=;
-		using trbmr_io::operator &=;
+	struct trbmr_t : public rw8_t<0x00E3> {
+		typedef rw8_t<0x00E3> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bits_t<trbmr_io, 0, 2> TMOD;
-		bit_t<trbmr_io, 2> TCNT16;
-		bit_t<trbmr_io, 3> TWRC;
-		bits_t<trbmr_io, 4, 3> TCK;
-		bit_t<trbmr_io, 7> TCKCUT;
+		bits_rw_t<io_, bitpos::B0, 2> TMOD;
+		bit_rw_t <io_, bitpos::B2>    TCNT16;
+		bit_rw_t <io_, bitpos::B3>    TWRC;
+		bits_rw_t<io_, bitpos::B4, 3> TCK;
+		bit_rw_t <io_, bitpos::B7>    TCKCUT;
 	};
 	static trbmr_t TRBMR;
 
@@ -98,7 +98,7 @@ namespace device {
 		@brief  タイマＲＢプリスケーラレジスタ TRBPRE
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	static io8<0x00E4> TRBPRE;
+	static rw8_t<0x00E4> TRBPRE;
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -106,7 +106,7 @@ namespace device {
 		@brief  タイマＲＢプライマリレジスタ TRBPR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	static io8<0x00E5> TRBPR;
+	static rw8_t<0x00E5> TRBPR;
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -114,7 +114,7 @@ namespace device {
 		@brief  タイマＲＢセカンダリレジスタ TRBSC
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	static io8<0x00E6> TRBSC;
+	static rw8_t<0x00E6> TRBSC;
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -122,15 +122,15 @@ namespace device {
 		@brief  タイマＲＢ割り込み制御レジスタ TRBIR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	typedef io8<0x00E7> trbir_io;
-	struct trbir_t : public trbir_io {
-		using trbir_io::operator =;
-		using trbir_io::operator ();
-		using trbir_io::operator |=;
-		using trbir_io::operator &=;
+	struct trbir_t : public rw8_t<0x00E7> {
+		typedef rw8_t<0x00E7> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<trbir_io, 6> TRBIF;
-		bit_t<trbir_io, 7> TRBIE;
+		bit_rw_t<io_, bitpos::B6> TRBIF;
+		bit_rw_t<io_, bitpos::B7> TRBIE;
 	};
 	static trbir_t TRBIR;
 
