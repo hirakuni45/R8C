@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 			utils::format("Pressure: %d.%02d hPa\n") % (p / 100) % (p % 100);
 
 //			auto a = bmpx_.get_altitude();
-//			utils::format("Altitude: %7.2f m\n") % 1;
+//			utils::format("Altitude: %7.2f m\n") % a;
 		}
 
 		// コマンド入力と、コマンド解析
