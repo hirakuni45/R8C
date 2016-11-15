@@ -67,20 +67,11 @@ namespace r8c {
 
 
 		bool read_(void* dst, uint32_t length) {
-			uint32_t total = 0;
-			int zerocnt = 0;
-			do {
-				timeval tv;
-				tv.tv_sec  = 1;
-				tv.tv_usec = 0;
-				uint32_t len = rs232c_.recv(static_cast<uint8_t*>(dst) + total, length - total, tv);
-				if(len == 0) {
-					++zerocnt;
-					if(zerocnt >= 10) return false;
-				}
-				total += len;
-			} while(total < length) ;
-			return true;
+			timeval tv;
+			tv.tv_sec  = 0;
+			tv.tv_usec = 500000;
+			uint32_t len = rs232c_.recv(dst, length, tv);
+			return len == length;
 		}
 
 	public:
@@ -149,8 +140,10 @@ namespace r8c {
 				return false;
 			}
 
-
-			int ch = rs232c_.recv(tv_);
+			timeval tv;
+			tv.tv_sec  = 1;
+			tv.tv_usec = 0;
+			int ch = rs232c_.recv(tv);
 			if(ch != 0xB0) {
 				return false;
 			}

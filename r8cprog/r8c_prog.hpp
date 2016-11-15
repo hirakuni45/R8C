@@ -155,7 +155,7 @@ public:
 	}
 
 
-	bool erase(uint32_t top) {
+	bool erase_page(uint32_t top) {
 		uint32_t area = 1024;
 		if(top >= 0x8000) area = 4096;
 
@@ -189,7 +189,7 @@ public:
    	}
 
 
-	bool verify(uint32_t top, const uint8_t* data) {
+	bool verify_page(uint32_t top, const uint8_t* data) {
 		// ページ読み込み
 		uint8_t tmp[256];
    		if(!proto_.read_page(top, tmp)) {

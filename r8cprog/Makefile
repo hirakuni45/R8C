@@ -124,7 +124,8 @@ $(BUILD)/%.d : %.cpp
 	[ -s $@ ] || rm -f $@
 
 run:
-	./$(TARGET) -V -P /dev/tty.usbserial-DA00X2QP --progress -e -w -v flash_test.mot
+	./$(TARGET) --verbose --progress -e -w -v uart_sample.mot
+#	./$(TARGET) -V -P /dev/tty.usbserial-DA00X2QP --progress -e -w -v uart_sample.mot
 #	./$(TARGET) -V -P /dev/tty.usbserial-A600e0xq -e -w -v flash_test.mot
 
 clean:
