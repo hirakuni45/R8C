@@ -2,7 +2,7 @@
 //=====================================================================//
 /*!	@file
 	@brief	R8C/M110AN, R8C/M120AN グループ・タイマーＲＪレジスター定義 @n
-			Copyright 2015 Kunihito Hiramatsu
+			Copyright 2015, 2016 Kunihito Hiramatsu
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -15,107 +15,102 @@ namespace device {
 		@brief  タイマＲＪカウンタレジスタ TRJ
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	static io16<0x00D8> TRJ;
+	static rw16_t<0x00D8> TRJ;
 
 
-	/// @brief レジスタ定義
-	typedef io8<0x00DA> trjcr_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  タイマＲＪ制御レジスタ TRJCR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	struct trjcr_t : public trjcr_io {
-		using trjcr_io::operator =;
-		using trjcr_io::operator ();
-		using trjcr_io::operator |=;
-		using trjcr_io::operator &=;
+	struct trjcr_t : public rw8_t<0x00DA> {
+		typedef rw8_t<0x00DA> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<trjcr_io, 0> TSTART;
-		bit_t<trjcr_io, 1> TCSTF;
-		bit_t<trjcr_io, 2> TSTOP;
-		bit_t<trjcr_io, 4> TEDGF;
-		bit_t<trjcr_io, 5> TUNDF;
+		bit_rw_t<io_, bitpos::B0> TSTART;
+		bit_rw_t<io_, bitpos::B1> TCSTF;
+		bit_rw_t<io_, bitpos::B2> TSTOP;
+		bit_rw_t<io_, bitpos::B4> TEDGF;
+		bit_rw_t<io_, bitpos::B5> TUNDF;
 	};
 	static trjcr_t TRJCR;
 
 
-	/// @brief レジスタ定義
-	typedef io8<0x00DB> trjioc_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  タイマＲＪ I/O 制御レジスタ TRJIOC
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	struct trjioc_t : public trjioc_io {
-		using trjioc_io::operator =;
-		using trjioc_io::operator ();
-		using trjioc_io::operator |=;
-		using trjioc_io::operator &=;
+	struct trjioc_t : public rw8_t<0x00DB> {
+		typedef rw8_t<0x00DB> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<trjioc_io, 0> TEDGSEL;
-		bit_t<trjioc_io, 1> TOPCR;
-		bits_t<trjioc_io, 4, 2> TIPF;
-		bits_t<trjioc_io, 6, 2> TIOGT;
+		bit_rw_t <io_, bitpos::B0>    TEDGSEL;
+		bit_rw_t <io_, bitpos::B1>    TOPCR;
+		bits_rw_t<io_, bitpos::B4, 2> TIPF;
+		bits_rw_t<io_, bitpos::B6, 2> TIOGT;
 	};
 	static trjioc_t TRJIOC;
 
 
-	/// @brief レジスタ定義
-	typedef io8<0x00DC> trjmr_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  タイマＲＪモードレジスタ TRJMR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	struct trjmr_t : public trjmr_io {
-		using trjmr_io::operator =;
-		using trjmr_io::operator ();
-		using trjmr_io::operator |=;
-		using trjmr_io::operator &=;
+	struct trjmr_t : public rw8_t<0x00DC> {
+		typedef rw8_t<0x00DC> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bits_t<trjmr_io, 0, 3> TMOD;
-		bit_t<trjmr_io, 3> TEDGPL;
-		bits_t<trjmr_io, 4, 3> TCK;
-		bit_t<trjmr_io, 7> TCKCUT;
+		bits_rw_t<io_, bitpos::B0, 3> TMOD;
+		bit_rw_t <io_, bitpos::B3>    TEDGPL;
+		bits_rw_t<io_, bitpos::B4, 3> TCK;
+		bit_rw_t <io_, bitpos::B7>    TCKCUT;
 	};
 	static trjmr_t TRJMR;
 
 
-	/// @brief レジスタ定義
-	typedef io8<0x00DD> trjisr_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  タイマＲＪイベント選択レジスタ TRJISR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	struct trjisr_t : public trjisr_io {
-		using trjisr_io::operator =;
-		using trjisr_io::operator ();
-		using trjisr_io::operator |=;
-		using trjisr_io::operator &=;
+	struct trjisr_t : public rw8_t<0x00DD> {
+		typedef rw8_t<0x00DD> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bits_t<trjisr_io, 0, 2> RCCPSEL;
-		bit_t<trjisr_io, 2> RCCPSEL2;
+		bits_rw_t<io_, bitpos::B0, 2> RCCPSEL;
+		bit_rw_t <io_, bitpos::B2>    RCCPSEL2;
 	};
 	static trjisr_t TRJISR;
 
 
-	/// @brief レジスタ定義
-	typedef io8<0x00DE> trjir_io;
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  タイマＲＪ割り込み制御レジスタ TRJIR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	struct trjir_t : public trjir_io {
-		using trjir_io::operator =;
-		using trjir_io::operator ();
-		using trjir_io::operator |=;
-		using trjir_io::operator &=;
+	struct trjir_t : public rw8_t<0x00DE> {
+		typedef rw8_t<0x00DE> io_;
+		using io_::operator =;
+		using io_::operator ();
+		using io_::operator |=;
+		using io_::operator &=;
 
-		bit_t<trjir_io, 6> TRJIF;
-		bit_t<trjir_io, 7> TRJIE;
+		bit_rw_t<io_, bitpos::B6> TRJIF;
+		bit_rw_t<io_, bitpos::B7> TRJIE;
 	};
 	static trjir_t TRJIR;
 
