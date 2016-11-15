@@ -3,7 +3,7 @@
 #	R8C Makefile 				        				#
 #														#
 #=======================================================#
-TARGET		=	led_sample
+TARGET		=	first_sample
 
 BUILD		=	release
 
@@ -25,7 +25,6 @@ USER_DEFS	=	F_CLK=20000000
 
 MCU_TARGET	=	-mcpu=r8c
 
-#INC_SYS		=	/usr/boost_1_53_0
 INC_SYS		=
 
 INC_APP		=	. ../ ../M120AN
@@ -57,6 +56,7 @@ AR			=	m32c-elf-ar
 LD			=	m32c-elf-ld
 OBJCOPY		=	m32c-elf-objcopy
 OBJDUMP		=	m32c-elf-objdump
+SIZE		=	m32c-elf-size
 
 # AFLAGS        = -Wa,-adhlns=$(<:.s=.lst),-gstabs
 # AFLAGS        =	-Wa,-adhlns=$(<:.s=.lst)
@@ -91,6 +91,7 @@ all: $(BUILD) $(TARGET).elf text
 
 $(TARGET).elf: $(OBJECTS) $(LDSCRIPT) Makefile
 	$(CC) $(LDFLAGS) $(LIBINCS) -o $@ $(OBJECTS) $(LIBS)
+	$(SIZE) $@
 
 $(BUILD)/%.o: %.s
 	mkdir -p $(dir $@); \
@@ -155,10 +156,10 @@ bin_zip:
 	zip $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H)_bin.zip *.exe *.dll res/*.*
 
 run:
-	r8cprog -d R5F2M120 -P COM5 -s 57600 -e -w -v $(TARGET).mot
+	r8cprog -d R5F2M120 --progress -e -w -v $(TARGET).mot
 
 verify:
-	r8cprog -d R5F2M120 -P COM5 -s 57600 -v $(TARGET).mot
+	r8cprog -d R5F2M120 --progress -v $(TARGET).mot
 
 -include $(DEPENDS)
 
