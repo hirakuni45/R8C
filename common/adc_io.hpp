@@ -57,7 +57,8 @@ namespace device {
 			@param[in]	ir_lvl	割り込みレベル（０の場合割り込みを使用しない）
 		*/
 		//-----------------------------------------------------------------//
-		void setup(cnv_type ct, ch_grp cg, bool cycle, uint8_t ir_lvl = 0) {
+		void setup(cnv_type ct, ch_grp cg, bool cycle, uint8_t ir_lvl = 0)
+		{
 			ADCON0.ADST = 0;
 
 			MSTCR.MSTAD = 0;
@@ -99,6 +100,16 @@ namespace device {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief  変換終了を同期
+		*/
+		//-----------------------------------------------------------------//
+		void sync() const {
+			while(!get_state()) sleep_();
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief  変換結果の取得
 			@param[in]	chanel	チャネル（０、１）
 			@return 変換結果
@@ -112,5 +123,4 @@ namespace device {
 			}
 		}
 	};
-
 }
