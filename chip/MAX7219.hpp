@@ -194,6 +194,62 @@ namespace chip {
 			case 'b':
 				d = 0b0011111;
 				break;
+			case 'C':
+				d = 0b1001110;
+				break;
+			case 'c':
+				d = 0b0001101;
+				break;
+			case 'D':
+			case 'd':
+				d = 0b0111101;
+				break;
+			case 'E':
+			case 'e':
+				d = 0b1001111;
+				break;
+			case 'F':
+			case 'f':
+				d = 0b1000111;
+				break;
+			case 'G':
+			case 'g':
+				d = 0b1011110;
+				break;
+			case 'H':
+			case 'h':
+				d = 0b0110110;
+				break;
+			case 'J':
+			case 'j':
+				d = 0b0111100;
+				break;
+			case 'L':
+			case 'l':
+				d = 0b0001110;
+				break;
+			case 'N':
+			case 'n':
+				d = 0b0010101;
+				break;
+			case 'O':
+			case 'o':
+				d = 0b0011101;
+				break;
+			case 'P':
+			case 'p':
+				d = 0b1100111;
+				break;
+			case 'S':
+			case 's':
+				d = 0b1011010;
+				break;
+			case 'U':
+				d = 0b0111110;
+				break;
+			case 'u':
+				d = 0b0011100;
+				break;
 			default:
 				break;
 			}
