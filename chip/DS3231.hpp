@@ -2,6 +2,7 @@
 //=====================================================================//
 /*!	@file
 	@brief	DS3231 RTC ドライバー
+			Copyright 2016 Kunihito Hiramatsu
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -24,6 +25,8 @@ namespace chip {
 		static const uint8_t DS3231_ADR_ = 0x68;
 
 		I2C_IO& i2c_io_;
+
+		bool	start_;
 
 		struct reg_t {
 			uint8_t	reg[7];
@@ -54,7 +57,7 @@ namespace chip {
 			@param[in]	i2c	iica_io クラスを参照で渡す
 		 */
 		//-----------------------------------------------------------------//
-		DS3231(I2C_IO& i2c) : i2c_io_(i2c) { }
+		DS3231(I2C_IO& i2c) : i2c_io_(i2c), start_(false) { }
 
 
 		//-----------------------------------------------------------------//
@@ -67,7 +70,8 @@ namespace chip {
 			uint8_t reg[2];
 			reg[0] = 0x0e;	/// internal register address
 			reg[1] = 0x00;
-			return i2c_io_.send(DS3231_ADR_, reg, 2);
+			start_ = i2c_io_.send(DS3231_ADR_, reg, 2);
+			return start_;
 		}
 
 
@@ -79,6 +83,8 @@ namespace chip {
 		 */
 		//-----------------------------------------------------------------//
 		bool set_time(time_t t) const {
+			if(!start_) return false;
+
 			const tm* tp = gmtime(&t);
 			uint8_t reg[7];
 			reg[0] = ((tp->tm_sec  / 10) << 4) | (tp->tm_sec  % 10);  // 0 to 59
@@ -102,21 +108,22 @@ namespace chip {
 		 */
 		//-----------------------------------------------------------------//
 		bool get_time(time_t& tp) const {
-			// 二度読んで、同じだったら正しい時間とする
+			if(!start_) return false;
+
 			reg_t t;
-			{
-				reg_t tmp;
-				uint8_t n = 5; // ５回ループして正常に読めなかったら、エラーとする
-				do {
-					tmp = t;
-					if(!get_time_(t)) return false;
-					--n;
-					if(n == 0) {
-						return false;
-					}
-				} while(t != tmp) ;
-			}
+			reg_t tmp;
 			tm ts;
+			// 二度読んで、同じだったら正しい時間とする
+			uint8_t n = 5; // ５回ループして正常に読めなかったら、エラーとする
+			do {
+				tmp = t;
+				if(!get_time_(t)) return false;
+				--n;
+				if(n == 0) {
+					return false;
+				}
+			} while(t != tmp) ;
+
 			ts.tm_sec  = ((t.reg[0] >> 4) * 10) + (t.reg[0] & 0xf);
 			ts.tm_min  = ((t.reg[1] >> 4) * 10) + (t.reg[1] & 0xf);
 			ts.tm_hour = ((t.reg[2] >> 4) * 10) + (t.reg[2] & 0xf);
@@ -124,7 +131,7 @@ namespace chip {
 			ts.tm_mon  = ((((t.reg[5] & 0x10) >> 4) * 10) + (t.reg[5] & 0xf)) - 1;
 			ts.tm_year = ((t.reg[6] >> 4) * 10) + (t.reg[6] & 0xf);
 			ts.tm_year += 100;
-			tp = mktime(&ts);
+			tp = mktime_gmt(&ts);
 			return true;
 		}
 	};
