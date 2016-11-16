@@ -16,9 +16,14 @@ namespace device {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  A/D 制御クラス
+		@param[in]	TASK	A/D 変換終了時起動タスク
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	template <class TASK>
 	class adc_io {
+
+		static TASK	task_;
+		static volatile uint8_t intr_count_;
 
 	public:
 		enum class cnv_type : uint8_t {
@@ -33,7 +38,18 @@ namespace device {
 			AN4_AN7		//< AN4, AN7
 		};
 
+		static INTERRUPT_FUNC void itask() {
+			++intr_count_;
+			task_();
+			// IR 関係フラグは必ず mov 命令で・・
+			volatile uint8_t r = ADICSR();
+			ADICSR = 0x00;
+		}
+
 	private:
+		uint8_t	level_;
+		uint8_t	count_;
+
 		// ※同期が必要なら、実装する
 		void sleep_() const {
 			asm("nop");
@@ -45,7 +61,7 @@ namespace device {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		adc_io() { }
+		adc_io() : level_(0), count_(0) { }
 
 
 		//-----------------------------------------------------------------//
@@ -54,14 +70,16 @@ namespace device {
 			@param[in]	ct		変換タイプ
 			@param[in]	grp		グループ
 			@param[in]	cycle	繰り返し変換の場合「true」
-			@param[in]	ir_lvl	割り込みレベル（０の場合割り込みを使用しない）
+			@param[in]	level	割り込みレベル（０の場合割り込みを使用しない）
 		*/
 		//-----------------------------------------------------------------//
-		void setup(cnv_type ct, ch_grp cg, bool cycle, uint8_t ir_lvl = 0)
+		void start(cnv_type ct, ch_grp cg, bool cycle, uint8_t level = 0)
 		{
-			ADCON0.ADST = 0;
+			level_ = level;
 
 			MSTCR.MSTAD = 0;
+
+			ADCON0.ADST = 0;
 
 			uint8_t md = 0;
 			if(ct == cnv_type::CH0_CH1) md = 2;
@@ -71,6 +89,8 @@ namespace device {
 			uint8_t chn = 0;
 			if(ct == cnv_type::CH1) chn = 1; 
 			ADINSEL = ADINSEL.CH0.b(chn) | ADINSEL.ADGSEL.b(static_cast<uint8_t>(cg));
+
+			ILVL7.B01 = level_;
 		}
 
 
@@ -80,7 +100,11 @@ namespace device {
 			@param[in]	f	変換停止の場合「false」
 		*/
 		//-----------------------------------------------------------------//
-		void start(bool f = 1) {
+		void scan(bool f = 1) {
+			count_ = intr_count_;
+			if(f && level_ > 0) {
+				ADICSR.ADIE = 1;
+			}
 			ADCON0.ADST = f;
 		}
 
@@ -92,9 +116,13 @@ namespace device {
 		*/
 		//-----------------------------------------------------------------//
 		bool get_state() const {
-			bool f = ADICSR.ADF();
-			if(f) ADICSR.ADF = 0;
-			return f;
+			if(level_ == 0) {
+				bool f = ADICSR.ADF();
+				if(f) ADICSR.ADF = 0;
+				return f;
+			} else {
+				return count_ != intr_count_;
+			}
 		}
 
 
@@ -123,4 +151,11 @@ namespace device {
 			}
 		}
 	};
+
+	// スタティック実態定義
+	template<class TASK>
+	TASK adc_io<TASK>::task_;
+
+	template<class TASK>
+	volatile uint8_t adc_io<TASK>::intr_count_ = 0;
 }
