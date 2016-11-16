@@ -156,10 +156,10 @@ bin_zip:
 	zip $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H)_bin.zip *.exe *.dll res/*.*
 
 run:
-	r8c_prog --verbose -d R5F2M120 --progress -e -w -v $(TARGET).mot
+	r8c_prog -d R5F2M120 --progress -e -w -v $(TARGET).mot
 
 verify:
-	r8c_prog -d R5F2M120 -v $(TARGET).mot
+	r8c_prog -d R5F2M120 --progress -v $(TARGET).mot
 
 -include $(DEPENDS)
 

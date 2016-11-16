@@ -120,8 +120,6 @@ int main(int argc, char *argv[])
 	}
 
 	uart_.puts("Start R8C UART sample\n");
-	float a = 1000.0005f;
-	utils::format("%4.4f\n") % a;
 
 	uint8_t cnt = 0;
 	while(1) {
