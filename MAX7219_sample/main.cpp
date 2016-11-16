@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 
 		if(sci_length()) {
 			if(idx > 7) {
-				max7219_.shift_begin();
+				max7219_.shift_top();
 				idx = 7;
 			}
 			char ch = sci_getch();
