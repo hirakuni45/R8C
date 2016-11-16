@@ -33,30 +33,21 @@ namespace {
 
 	utils::command<64> command_;
 
-	// LCD SCL: P4_2(1)
 	// LCD SDA: P4_5(12)
-	// LCD A0:  P3_3(11)
+	typedef device::PORT<device::PORT4, device::bitpos::B5> SPI_SDA;
+	// LCD SCL: P4_2(1)
+	typedef device::PORT<device::PORT4, device::bitpos::B2> SPI_SCL;
+
+	typedef device::spi_io<SPI_SDA, SPI_SCL, device::NULL_PORT> SPI;
+	SPI		spi_;
+
 	// LCD /CS: P3_7(2)
-	struct spi_base {
-		void init() const {
-			device::PD4.B2 = 1;
-			device::PD4.B5 = 1;
-		}
-		void scl_out(bool b) const { device::P4.B2 = b; }
-		void sda_out(bool b) const { device::P4.B5 = b; }
-	};
+	typedef device::PORT<device::PORT3, device::bitpos::B7> LCD_SEL;
+	// LCD A0:  P3_3(11)
+	typedef device::PORT<device::PORT3, device::bitpos::B3> LCD_CMD;
 
-	struct spi_ctrl {
-		void init() const {
-			device::PD3.B3 = 1;
-			device::PD3.B7 = 1;
-		}
-		void a0_out(bool b) const { device::P3.B3 = b; }
-		void lcd_sel(bool b) const { device::P3.B7 = b; }
-	};
-
-	typedef device::lcd_io<spi_base, spi_ctrl> lcd;
-	lcd lcd_;
+	typedef device::lcd_io<SPI, LCD_SEL, LCD_CMD> LCD;
+	LCD 	lcd_(spi_);
 
 	typedef graphics::monograph mono_graph;
 	mono_graph bitmap_;
