@@ -19,7 +19,6 @@
 #include "common/port_map.hpp"
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
-#include "common/command.hpp"
 #include "common/format.hpp"
 #include "common/trb_io.hpp"
 #include "common/spi_io.hpp"
@@ -32,8 +31,6 @@ namespace {
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
-
-	utils::command<64> command_;
 
 	typedef device::PORT<device::PORT1, device::bitpos::B0> SPI_OUT;
 	typedef device::PORT<device::PORT1, device::bitpos::B1> SELECT;
@@ -148,28 +145,29 @@ int main(int argc, char *argv[])
 	}
 
 	sci_puts("Start R8C MAX7219 sample\n");
-	command_.set_prompt("# ");
-
-	max7219_.set_cha(0, '0');
 
 	// LED シグナル用ポートを出力
 	PD1.B0 = 1;
 
+	for(uint8_t i = 0; i < 8; ++i) {
+		max7219_.set_cha(i, '-');
+	}
+
+	uint8_t idx = 0;
 	while(1) {
 		timer_b_.sync();
-
 		max7219_.service();
-
 		max7219_.set_intensity(0);
 
-		max7219_.set_cha(0, '0');
-		max7219_.set_cha(1, '1');
-		max7219_.set_cha(2, '2');
-		max7219_.set_cha(3, '3');
-		max7219_.set_cha(4, '4');
-		max7219_.set_cha(5, '5');
-		max7219_.set_cha(6, '6');
-		max7219_.set_cha(7, '7');
-
+		if(sci_length()) {
+			if(idx > 7) {
+				max7219_.shift_begin();
+				idx = 7;
+			}
+			char ch = sci_getch();
+			sci_putch(ch);
+			max7219_.set_cha(idx ^ 7, ch);
+			++idx;
+		}
 	}
 }
