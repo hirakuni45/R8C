@@ -7,6 +7,7 @@
 #include "system.hpp"
 #include "clock.hpp"
 #include "port.hpp"
+#include "common/delay.hpp"
 #include "common/intr_utils.hpp"
 #include "common/port_map.hpp"
 #include "common/format.hpp"
@@ -16,14 +17,6 @@
 #include "common/trb_io.hpp"
 
 namespace {
-
-	void wait_(uint16_t n)
-	{
-		while(n > 0) {
-			asm("nop");
-			--n;
-		}
-	}
 
 	typedef device::trb_io<utils::null_task> timer_b;
 	timer_b timer_b_;
@@ -98,7 +91,7 @@ extern "C" {
 	};
 }
 
-__attribute__ ((section (".exttext")))
+// __attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])
 {
 	using namespace device;
@@ -109,7 +102,7 @@ int main(int argc, char *argv[])
 // 高速オンチップオシレーターへ切り替え(20MHz)
 // ※ F_CLK を設定する事（Makefile内）
 	OCOCR.HOCOE = 1;
-	wait_(1000);
+	utils::delay::micro_second(1);  // >=30us(125KHz)
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
@@ -124,13 +117,13 @@ int main(int argc, char *argv[])
 	{
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
 		utils::PORT_MAP(utils::port_map::P15::RXD0);
-		uint8_t ir_level = 1;
-		uart_.start(57600, ir_level);
+		uint8_t intr_level = 1;
+		uart_.start(57600, intr_level);
 	}
 
 	uart_.puts("Start R8C ADC sample\n");
 
-	// ADC の設定（CH1のサイクルモード）
+	// ADC の設定
 	{
 		utils::PORT_MAP(utils::port_map::P10::AN0);
 		utils::PORT_MAP(utils::port_map::P11::AN1);
@@ -140,31 +133,32 @@ int main(int argc, char *argv[])
 
 	using namespace utils;
 
-	// L チカ・メイン
-	PD1.B0 = 1;
 	uint8_t cnt = 0;
 	int nnn = 0;
 	while(1) {
 		timer_b_.sync();
+
 		++cnt;
 		if(cnt >= 30) {
 			cnt = 0;
-			if(adc_.get_state()) {
+			adc_.start();
+			adc_.sync();
+			{
 				auto v = adc_.get_value(0);
 				utils::format("(%5d) CH0: %1.2:8y[V], %d\n")
 					% nnn
 					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
 					% v;
-				v = adc_.get_value(1);
+			}
+
+			{
+				auto v = adc_.get_value(1);
 				utils::format("        CH1: %1.2:8y[V], %d\n")
 					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
 					% v;
 			}
 			++nnn;
 		}
-
-		if(cnt < 10) P1.B0 = 1;
-		else P1.B0 = 0;
 
 		if(uart_.length()) {  // UART のレシーブデータがあるか？
 			auto ch = uart_.getch();
