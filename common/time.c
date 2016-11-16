@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "time.h"
-// #include "xitoa.h"
 
 // 各月に対する日数（通常年）
 static const char mday_tbl_[] = {
@@ -17,6 +16,14 @@ static const char mday_tbl_[] = {
 /// 大阪、札幌、東京のタイムゾーン +9 hour
 static char timezone_offset_ = 9;
 static struct tm time_st_;
+static const char* wday_[] = {
+	"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" 
+};
+static const char* mon_[] = {
+	"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+static const char* null_ = { "" };
 
 //-----------------------------------------------------------------//
 /*!
@@ -112,9 +119,8 @@ time_t get_timezone_offset(void)
 
 //-----------------------------------------------------------------//
 /*!
-	@brief	世界標準時間（グリニッジ）から、tm 構造体のメンバー@n
-			を生成する。
-	@param[in]	tp
+	@brief	グリニッジ標準時への変換
+	@param[in]	timer 
 	@return		グローバル tm 構造体のポインター
 */
 //-----------------------------------------------------------------//
@@ -124,9 +130,6 @@ struct tm *gmtime(const time_t *tp)
 	short	i, j, k;
 
 	t = *tp;
-
-// GMT から JST へ(+9時間）
-	t += (time_t)(timezone_offset_) * 3600;
 
 	time_st_.tm_sec  = t % (time_t)60;
 	t /= (time_t)60;
@@ -162,6 +165,30 @@ struct tm *gmtime(const time_t *tp)
 
 //-----------------------------------------------------------------//
 /*!
+	@brief	現地時間に変換
+	@param[in]	timer	現地時間
+	@return		tm 構造体のポインター
+*/
+//-----------------------------------------------------------------//
+struct tm *localtime(const time_t *timer)
+{
+	time_t t;
+
+	if(timer == NULL) return NULL;
+
+	t = *timer;
+
+// GMT から ローカル時間へ
+	t += (time_t)(timezone_offset_) * 3600;
+
+	gmtime(&t);
+
+	return &time_st_;
+}
+
+
+//-----------------------------------------------------------------//
+/*!
 	@brief	tm 構造体から、世界標準(グリニッジ)時間を得る@n
 			※メンバー変数 tm_yday は再計算される。@n
 			※メンバー変数 tm_wday は再計算される。@n
@@ -171,7 +198,7 @@ struct tm *gmtime(const time_t *tp)
 	@return		GMT:1970年1月1日0時0分0秒(4:THU)からの経過時間（秒）
 */
 //-----------------------------------------------------------------//
-time_t mktime(const struct tm *tmp)
+time_t mktime_gmt(const struct tm *tmp)
 {
 	time_t	t;
 	long	td;
@@ -183,6 +210,25 @@ time_t mktime(const struct tm *tmp)
 	t += (time_t)tmp->tm_hour * 3600L;
 	td = get_total_day(tmp->tm_year + 1900, tmp->tm_mon, tmp->tm_mday);
 	t += (time_t)td * 86400L;
+
+	return t;
+}
+
+
+//-----------------------------------------------------------------//
+/*!
+	@brief	tm 構造体（ローカル時間）から、世界標準(グリニッジ)時間を得る@n
+			※メンバー変数 tm_yday は再計算される。@n
+			※メンバー変数 tm_wday は再計算される。@n
+			※ tm_isdgt は無視される。
+	@param[in]	tmp	tm 構造体のポインター@n
+				※NULLの場合は、システムの構造体が使われる
+	@return		GMT:1970年1月1日0時0分0秒(4:THU)からの経過時間（秒）
+*/
+//-----------------------------------------------------------------//
+time_t mktime(const struct tm *tmp)
+{
+	time_t	t = mktime_gmt(tmp);
 
 // GMT からの偏差(-9時間）
 	t -= (time_t)timezone_offset_ * 3600;
@@ -214,6 +260,34 @@ void copy_tm(const struct tm *src, struct tm *dst)
 {
 	if(src == NULL || dst == NULL) return;
 	memcpy(dst, src, sizeof(struct tm));
+}
+
+
+//-----------------------------------------------------------------//
+/*!
+	@brief	「曜日」文字列を取得
+	@param[in]	idx	インデックス
+	@return 文字列（３文字）
+*/
+//-----------------------------------------------------------------//
+const char* get_wday(uint8_t idx)
+{
+	if(idx >= 7) return null_;
+	return wday_[idx];
+}
+
+
+//-----------------------------------------------------------------//
+/*!
+	@brief	「月」文字列を取得
+	@param[in]	idx	インデックス
+	@return 文字列（３文字）
+*/
+//-----------------------------------------------------------------//
+const char* get_mon(uint8_t idx)
+{
+	if(idx >= 12) return null_;
+	return mon_[idx];
 }
 
 
