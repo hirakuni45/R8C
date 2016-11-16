@@ -18,15 +18,16 @@ namespace chip {
 		@brief  MAX7219 テンプレートクラス
 		@param[in]	SPI		SPI クラス
 		@param[in]	SELECT	デバイス選択
+		@param[in]	CHAIN	デージー・チェイン数
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class SPI, class SELECT>
+	template <class SPI, class SELECT, uint32_t CHAIN = 1>
 	class MAX7219 {
 
-		SPI&	spi_;
+		SPI&		spi_;
 
-		uint8_t	limit_;
-		uint8_t	data_[8];
+		uint16_t	limit_;
+		uint8_t		data_[CHAIN * 8];
 
 		enum class command : uint8_t {
 			NO_OP        = 0x00,
@@ -45,7 +46,7 @@ namespace chip {
 			DISPLAY_TEST = 0x0F,
 		};
 
-		// MAX7212 D15 first
+		// MAX7212 MSB first, 2 bytes
 		void out_(command cmd, uint8_t dat) {
 			SELECT::P = 0;
 			uint8_t tmp[2];
@@ -72,8 +73,8 @@ namespace chip {
 			@return エラーなら「false」を返す
 		 */
 		//-----------------------------------------------------------------//
-		bool start(uint8_t limit = 8) {
-			if(limit_ > 8 || limit == 0) {
+		bool start(uint8_t limit = (CHAIN * 8)) {
+			if(limit_ > (8 * CHAIN) || limit == 0) {
 				return false;
 			}
 			limit_ = limit;
@@ -169,6 +170,15 @@ namespace chip {
 			switch(cha) {
 			case ' ':
 				break;
+			case '-':
+				d = 0b0000001;
+				break;
+			case '_':
+				d = 0b0001000;
+				break;
+			case '~':
+				d = 0b1000000;
+				break;
 			case '0':
 				d = 0b1111110;
 				break;
@@ -198,9 +208,6 @@ namespace chip {
 				break;
 			case '9':
 				d = 0b1111011;
-				break;
-			case '-':
-				d = 0b0000001;
 				break;
 			case 'A':
 			case 'a':
