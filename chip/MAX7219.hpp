@@ -7,6 +7,7 @@
 */
 //=====================================================================//
 #include <cstdint>
+#include <cstring>
 #include "common/iica_io.hpp"
 #include "common/time.h"
 
@@ -218,15 +219,27 @@ namespace chip {
 				break;
 			case 'H':
 			case 'h':
-				d = 0b0110110;
+				d = 0b0010111;
+				break;
+			case 'I':
+			case 'i':
+				d = 0b0000100;
 				break;
 			case 'J':
 			case 'j':
 				d = 0b0111100;
 				break;
+			case 'K':
+			case 'k':
+				d = 0b1010111;
+				break;
 			case 'L':
 			case 'l':
 				d = 0b0001110;
+				break;
+			case 'M':
+			case 'm':
+				d = 0b1110110;
 				break;
 			case 'N':
 			case 'n':
@@ -240,15 +253,45 @@ namespace chip {
 			case 'p':
 				d = 0b1100111;
 				break;
+			case 'Q':
+			case 'q':
+				d = 0b1101111;
+				break;
+			case 'R':
+			case 'r':
+				d = 0b0000101;
+				break;
 			case 'S':
 			case 's':
-				d = 0b1011010;
+				d = 0b0011011;
+				break;
+			case 'T':
+			case 't':
+				d = 0b0001111;
 				break;
 			case 'U':
-				d = 0b0111110;
-				break;
 			case 'u':
 				d = 0b0011100;
+				break;
+			case 'V':
+			case 'v':
+				d = 0b0111110;
+				break;
+			case 'W':
+			case 'w':
+				d = 0b0111111;
+				break;
+			case 'X':
+			case 'x':
+				d = 0b0110111;
+				break;
+			case 'Y':
+			case 'y':
+				d = 0b0111011;
+				break;
+			case 'Z':
+			case 'z':
+				d = 0b1101100;
 				break;
 			default:
 				break;
@@ -260,10 +303,26 @@ namespace chip {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief [] オペレーターによるアクセス
-			@param[in]	idx	インデックス（０～７）
+			@brief シフト、バッファ先頭
+			@param[in]	fill	埋めるデータ
 		 */
 		//-----------------------------------------------------------------//
-		uint8_t& operator[] (uint8_t idx) { return &data_[idx]; }
+		void shift_begin(uint8_t fill = 0) {
+			std::memmove(&data_[1], &data_[0], 7);
+			data_[0] = fill;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief シフト、バッファ
+			@param[in]	fill	埋めるデータ
+		 */
+		//-----------------------------------------------------------------//
+		void shift_last(uint8_t fill = 0) {
+			std::memmove(&data_[0], &data_[1], 7);
+			data_[7] = fill;
+		}
+
 	};
 }
