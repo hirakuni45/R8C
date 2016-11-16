@@ -32,11 +32,11 @@ namespace {
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
 
-	typedef device::PORT<device::PORT1, device::bitpos::B0> SPI_OUT;
+	typedef device::PORT<device::PORT1, device::bitpos::B0> SPI_SDA;
 	typedef device::PORT<device::PORT1, device::bitpos::B1> SELECT;
-	typedef device::PORT<device::PORT1, device::bitpos::B2> SPI_CLK;
+	typedef device::PORT<device::PORT1, device::bitpos::B2> SPI_SCL;
 
-	typedef device::spi_io<SPI_CLK, SPI_OUT, device::NULL_PORT> SPI;
+	typedef device::spi_io<SPI_SDA, SPI_SCL, device::NULL_PORT> SPI;
 	SPI spi_;
 
 	chip::MAX7219<SPI, SELECT> max7219_(spi_);
