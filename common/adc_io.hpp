@@ -115,7 +115,7 @@ namespace device {
 			@return 変換結果
 		*/
 		//-----------------------------------------------------------------//
-		uint16_t get_value(uint8_t chanel) const {
+		uint16_t get_value(bool chanel) const {
 			if(chanel) {
 				return AD1();
 			} else {
