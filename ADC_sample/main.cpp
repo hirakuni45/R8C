@@ -25,7 +25,7 @@ namespace {
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
 
-	typedef device::adc_io adc;
+	typedef device::adc_io<utils::null_task> adc;
 	adc adc_;
 }
 
@@ -127,8 +127,7 @@ int main(int argc, char *argv[])
 	{
 		utils::PORT_MAP(utils::port_map::P10::AN0);
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.setup(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
-		adc_.start();
+		adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
 	}
 
 	using namespace utils;
@@ -141,7 +140,7 @@ int main(int argc, char *argv[])
 		++cnt;
 		if(cnt >= 30) {
 			cnt = 0;
-			adc_.start();
+			adc_.scan();
 			adc_.sync();
 			{
 				auto v = adc_.get_value(0);
