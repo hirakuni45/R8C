@@ -14,20 +14,11 @@ namespace device {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  I2C テンプレートクラス @n
-				PORT ポート指定クラス： @n
-				class port { @n
-				public: @n
-					void scl_dir(bool val) const { } @n
-					void scl_out(bool val) const { } @n
-					bool scl_inp() const { return 0; } @n
-					void sda_dir(bool val) const { } @n
-					void sda_out(bool val) const { } @n
-					bool sda_inp() const { return 0; } @n
-				};
-		@param[in]	PORT	ポート定義クラス
+		@param[in]	SDA	SDA ポート定義クラス
+		@param[in]	SCL	SCL ポート定義クラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class PORT>
+	template <class SDA, class SCL>
 	class iica_io {
 	public:
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -58,7 +49,6 @@ namespace device {
 		};
 
 	private:
-		PORT		port_;
 		uint8_t		clock_;
 		error		error_;
 		uint16_t	busy_;
@@ -67,72 +57,72 @@ namespace device {
 		static const uint8_t fast_clock_ = 4 / 2;
 
 		void start_() const {
-			port_.sda_out(0);
+			SDA::P = 0;
 			utils::delay::micro_second(clock_);
-			port_.scl_out(0);
+			SCL::P = 0;
 			utils::delay::micro_second(clock_);
 		}
 
 
 		bool ack_() const {
-			port_.sda_out(1);
+			SDA::P = 1;
 			utils::delay::micro_second(clock_);
-			port_.scl_out(1);
-			port_.sda_dir(0);
+			SCL::P = 1;
+			SDA::DIR = 0;
 			utils::delay::micro_second(clock_);
-			bool f = port_.sda_inp();
-			port_.sda_out(0);
-			port_.sda_dir(1);
-			port_.scl_out(0);
+			bool f = SDA::P();
+			SDA::P = 0;
+			SDA::DIR = 1;
+			SCL::P = 0;
 			return f;
 		}
 
 
 		void out_ack_(bool b) const {
 			utils::delay::micro_second(clock_);
-			port_.sda_out(b);
-			port_.scl_out(1);
+			SDA::P = b;
+			SCL::P = 1;
 			utils::delay::micro_second(clock_);
-			port_.scl_out(0);
+			SCL::P = 0;
 		}
 
 
 		bool wait_() const {
 			uint16_t cnt = busy_;
-			port_.scl_dir(0);
-			while(port_.scl_inp() == 0) {
+			SCL::DIR = 0;
+			while(SCL::P() == 0) {
 				utils::delay::micro_second(1);
 				if(cnt) {
 					--cnt;
 				} else {
-					port_.scl_dir(1);
+					SCL::DIR = 1;
 					return false;  // wait stall
 				}
 			}
-			port_.scl_dir(1);
+			SCL::DIR = 1;
 			return true;
 		}
 
 
 		void stop_() const {
 			utils::delay::micro_second(clock_);
-			port_.scl_out(1);
+			SCL::P = 1;
 			utils::delay::micro_second(clock_);
-			port_.sda_out(1);
+			SDA::P = 1;
 		}
 
 
 		bool write_(uint8_t val, bool sync) const {
 			for(uint8_t n = 0; n < 8; ++n) {
-				port_.sda_out(val & 0x80);
+				SDA::P = (val & 0x80) != 0 ? 1 : 0;
 				utils::delay::micro_second(clock_);
-				port_.scl_out(1);
+				SCL::P = 1;
 				if(n == 0 && sync) {
 					if(!wait_()) return false;
 				}
 				val <<= 1;
 				utils::delay::micro_second(clock_);
-				port_.scl_out(0);
+				SCL::P = 0;
 			}
 			return true;
 		}
@@ -168,22 +158,22 @@ namespace device {
 
 
 		bool read_(uint8_t& val, bool sync) const {
-			port_.sda_dir(0);
+			SDA::DIR = 0;
 			for(uint8_t n = 0; n < 8; ++n) {
 				utils::delay::micro_second(clock_);
 				val <<= 1;
-				port_.scl_out(1);
+				SCL::P = 1;
 				if(n == 0 && sync) {
 					if(!wait_()) {
-						port_.sda_dir(1);
+						SDA::DIR = 1;
 						return false;
 					}
 				}
 				utils::delay::micro_second(clock_);
-				if(port_.sda_inp()) val |= 1;
-				port_.scl_out(0);
+				if(SDA::P()) val |= 1;
+				SCL::P = 0;
 			}
-			port_.sda_dir(1);
+			SDA::DIR = 1;
 			return true;
 		}
 
@@ -205,11 +195,12 @@ namespace device {
 		//-----------------------------------------------------------------//
 		bool start(speed spd)
 		{
-			port_.init();
-			port_.scl_dir(1);
-			port_.sda_dir(1);
-			port_.scl_out(1);
-			port_.sda_out(1);
+			SCL::OD = 1;
+			SDA::OD = 1;
+			SCL::DIR = 1;
+			SDA::DIR = 1;
+			SCL::P = 1;
+			SDA::P = 1;
 			if(spd == speed::standard) {
 				set_standard();
 			} else if(spd == speed::fast) {
