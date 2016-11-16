@@ -25,10 +25,31 @@
 #include "common/lcd_io.hpp"
 #include "common/monograph.hpp"
 
-#include "port_def.hpp"
 #include "bitmap/font32.h"
 
 namespace {
+
+// ポートの配置
+// P4_2(1):   LCD_SCK  ,SD_CLK(5)
+// P3_7(2):   LCD_/CS
+// /RES(3):  (System reset)
+// P4_7(4):            ,SD_DO/DAT0(7)
+// VSS:(5)   (Power GND)
+// P4_6(6):   XIN (高精度なクロック用)
+// VCC(7):   (Power +V)
+// MODE(8):  (System mode)
+// P3_5(9):   I2C_SDA
+// P3_4(10):           ,SD_/CS(1)
+// P1_0(20):  AN0 (keep)
+// P1_1(19):  AN1 (keep)
+// P1_2(18):  AN2 (keep)
+// P1_3(17):  AN3 (keep)
+// P1_4(16):  TXD0 (keep)
+// P1_5(15):  RXD0 (keep)
+// P1_6(14):  LCD_A0 (share)
+// P1_7(13):  TRJIO (keep)
+// P4_5(12):  LCD_SDA  ,SD_DI/CMD(2)
+// P3_3(11):  I2C_SCL
 
 	const uint8_t* nmbs_[] = {
 		nmb_0, nmb_1, nmb_2, nmb_3, nmb_4,
@@ -86,11 +107,21 @@ namespace {
 
 	utils::command<64> command_;
 
-	spi_base spi_base_;
-	spi_ctrl spi_ctrl_;
+	// LCD SDA: P4_5(12)
+	typedef device::PORT<device::PORT4, device::bitpos::B5> SPI_SDA;
+	// LCD SCL: P4_2(1)
+	typedef device::PORT<device::PORT4, device::bitpos::B2> SPI_SCL;
 
-	typedef device::lcd_io<spi_base, spi_ctrl> lcd;
-	lcd lcd_;
+	typedef device::spi_io<SPI_SDA, SPI_SCL, device::NULL_PORT> SPI;
+	SPI		spi_;
+
+	// LCD /CS: P3_7(2)
+	typedef device::PORT<device::PORT3, device::bitpos::B7> LCD_SEL;
+	// LCD A0:  P3_3(11)
+	typedef device::PORT<device::PORT3, device::bitpos::B3> LCD_CMD;
+
+	typedef device::lcd_io<SPI, LCD_SEL, LCD_CMD> LCD;
+	LCD 	lcd_(spi_);
 
 	typedef graphics::monograph mono_graph;
 	mono_graph bitmap_;
@@ -204,10 +235,9 @@ int main(int argc, char *argv[])
 		device::PUR1.B1 = 1;	///< プルアップ
 	}
 
-	// spi_base, spi_ctrl ポートの初期化
+	// SPI を開始
 	{
-		spi_ctrl_.init();
-		spi_base_.init();
+		spi_.start(1);
 	}
 
 	// LCD を開始
