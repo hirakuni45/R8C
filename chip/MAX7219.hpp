@@ -129,6 +129,21 @@ namespace chip {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief 値の取得
+			@param[in]	idx	インデックス（０～７）
+			@return 値
+		 */
+		//-----------------------------------------------------------------//
+		uint8_t get(uint8_t idx) {
+			if(idx < limit_) {
+				return data_[idx];
+			}
+			return 0;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief 値の設定
 			@param[in]	idx	インデックス（０～７）
 			@param[in]	dat	データ
@@ -307,9 +322,11 @@ namespace chip {
 			@param[in]	fill	埋めるデータ
 		 */
 		//-----------------------------------------------------------------//
-		void shift_begin(uint8_t fill = 0) {
+		uint8_t shift_begin(uint8_t fill = 0) {
+			uint8_t full = data_[0];
 			std::memmove(&data_[1], &data_[0], 7);
 			data_[0] = fill;
+			return full;
 		}
 
 
@@ -320,8 +337,10 @@ namespace chip {
 		 */
 		//-----------------------------------------------------------------//
 		void shift_last(uint8_t fill = 0) {
+			uint8_t full = data_[7];
 			std::memmove(&data_[0], &data_[1], 7);
 			data_[7] = fill;
+			return full;
 		}
 
 	};
