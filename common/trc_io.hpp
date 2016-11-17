@@ -38,7 +38,7 @@ namespace device {
 			@brief  PWM-A 割り込み
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		static INTERRUPT_FUNC void itask() {
+		static INTERRUPT_FUNC void itask() __attribute__ ((section (".text"))) {
 			task_();
 			volatile uint8_t f = TRCSR();
 			TRCGRB = pwm_b_;

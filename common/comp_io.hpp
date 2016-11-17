@@ -53,12 +53,12 @@ namespace device {
 
 	public:
 
-		static INTERRUPT_FUNC void itask1() {
+		static INTERRUPT_FUNC void itask1() __attribute__ ((section (".text"))) {
 			task1_();
 			WCB1INTR.WCB1F = 0;
 		}
 
-		static INTERRUPT_FUNC void itask3() {
+		static INTERRUPT_FUNC void itask3() __attribute__ ((section (".text"))) {
 			task3_();
 			WCB3INTR.WCB3F = 0;
 		}

@@ -38,7 +38,7 @@ namespace device {
 			AN4_AN7		//< AN4, AN7
 		};
 
-		static INTERRUPT_FUNC void itask() {
+		static INTERRUPT_FUNC void itask() __attribute__ ((section (".text"))) {
 			++intr_count_;
 			task_();
 			// IR 関係フラグは必ず mov 命令で・・
