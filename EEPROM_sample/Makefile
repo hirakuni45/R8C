@@ -158,10 +158,10 @@ bin_zip:
 	zip $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H)_bin.zip *.exe *.dll res/*.*
 
 run:
-	$(WRITER) --progress -d R5F2M120 -e -w -v $(TARGET).mot
+	$(WRITER) -d R5F2M120 --progress -e -w -v $(TARGET).mot
 
 verify:
-	$(WRITER) -d R5F2M120 -v $(TARGET).mot
+	$(WRITER) -d R5F2M120 --progress -v $(TARGET).mot
 
 
 -include $(DEPENDS)
