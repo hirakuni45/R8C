@@ -20,6 +20,8 @@ extern short _preinit_array_start;
 extern short _preinit_array_end;
 extern short _init_array_start;
 extern short _init_array_end;
+extern short _fini_array_start;
+extern short _fini_array_end;
 
 //-----------------------------------------------------------------//
 /*!
@@ -54,6 +56,14 @@ void _init(void)
 	{  // C++ 静的コンストラクターの実行
 		short *p = &_init_array_start;
 		while(p < &_init_array_end) {
+			void (*prog)(void) = (void *)*p++;
+			(*prog)();
+		}
+	}
+
+	{  // C++ 静的コンストラクターの実行
+		short *p = &_fini_array_start;
+		while(p < &_fini_array_end) {
 			void (*prog)(void) = (void *)*p++;
 			(*prog)();
 		}
