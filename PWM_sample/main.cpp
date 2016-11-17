@@ -25,7 +25,7 @@ namespace {
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
 
-	typedef device::adc_io adc;
+	typedef device::adc_io<utils::null_task> adc;
 	adc adc_;
 
 	typedef device::trc_io<utils::null_task> timer_c;
@@ -125,8 +125,7 @@ int main(int argc, char *argv[])
 	// ADC の設定（CH1のサイクルモード）
 	{
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.setup(adc::cnv_type::CH1, adc::ch_grp::AN0_AN1, true);
-		adc_.start();
+		adc_.start(adc::cnv_type::CH1, adc::ch_grp::AN0_AN1, true);
 	}
 
 	// ＰＷＭモード設定
@@ -143,6 +142,7 @@ int main(int argc, char *argv[])
 
 	sci_puts("Start R8C PWM monitor\n");
 
+	adc_.scan();
 	// LED シグナル用ポートを出力
 //	PD1.B0 = 1;
 
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
 			uint32_t v = adc_.get_value(1);
 			v *= timer_c_.get_pwm_limit();
 			timer_c_.set_pwm_d(v >> 10);
-			adc_.start();
+			adc_.scan();
 		}
 
 //		++cnt;
