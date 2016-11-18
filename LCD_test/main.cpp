@@ -20,7 +20,8 @@
 #include "common/command.hpp"
 #include "common/format.hpp"
 #include "common/trb_io.hpp"
-#include "common/lcd_io.hpp"
+#include "common/spi_io.hpp"
+#include "chip/ST7565.hpp"
 #include "common/monograph.hpp"
 
 namespace {
@@ -33,20 +34,20 @@ namespace {
 
 	utils::command<64> command_;
 
-	// LCD SDA: P4_5(12)
-	typedef device::PORT<device::PORT4, device::bitpos::B5> SPI_SDA;
 	// LCD SCL: P4_2(1)
 	typedef device::PORT<device::PORT4, device::bitpos::B2> SPI_SCL;
+	// LCD SDA: P4_5(12)
+	typedef device::PORT<device::PORT4, device::bitpos::B5> SPI_SDA;
 
-	typedef device::spi_io<SPI_SDA, SPI_SCL, device::NULL_PORT> SPI;
+	typedef device::spi_io<SPI_SCL, SPI_SDA, device::NULL_PORT> SPI;
 	SPI		spi_;
 
 	// LCD /CS: P3_7(2)
 	typedef device::PORT<device::PORT3, device::bitpos::B7> LCD_SEL;
-	// LCD A0:  P3_3(11)
-	typedef device::PORT<device::PORT3, device::bitpos::B3> LCD_CMD;
+	// LCD A0:  P1_6(14)
+	typedef device::PORT<device::PORT1, device::bitpos::B6> LCD_A0;
 
-	typedef device::lcd_io<SPI, LCD_SEL, LCD_CMD> LCD;
+	typedef chip::ST7565<SPI, LCD_SEL, LCD_A0> LCD;
 	LCD 	lcd_(spi_);
 
 	typedef graphics::monograph mono_graph;
@@ -166,12 +167,18 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
 		utils::PORT_MAP(utils::port_map::P15::RXD0);
 		uint8_t ir_level = 1;
-		uart_.start(19200, ir_level);
+		uart_.start(57600, ir_level);
+	}
+
+	// SPI 開始
+	{
+		spi_.start(10);
 	}
 
 	// LCD を開始
 	{
-		lcd_.start();
+		lcd_.start(0x00);
+		spi_.start(0);  // Boost SPI clock
 		bitmap_.init();
 		bitmap_.clear(0);
 	}
@@ -180,7 +187,7 @@ int main(int argc, char *argv[])
 	command_.set_prompt("# ");
 
 	// LED シグナル用ポートを出力
-	PD1.B0 = 1;
+//	PD1.B0 = 1;
 
 	uint8_t cnt = 0;
 	uint16_t x = rand_() & 127;
@@ -190,7 +197,7 @@ int main(int argc, char *argv[])
 	uint8_t loop = 20;
 	while(1) {
 		timer_b_.sync();
-		lcd_.copy(bitmap_.fb());
+		lcd_.copy(bitmap_.fb(), 4);
 
 		if(loop >= 20) {
 			loop = 0;
@@ -210,37 +217,11 @@ int main(int argc, char *argv[])
 		if(cnt >= 20) {
 			cnt = 0;
 		}
-		if(cnt < 10) P1.B0 = 1;
-		else P1.B0 = 0;
+
 		++cnt;
 
 		// コマンド入力と、コマンド解析
 		if(command_.service()) {
-#if 0
-			uint8_t cmdn = command_.get_words();
-			if(cmdn >= 1) {
-				if(check_key_word_(0, "date")) {
-					if(cmdn == 1) {
-						time_t t = get_time_();
-						if(t != 0) {
-							disp_time_(t);
-						}
-					} else {
-						set_time_date_();
-					}
-				} else if(check_key_word_(0, "help")) {
-					sci_puts("date\n");
-					sci_puts("date yyyy/mm/dd hh:mm[:ss]\n");
-				} else {
-					char buff[12];
-					if(command_.get_word(0, sizeof(buff), buff)) {
-						sci_puts("Command error: ");
-						sci_puts(buff);
-						sci_putch('\n');
-					}
-				}
-			}
-#endif
 		}
 	}
 }
