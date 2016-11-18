@@ -48,9 +48,9 @@ R8C sources
  - /PLUSE_OUT_sample --->   タイマーＲＪを使ったパルス出力テスト
  - /PLUSE_INP_sample --->   タイマーＲＪを使った周波数計測テスト
  - /PLUSE_OUT_LCD   --->   タイマーＲＪ、ＬＣＤ、エンコーダ
- - /LCD_test        --->   128x32 mono color graphics のテスト
- - /SD_test         --->   pFatFS を使った、SD カードのテスト
- - /SD_monitor      --->   pFatFS を使った、SD カードのモニター
+ - /LCD_DOT_sample  --->   128x32 mono color graphics のテスト
+ - /SD_sample       --->   pFatFS を使った、SD カードのテスト
+ - /SD_monitor      --->   pFatFS を使った、SD カードのモニター（未完）
  - /SD_WAV_play     --->   SD カード上の WAV 形式ファイルの PWM 再生
  - /ARITH_sample    --->   数値計算テンプレートサンプル
 
