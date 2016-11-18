@@ -76,7 +76,7 @@ namespace device {
 			@brief  パルス出力用割り込み関数
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		static INTERRUPT_FUNC void iout() __attribute__ ((section (".text"))) {
+		static INTERRUPT_FUNC void iout() {
 			TRJMR = trjmr_;
 			TRJ = trj_;
 			task_();
@@ -90,7 +90,8 @@ namespace device {
 			@brief  パルス入力用割り込み関数
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		static INTERRUPT_FUNC void iinp() __attribute__ ((section (".text"))) {
+///		__attribute__ ((section (".text")))
+		static INTERRUPT_FUNC void iinp() {
 			trj_ = TRJ();
  			task_();
 			volatile uint8_t tmp = TRJIR();

@@ -524,6 +524,7 @@ namespace utils {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
+		__attribute__ ((section (".text")))
 		format(const char* form) : form_(form), num_(0), point_(0), bitlen_(0),
 			mode_(mode::NONE), zerosupp_(false), sign_(false) {
 			next_();

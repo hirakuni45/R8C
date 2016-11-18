@@ -31,7 +31,8 @@ namespace device {
 
 		static volatile uint16_t	count_;
 
-		static INTERRUPT_FUNC void itask() __attribute__ ((section (".text"))) {
+		__attribute__ ((section (".text")))
+		static INTERRUPT_FUNC void itask() {
 			++count_;
 			task_();
 			// IR 関係フラグは必ず mov 命令で・・
