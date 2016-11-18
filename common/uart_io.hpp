@@ -102,7 +102,7 @@ private:
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		__attribute__ ((section (".text")))
+///		__attribute__ ((section (".text")))
 		uart_io() : crlf_(true) { }
 
 

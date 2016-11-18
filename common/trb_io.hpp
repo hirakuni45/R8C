@@ -31,7 +31,7 @@ namespace device {
 
 		static volatile uint16_t	count_;
 
-		__attribute__ ((section (".text")))
+//		__attribute__ ((section (".text")))
 		static INTERRUPT_FUNC void itask() {
 			++count_;
 			task_();
