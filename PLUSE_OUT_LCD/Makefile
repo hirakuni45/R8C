@@ -24,12 +24,11 @@ USER_DEFS	=	F_CLK=20000000
 
 MCU_TARGET	=	-mcpu=r8c
 
-#INC_SYS		=	/usr/boost_1_53_0
 INC_SYS		=
 
 INC_APP		=	. ../ ../M120AN
 
-OPTIMIZE	=	-O2
+OPTIMIZE	=	-Os
 
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \

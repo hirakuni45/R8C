@@ -22,7 +22,8 @@
 #include "common/format.hpp"
 #include "common/trb_io.hpp"
 #include "common/trj_io.hpp"
-#include "common/lcd_io.hpp"
+#include "common/spi_io.hpp"
+#include "chip/ST7565.hpp"
 #include "common/monograph.hpp"
 
 #include "bitmap/font32.h"
@@ -107,20 +108,20 @@ namespace {
 
 	utils::command<64> command_;
 
-	// LCD SDA: P4_5(12)
-	typedef device::PORT<device::PORT4, device::bitpos::B5> SPI_SDA;
 	// LCD SCL: P4_2(1)
 	typedef device::PORT<device::PORT4, device::bitpos::B2> SPI_SCL;
+	// LCD SDA: P4_5(12)
+	typedef device::PORT<device::PORT4, device::bitpos::B5> SPI_SDA;
 
-	typedef device::spi_io<SPI_SDA, SPI_SCL, device::NULL_PORT> SPI;
+	typedef device::spi_io<SPI_SCL, SPI_SDA, device::NULL_PORT> SPI;
 	SPI		spi_;
 
 	// LCD /CS: P3_7(2)
 	typedef device::PORT<device::PORT3, device::bitpos::B7> LCD_SEL;
-	// LCD A0:  P3_3(11)
-	typedef device::PORT<device::PORT3, device::bitpos::B3> LCD_CMD;
+	// LCD A0:  P1_6(14)
+	typedef device::PORT<device::PORT1, device::bitpos::B6> LCD_A0;
 
-	typedef device::lcd_io<SPI, LCD_SEL, LCD_CMD> LCD;
+	typedef chip::ST7565<SPI, LCD_SEL, LCD_A0> LCD;
 	LCD 	lcd_(spi_);
 
 	typedef graphics::monograph mono_graph;
@@ -193,7 +194,7 @@ extern "C" {
 }
 
 
-__attribute__ ((section (".exttext")))
+// __attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])
 {
 	using namespace device;
@@ -222,7 +223,7 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
 		utils::PORT_MAP(utils::port_map::P15::RXD0);
 		uint8_t ir_level = 1;
-		uart_.start(19200, ir_level);
+		uart_.start(57600, ir_level);
 	}
 
 	// エンコーダー入力の設定 P10: (Phi_A), P11: (Phi_B), Vss: (COM)
@@ -237,12 +238,12 @@ int main(int argc, char *argv[])
 
 	// SPI を開始
 	{
-		spi_.start(1);
+		spi_.start(0);
 	}
 
 	// LCD を開始
 	{
-		lcd_.start();
+		lcd_.start(0x00);
 		bitmap_.init();
 		bitmap_.clear(0);
 //		bitmap_.frame(0, 0, 128, 32, 1);
@@ -331,7 +332,7 @@ int main(int argc, char *argv[])
 			} else {
 				bitmap_.draw_mobj(20 * 5, 0, nmbs_[10]);
 			}
-			lcd_.copy(bitmap_.fb());
+			lcd_.copy(bitmap_.fb(), 4);
 		}
 
 		++cnt;
