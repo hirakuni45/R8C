@@ -10,6 +10,8 @@
 #include "pfatfs/src/pff.h"
 #include "common/delay.hpp"
 
+#include "common/format.hpp"
+
 namespace pfatfs {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -118,7 +120,7 @@ namespace pfatfs {
 		//-----------------------------------------------------------------//
 		DSTATUS disk_initialize()
 		{
-			spi_.start(20);  // setup slow clock
+			spi_.start(10);  // setup slow clock
 
 			SEL::DIR = 1;
 			SEL::P = 1;
@@ -165,7 +167,7 @@ namespace pfatfs {
 			CardType = ty;
 			release_spi_();
 
-			if(ty == 0) spi_.start(0);  // setup fast clock
+			spi_.start(0);  // boost SPI clock
 
 		 	return ty ? 0 : STA_NOINIT;
 		}
@@ -195,7 +197,7 @@ namespace pfatfs {
 				} while (d == 0xFF && --tmr) ;
 
 				if(d == 0xFE) {  // A data packet arrived
-					BYTE bc = 514 - offset - count;
+					UINT bc = 514 - offset - count;
 
 					// Skip leading bytes
 					if(offset) {
@@ -207,7 +209,8 @@ namespace pfatfs {
 						spi_.recv(buff, count);
 					} else {	/* Forward data to the outgoing stream */
 						do {
-							spi_.xchg();
+							auto d = spi_.xchg();
+							forward_(d);
 						} while(--count) ;
 					}
 					// Skip trailing bytes and CRC
