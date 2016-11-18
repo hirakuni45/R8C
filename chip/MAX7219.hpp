@@ -52,7 +52,9 @@ namespace chip {
 			uint8_t tmp[2];
 			tmp[0] = static_cast<uint8_t>(cmd);
 			tmp[1] = dat;
-			spi_.send(tmp, 2);
+			spi_.xchg(tmp[0]);
+			spi_.xchg(tmp[1]);
+//			spi_.send(tmp, 2);
 			SELECT::P = 1;  // load
 		}
 
