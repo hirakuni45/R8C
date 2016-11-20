@@ -6,6 +6,7 @@
 */
 //=====================================================================//
 #include <cstdint>
+#include "common/delay.hpp"
 
 namespace chip {
 
@@ -192,7 +193,7 @@ namespace chip {
 				write_(CMD::SET_PAGE, page);
 				write_(CMD::SET_COLUMN_LOWER, o & 0x0f);
 				write_(CMD::SET_COLUMN_UPPER, o >> 4);
-    			write_(CMD::RMW);
+///    			write_(CMD::RMW);
 				reg_select_(1);
 				csi_.send(src, 128);
 				src += 128;
