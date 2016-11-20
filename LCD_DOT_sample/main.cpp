@@ -50,8 +50,8 @@ namespace {
 	typedef chip::ST7565<SPI, LCD_SEL, LCD_A0> LCD;
 	LCD 	lcd_(spi_);
 
-	typedef graphics::monograph mono_graph;
-	mono_graph bitmap_;
+	graphics::kfont_null kfont_;
+	graphics::monograph<128, 32> bitmap_(kfont_);
 }
 
 extern "C" {
@@ -179,7 +179,6 @@ int main(int argc, char *argv[])
 	{
 		lcd_.start(0x00);
 		spi_.start(0);  // Boost SPI clock
-		bitmap_.init();
 		bitmap_.clear(0);
 	}
 
@@ -197,7 +196,7 @@ int main(int argc, char *argv[])
 	uint8_t loop = 20;
 	while(1) {
 		timer_b_.sync();
-		lcd_.copy(bitmap_.fb(), 4);
+		lcd_.copy(bitmap_.fb(), bitmap_.page_num());
 
 		if(loop >= 20) {
 			loop = 0;
