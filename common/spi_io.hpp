@@ -32,7 +32,7 @@ namespace device {
 			CLK::P = 0;
 		} 
 
-		void send_(uint8_t d) {
+		inline void send_(uint8_t d) {
 			if(d & 0x80) OUT::P = 1; else OUT::P = 0;	/* bit7 */
 			clock_();
 			if(d & 0x40) OUT::P = 1; else OUT::P = 0;	/* bit6 */
@@ -51,7 +51,7 @@ namespace device {
 			clock_();
 		}
 
-		uint8_t recv_(bool out = 1) {
+		inline uint8_t recv_(bool out = 1) {
 			OUT::P = out;
 			uint8_t r = 0;
 			if(INP::P()) ++r;  // bit7
@@ -118,42 +118,42 @@ namespace device {
 		{
 			uint8_t r = 0;
 			if(INP::P()) ++r;  // bit7
-			if (d & 0x80) OUT::P = 1; else OUT::P = 0;	// bit7
+			if(d & 0x80) OUT::P = 1; else OUT::P = 0;	// bit7
 			clock_();
 
 			r <<= 1;
 			if(INP::P()) ++r;  // bit6
-			if (d & 0x40) OUT::P = 1; else OUT::P = 0;	// bit6
+			if(d & 0x40) OUT::P = 1; else OUT::P = 0;	// bit6
 			clock_();
 
 			r <<= 1;
 			if(INP::P()) ++r;  // bit5
-			if (d & 0x20) OUT::P = 1; else OUT::P = 0;	// bit5
+			if(d & 0x20) OUT::P = 1; else OUT::P = 0;	// bit5
 			clock_();
 
 			r <<= 1;
 			if(INP::P()) ++r;  // bit4
-			if (d & 0x10) OUT::P = 1; else OUT::P = 0;	// bit4
+			if(d & 0x10) OUT::P = 1; else OUT::P = 0;	// bit4
 			clock_();
 
 			r <<= 1;
 			if(INP::P()) ++r;  // bit3
-			if (d & 0x08) OUT::P = 1; else OUT::P = 0;	// bit3
+			if(d & 0x08) OUT::P = 1; else OUT::P = 0;	// bit3
 			clock_();
 
 			r <<= 1;
 			if(INP::P()) ++r;  // bit2
-			if (d & 0x04) OUT::P = 1; else OUT::P = 0;	// bit2
+			if(d & 0x04) OUT::P = 1; else OUT::P = 0;	// bit2
 			clock_();
 
 			r <<= 1;
 			if(INP::P()) ++r;  // bit1
-			if (d & 0x02) OUT::P = 1; else OUT::P = 0;	// bit1
+			if(d & 0x02) OUT::P = 1; else OUT::P = 0;	// bit1
 			clock_();
 
 			r <<= 1;
 			if(INP::P()) ++r;  // bit0
-			if (d & 0x01) OUT::P = 1; else OUT::P = 0;	// bit0
+			if(d & 0x01) OUT::P = 1; else OUT::P = 0;	// bit0
 			clock_();
 
 			return r;
