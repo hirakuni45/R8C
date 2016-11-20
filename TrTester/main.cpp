@@ -13,22 +13,16 @@
 #include "common/format.hpp"
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
-#include "common/adc_io.hpp"
-#include "common/trb_io.hpp"
 
 #include "trtapi.hpp"
 
 namespace {
 
-	typedef device::trb_io<utils::null_task> timer_b;
-	timer_b timer_b_;
-
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
 
-	typedef device::adc_io<utils::null_task> adc;
-	adc adc_;
+	trt::api api_;
 }
 
 extern "C" {
@@ -81,7 +75,8 @@ extern "C" {
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (22) タイマＲＪ２
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (23) 周期タイマ
 
-		reinterpret_cast<void*>(timer_b_.itask),nullptr,	// (24) タイマＲＢ２
+//		reinterpret_cast<void*>(timer_b_.itask),nullptr,	// (24) タイマＲＢ２
+		reinterpret_cast<void*>(null_task_),    nullptr,	// (24) タイマＲＢ２
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (25) /INT1
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (26) /INT3
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (27)
@@ -108,12 +103,6 @@ int main(int argc, char *argv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
-	// タイマーＢ初期化
-	{
-		uint8_t ir_level = 2;
-		timer_b_.start_timer(60, ir_level);
-	}
-
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
 	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
 	{
@@ -123,47 +112,9 @@ int main(int argc, char *argv[])
 		uart_.start(57600, intr_level);
 	}
 
-	uart_.puts("Start R8C ADC sample\n");
+	uart_.puts("Start R8C Tr Tester\n");
 
-	// ADC の設定
-	{
-		utils::PORT_MAP(utils::port_map::P10::AN0);
-		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
-	}
-
-	using namespace utils;
-
-	uint8_t cnt = 0;
-	int nnn = 0;
 	while(1) {
-		timer_b_.sync();
-
-		++cnt;
-		if(cnt >= 30) {
-			cnt = 0;
-			adc_.scan();
-			adc_.sync();
-			{
-				auto v = adc_.get_value(0);
-				utils::format("(%5d) CH0: %1.2:8y[V], %d\n")
-					% nnn
-					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
-					% v;
-			}
-
-			{
-				auto v = adc_.get_value(1);
-				utils::format("        CH1: %1.2:8y[V], %d\n")
-					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
-					% v;
-			}
-			++nnn;
-		}
-
-		if(uart_.length()) {  // UART のレシーブデータがあるか？
-			auto ch = uart_.getch();
-			uart_.putch(ch);
-		}
+		api_.service();
 	}
 }
