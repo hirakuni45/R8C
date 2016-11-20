@@ -14,10 +14,9 @@
 #include "common/command.hpp"
 #include "common/format.hpp"
 #include "common/trb_io.hpp"
+#include "common/spi_io.hpp"
+#include "pfatfs/mmc_io.hpp"
 
-#include "pfatfs/src/pff.h"
-
-#include "port_def.hpp"
 
 namespace {
 
@@ -39,9 +38,19 @@ namespace {
 
 	utils::command<64> command_;
 
+	// P4_2(1):   SD_CLK(5)
+	typedef device::PORT<device::PORT4, device::bitpos::B2> SPI_SCL;
+	// P4_5(12):  SD_DI/CMD(2) (port output)
+	typedef device::PORT<device::PORT4, device::bitpos::B5> SPI_SDO;
+	// P4_7(4):   SD_DO/DAT0(7) (port input)
+	typedef device::PORT<device::PORT4, device::bitpos::B7> SPI_SDI;
+	typedef device::spi_io<SPI_SCL, SPI_SDO, SPI_SDI> SPI;
+	SPI		spi_;
 
-	spi_base spi_base_;
-	spi_ctrl spi_ctrl_;
+	// P3_4(10): SD_/CS(1)
+	typedef device::PORT<device::PORT3, device::bitpos::B4> SD_SEL;
+
+	pfatfs::mmc_io<SPI, SD_SEL> mmc_io_(spi_);
 
 }
 
@@ -60,6 +69,18 @@ extern "C" {
 
 	void sci_puts(const char* str) {
 		uart_.puts(str);
+	}
+
+	DSTATUS disk_initialize() {
+		return mmc_io_.disk_initialize();
+	}
+
+	DRESULT disk_readp(BYTE* buff, DWORD sector, UINT offset, UINT count) {
+		return mmc_io_.disk_readp(buff, sector, offset, count);
+	}
+
+	DRESULT disk_writep(const BYTE* buff, DWORD sc) {
+		return mmc_io_.disk_writep(buff, sc);
 	}
 }
 
@@ -255,13 +276,20 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P14::TXD0);
 		utils::PORT_MAP(utils::port_map::P15::RXD0);
 		uint8_t intr_level = 1;
-		uart_.start(19200, intr_level);
+		uart_.start(57600, intr_level);
 	}
 
-	// spi_base, spi_ctrl ポートの初期化
+	// SPI、SD_SEL ポートの設定
 	{
-		spi_ctrl_.init();
-		spi_base_.init();
+		utils::PORT_MAP(utils::port_map::P42::PORT);
+		utils::PORT_MAP(utils::port_map::P45::PORT);
+		utils::PORT_MAP(utils::port_map::P47::PORT);
+		utils::PORT_MAP(utils::port_map::P34::PORT);
+	}
+
+	// SPI のスタート
+	{
+		spi_.start(10);
 	}
 
 	sci_puts("Start R8C SD monitor\n");
