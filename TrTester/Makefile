@@ -14,9 +14,16 @@ ASOURCES	=	common/start.s
 CSOURCES	=	common/vect.c \
 				common/init.c
 
+#				lcd-routines.cpp
+
 PSOURCES	=	main.cpp \
 				core.cpp \
+				wait_for_key_ms.cpp \
+				DisplayValue.cpp \
+				lcd-routines-serial.cpp \
 				ReadADC.cpp \
+				EntladePins.cpp \
+				GetESR.cpp \
 				GetResistance.cpp \
 				ChargePin10ms.cpp \
 				CheckPins.cpp \
