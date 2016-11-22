@@ -14,15 +14,12 @@
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
 
-#include "trtapi.hpp"
-
 namespace {
 
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
 
-	trt::api api_;
 }
 
 extern "C" {
@@ -115,6 +112,6 @@ int main(int argc, char *argv[])
 	uart_.puts("Start R8C Tr Tester\n");
 
 	while(1) {
-		api_.service();
+
 	}
 }

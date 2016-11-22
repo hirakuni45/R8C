@@ -14,7 +14,13 @@ ASOURCES	=	common/start.s
 CSOURCES	=	common/vect.c \
 				common/init.c
 
-PSOURCES	=	main.cpp
+PSOURCES	=	main.cpp \
+				core.cpp \
+				ReadADC.cpp \
+				GetResistance.cpp \
+				ChargePin10ms.cpp \
+				CheckPins.cpp \
+				sleep_5ms.cpp
 
 USER_LIBS	=	stdc++
 
@@ -29,6 +35,8 @@ INC_SYS		=
 INC_APP		=	. ../ ../M120AN
 
 OPTIMIZE	=	-Os
+
+-include defs.mk 
 
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
@@ -66,9 +74,7 @@ ALL_ASFLAGS    = $(AFLAGS) $(MCU_TARGET) $(DEFS)
 # Override is only needed by avr-lib build system.
 
 CFLAGS		=	-std=gnu99 $(CC_OPT) $(OPTIMIZE) $(MCU_TARGET) $(DEFS)
-PFLAGS		=	-std=c++14 $(CP_OPT) $(OPTIMIZE) $(MCU_TARGET) $(DEFS)
-# override LDFLAGS	= $(MCU_TARGET) -nostartfiles -Wl,-Map,$(TARGET).map,-fdata-sections,-ffunction-sections,-falign-jumps,-fno-function-cse,-funit-at-a-time --select-lib=newlib -T $(LDSCRIPT)
-# override LDFLAGS	= $(MCU_TARGET) -nostartfiles -Wl,-Map,$(TARGET).map,--cref,--gc-sections -T $(LDSCRIPT)
+PFLAGS		=	-std=c++14 $(CP_OPT) $(OPTIMIZE) $(MCU_TARGET) $(DEFS) $(TARGET_FLAGS)
 
 override LDFLAGS = $(MCU_TARGET) -nostartfiles -Wl,-Map,$(TARGET).map -T $(LDSCRIPT)
 
