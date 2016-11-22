@@ -261,7 +261,7 @@ unsigned int adcv[4];
 			utils::PORT_MAP(utils::port_map::P12::AN2);
 		}
 
-int service(void) {
+		int service() {
 	//Einschalten
 	ON_DDR = (1<<ON_PIN);
 	ON_PORT = (1<<ON_PIN) | (1<<RST_PIN);	//Strom an und Pullup für Reset-Pin
