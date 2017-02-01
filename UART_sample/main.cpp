@@ -18,12 +18,18 @@
 #include "common/port_map.hpp"
 #include "common/uart_io.hpp"
 #include "common/fifo.hpp"
+
+#include "common/command.hpp"
+
 #include "common/format.hpp"
+#include "common/input.hpp"
 
 namespace {
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
+
+	utils::command<64> command_;
 }
 
 extern "C" {
@@ -121,12 +127,33 @@ int main(int argc, char *argv[])
 
 	uart_.puts("Start R8C UART sample\n");
 
+	command_.set_prompt("# ");
+
 	uint8_t cnt = 0;
 	while(1) {
+
+		if(command_.service()) {
+			uint8_t cmdn = command_.get_words();
+			if(cmdn >= 1) {
+				char tmp[32];
+				if(command_.get_word(0, sizeof(tmp), tmp)) {
+					int a = 0;
+					int n = (utils::input("%d", tmp) % a).num();
+					if(n == 1) {
+						utils::format("Value: %d\n") % a;
+					} else {
+						utils::format("Input decimal ?\n");
+					}
+				}
+			}
+		}
+
+#if 0
 		if(uart_.length()) {  // UART のレシーブデータがあるか？
 			char ch = uart_.getch();
 			uart_.putch(ch);
 		}
+#endif
 
 #if 0
 		// 文字の出力
