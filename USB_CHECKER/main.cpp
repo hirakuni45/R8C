@@ -17,7 +17,6 @@
 #include "common/port_map.hpp"
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
-#include "common/command.hpp"
 #include "common/format.hpp"
 #include "common/trb_io.hpp"
 #include "common/trj_io.hpp"
@@ -106,8 +105,6 @@ namespace {
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
-
-	utils::command<64> command_;
 
 	// LCD SCL: P4_2(1)
 	typedef device::PORT<device::PORT4, device::bitpos::B2> SPI_SCL;
@@ -215,7 +212,7 @@ int main(int argc, char *argv[])
 	// タイマーＢ初期化
 	{
 		uint8_t ir_level = 2;
-		timer_b_.start_timer(240, ir_level);
+		timer_b_.start_timer(60, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
@@ -227,6 +224,17 @@ int main(int argc, char *argv[])
 		uart_.start(57600, ir_level);
 	}
 
+
+	sci_puts("Start USB Checker\n");
+	utils::format("# ");
+
+
+	while(1) {
+		timer_b_.sync();
+
+	}
+
+#if 0
 	// エンコーダー入力の設定 P10: (Phi_A), P11: (Phi_B), Vss: (COM)
 	{
 		utils::PORT_MAP(utils::port_map::P10::PORT);
@@ -248,20 +256,6 @@ int main(int argc, char *argv[])
 		spi_.start(0);  // Boost SPI clock
 		bitmap_.clear(0);
 	}
-
-	uint32_t count = 20;
-
-	// TRJ のパルス出力設定
-	{
-		utils::PORT_MAP(utils::port_map::P17::TRJIO);
-		uint8_t ir_level = 1;
-		if(!timer_j_.pluse_out(count, ir_level)) {
-			sci_puts("TRJ out of range.\n");
-		}
-	}
-
-	sci_puts("Start R8C PLUSE OUT/LCD\n");
-	command_.set_prompt("# ");
 
 	uint8_t cnt = 0;
 	uint32_t value = 0;
@@ -339,4 +333,5 @@ int main(int argc, char *argv[])
 
 		++cnt;
 	}
+#endif
 }
