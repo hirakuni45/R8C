@@ -2,6 +2,7 @@
 //=====================================================================//
 /*!	@file
 	@brief	モノクロ・グラフィックス・クラス
+			Copyright 2016,2017 Kunihito Hiramatsu
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -219,7 +220,7 @@ namespace graphics {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief	四角を反転
+			@brief	領域を反転
 			@param[in]	x	開始位置 X
 			@param[in]	y	開始位置 Y
 			@param[in]	w	横幅 
@@ -348,12 +349,13 @@ namespace graphics {
 			@param[in]	h	描画ソースの高さ
 		*/
 		//-----------------------------------------------------------------//
-		void draw_image(int16_t x, int16_t y, const uint8_t* img, uint8_t w, uint8_t h)
+		void draw_image(int16_t x, int16_t y, const void* img, uint8_t w, uint8_t h)
 		{
 			if(img == nullptr) return;
 
+			const uint8_t* p = static_cast<const uint8_t*>(img);
 			uint8_t k = 1;
-			uint8_t c = *img++;
+			uint8_t c = *p++;
 			for(uint8_t i = 0; i < h; ++i) {
 				int16_t xx = x;
 				for(uint8_t j = 0; j < w; ++j) {
@@ -361,7 +363,7 @@ namespace graphics {
 					k <<= 1;
 					if(k == 0) {
 						k = 1;
-						c = *img++;
+						c = *p++;
 					}
 					++xx;
 				}
@@ -372,19 +374,40 @@ namespace graphics {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief	モーションオブジェクトのサイズを取得
+			@param[in]	src	描画オブジェクト
+			@param[in]	w	横幅
+			@param[in]	h	高さ
+		*/
+		//-----------------------------------------------------------------//
+		void get_mobj_size(const void* src, uint8_t& w, uint8_t& h) const {
+			if(src == nullptr) {
+				w = 0;
+				h = 0;
+				return;
+			}
+			const uint8_t* p = static_cast<const uint8_t*>(src);
+			w = *p++;
+			h = *p;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief	モーションオブジェクトを描画する
 			@param[in]	x	開始点Ｘ軸を指定
 			@param[in]	y	開始点Ｙ軸を指定
-			@param[in]	img	描画ソースのポインター
+			@param[in]	src	描画オブジェクト
 		*/
 		//-----------------------------------------------------------------//
-		void draw_mobj(int16_t x, int16_t y, const uint8_t* img)
+		void draw_mobj(int16_t x, int16_t y, const void* src)
 		{
-			if(img == nullptr) return;
+			if(src == nullptr) return;
 
-			uint8_t w = *img++;
-			uint8_t h = *img++;
-			draw_image(x, y, img, w, h);
+			const uint8_t* p = static_cast<const uint8_t*>(src);
+			uint8_t w = *p++;
+			uint8_t h = *p++;
+			draw_image(x, y, p, w, h);
 		}
 
 
@@ -436,9 +459,16 @@ namespace graphics {
 		{
 			uint8_t c = static_cast<uint8_t>(ch);
 			if(c < 0x80) {
-				draw_font_utf16(x, y, c);
-				if(prop) x += AFONT::get_width(c);
-				else x += AFONT::width;
+				int16_t o = 0;
+				if(prop) {
+					o = AFONT::get_kern(c);
+				}
+				draw_font_utf16(x + o, y, c);
+				if(prop) {
+					x += AFONT::get_width(c);
+				} else {
+					x += AFONT::width;
+				}
 				code_ = 0;
 				return x;
 			} else if((c & 0xf0) == 0xe0) {

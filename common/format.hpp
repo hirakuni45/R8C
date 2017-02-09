@@ -50,7 +50,8 @@ namespace utils {
 		@brief  標準出力ファンクタ
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	struct def_chaout {
+	class def_chaout {
+	public:
 		void operator() (char ch) {
 			char tmp = ch;
 			write(1, &tmp, 1);
@@ -459,9 +460,10 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  コンストラクター
+			@param[in]	form	フォーマット式
 		*/
 		//-----------------------------------------------------------------//
-		basic_format(const char* form) : error_(error::none), form_(form), num_(0), point_(0),
+		basic_format(const char* form) noexcept : error_(error::none), form_(form), num_(0), point_(0),
 			bitlen_(0),
 			mode_(mode::NONE), zerosupp_(false), sign_(false) {
 			next_();
@@ -474,7 +476,7 @@ namespace utils {
 			@return エラー
 		*/
 		//-----------------------------------------------------------------//
-		error get_error() const { return error_; }
+		error get_error() const noexcept { return error_; }
 
 
 		//-----------------------------------------------------------------//
@@ -483,7 +485,7 @@ namespace utils {
 			@return 変換が全て正常なら「true」
 		*/
 		//-----------------------------------------------------------------//
-		bool status() const { return error_ == error::none; }
+		bool status() const noexcept { return error_ == error::none; }
 
 
 		//-----------------------------------------------------------------//
@@ -493,7 +495,36 @@ namespace utils {
 			@return	自分の参照
 		*/
 		//-----------------------------------------------------------------//
-		basic_format& operator % (const char* val)
+		basic_format& operator % (const char* val) noexcept
+		{
+			if(error_ != error::none) {
+				return *this;
+			}
+
+			if(mode_ == mode::STR) {
+				zerosupp_ = false;
+				uint8_t n = 0;
+				const char* p = val;
+				while((*p++) != 0) { ++n; }
+				out_str_(val, 0, n);
+			} else {
+				error_ = error::different;
+			}
+
+			reset_();
+			next_();
+			return *this;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  オペレーター「%」(const char*)
+			@param[in]	val	値
+			@return	自分の参照
+		*/
+		//-----------------------------------------------------------------//
+		basic_format& operator % (char* val) noexcept
 		{
 			if(error_ != error::none) {
 				return *this;
@@ -523,7 +554,7 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		template <typename T>
-		basic_format& operator % (T val)
+		basic_format& operator % (T val) noexcept
 		{
 			if(error_ != error::none) {
 				return *this;
