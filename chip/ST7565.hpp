@@ -17,9 +17,10 @@ namespace chip {
 		@param[in]	CSI_IO	CSI(SPI) 制御クラス
 		@param[in]	CS	デバイス選択、レジスター選択、制御クラス
 		@param[in]	A0	制御切り替え、レジスター選択、制御クラス
+		@param[in]	RES	リセット、制御クラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class CSI_IO, class CS, class A0>
+	template <class CSI_IO, class CS, class A0, class RES>
 	class ST7565 {
 
 		CSI_IO&	csi_;
@@ -81,7 +82,7 @@ namespace chip {
 		}
 
 
-		void init_(bool comrvs) {
+		void init_(bool comrvs, bool bias9) {
 
 			reg_select_(0);
 			chip_enable_();
@@ -97,7 +98,11 @@ namespace chip {
 			write_(CMD::DISPLAY_OFF);
 
 			// LCD bias select
-			write_(CMD::SET_BIAS_7);
+			if(bias9) {
+				write_(CMD::SET_BIAS_9);
+			} else {
+				write_(CMD::SET_BIAS_7);
+			}
 			// ADC select
 			write_(CMD::SET_ADC_NORMAL);
 			// SHL select
@@ -158,19 +163,27 @@ namespace chip {
 			@brief  開始
 			@param[in]	contrast コントラスト
 			@param[in]	comrvs	コモンライン・リバースの場合：true
+			@param[in]	bias9	BIAS9 選択の場合「true」
 		*/
 		//-----------------------------------------------------------------//
-		void start(uint8_t contrast, bool comrvs = false)
+		void start(uint8_t contrast, bool comrvs = false, bool bias9 = false)
 		{
 			CS::DIR = 1;  // (/CS) output
 			A0::DIR = 1;  // (A0) output
+			RES::DIR = 1; // (/RES) output
+
+			RES::P = 0;  // assert /RES signal
 
 			reg_select_(0);
 			chip_enable_(false);
 
 			utils::delay::milli_second(100);
 
-			init_(comrvs);
+			RES::P = 1;  // negate /RES signal
+
+			utils::delay::milli_second(10);
+
+			init_(comrvs, bias9);
 			write_(CMD::DISPLAY_ON);
 	  		write_(CMD::SET_ALLPTS_NORMAL);
 			set_brightness(contrast);
@@ -194,7 +207,6 @@ namespace chip {
 				write_(CMD::SET_PAGE, page);
 				write_(CMD::SET_COLUMN_LOWER, o & 0x0f);
 				write_(CMD::SET_COLUMN_UPPER, o >> 4);
-///    			write_(CMD::RMW);
 				reg_select_(1);
 				csi_.send(src, 128);
 				src += 128;
