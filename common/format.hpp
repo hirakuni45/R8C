@@ -9,7 +9,7 @@
 			※ N には、小数点、符号が含まれる @n
 			Ex: %1.2:8y ---> 256 で 1.00、128 で 0.50、384 で 1.50 と @n
 			と表示される。
-			Copyright 2013,2016 Kunihito Hiramatsu
+			Copyright 2013,2017 Kunihito Hiramatsu
     @author 平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -354,7 +354,6 @@ namespace utils {
 		template <typename VAL>
 		void out_fixed_point_(VAL v, uint8_t fixpoi, bool sign)
 		{
-// std::cout << "Shift: " << static_cast<int>(fixpoi) << std::endl;
 			// 四捨五入処理用 0.5
 			VAL m = 0;
 			if(fixpoi < (sizeof(VAL) * 8 - 4)) {
@@ -463,7 +462,8 @@ namespace utils {
 			@param[in]	form	フォーマット式
 		*/
 		//-----------------------------------------------------------------//
-		basic_format(const char* form) noexcept : error_(error::none), form_(form), num_(0), point_(0),
+		basic_format(const char* form) noexcept : chaout_(),
+			error_(error::none), form_(form), num_(0), point_(0),
 			bitlen_(0),
 			mode_(mode::NONE), zerosupp_(false), sign_(false) {
 			next_();
