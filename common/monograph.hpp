@@ -270,38 +270,38 @@ namespace graphics {
 			@param[in]	c	描画色
 		*/
 		//-----------------------------------------------------------------//
-		void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2, bool c) {
-			int16_t dx;
-			int16_t dy;
-			int16_t sx;
-			int16_t sy;
+		void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2, bool c)
+		{
+			uint16_t dx;
+			int8_t sx;
 			if(x2 >= x1) { dx = x2 - x1; sx = 1; } else { dx = x1 - x2; sx = -1; }
+			uint16_t dy;
+			int8_t sy;
 			if(y2 >= y1) { dy = y2 - y1; sy = 1; } else { dy = y1 - y2; sy = -1; }
 
-			int16_t m = 0;
-			int16_t x = x1;
-			int16_t y = y1;
 			if(dx > dy) {
-				for(int16_t i = 0; i <= dx; i++) {
-					if(c) point_set(x, y);
-					else point_reset(x, y);
+				uint16_t m = dy >> 1;
+				for(uint16_t i = 0; i <= dx; i++) {
+					if(c) point_set(x1, y1);
+					else point_reset(x1, y1);
 					m += dy;
 					if(m >= dx) {
 						m -= dx;
-						y += sy;
+						y1 += sy;
 					}
-					x += sx;
+					x1 += sx;
 				}
 			} else {
-				for(int16_t i = 0; i <= dy; i++) {
-					if(c) point_set(x, y);
-					else point_reset(x, y);
+				uint16_t m = dx >> 1;
+				for(uint16_t i = 0; i <= dy; i++) {
+					if(c) point_set(x1, y1);
+					else point_reset(x1, y1);
 					m += dx;
 					if(m >= dy) {
 						m -= dy;
-						x += sx;
+						x1 += sx;
 					}
-					y += sy;
+					y1 += sy;
 				}
 			}
 		}

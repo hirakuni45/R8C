@@ -24,7 +24,7 @@ MEMORY {
 }
 SECTIONS
 {
-		_usp_init = 0x0780;
+		_usp_init = 0x07C0;
 		_isp_init = 0x0800;
 
   /* There are three cases we care about: First, RW data that must be

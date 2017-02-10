@@ -12,7 +12,8 @@ VPATH		=	../
 ASOURCES	=	common/start.s
 
 CSOURCES	=	common/vect.c \
-				common/init.c
+				common/init.c \
+				common/syscalls.c
 
 PSOURCES	=	main.cpp
 

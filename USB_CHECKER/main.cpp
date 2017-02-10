@@ -23,32 +23,34 @@
 #include "common/spi_io.hpp"
 #include "chip/ST7565.hpp"
 #include "common/monograph.hpp"
+#include "common/font6x12.hpp"
 
 // #include "bitmap/font32.h"
 
 namespace {
 
 // ポートの配置
-// P4_2(1):   LCD_SCK  ,SD_CLK(5)
+// P4_2(1):   LCD_SCK(SCL)
 // P3_7(2):   LCD_/CS
 // /RES(3):  (System reset)
-// P4_7(4):            ,SD_DO/DAT0(7)
+// P4_7(4):   LCD_/RES
 // VSS:(5)   (Power GND)
-// P4_6(6):   XIN (高精度なクロック用)
-// VCC(7):   (Power +V)
+// P4_6(6):
+// VCC(7):   (Power +3.3V)
 // MODE(8):  (System mode)
-// P3_5(9):   I2C_SDA
-// P3_4(10):           ,SD_/CS(1)
-// P1_0(20):  AN0 (keep)
-// P1_1(19):  AN1 (keep)
-// P1_2(18):  AN2 (keep)
-// P1_3(17):  AN3 (keep)
-// P1_4(16):  TXD0 (keep)
-// P1_5(15):  RXD0 (keep)
-// P1_6(14):  LCD_A0 (share)
-// P1_7(13):  TRJIO (keep)
-// P4_5(12):  LCD_SDA  ,SD_DI/CMD(2)
-// P3_3(11):  I2C_SCL
+// P3_5(9):  
+// P3_4(10): 
+// P3_3(11):  LCD_A0
+// P4_5(12):  LCD_SDA
+// P1_7(13):
+// P1_6(14):  ---
+// P1_5(15):  RXD0
+// P1_4(16):  TXD0
+// P1_3(17):  AN3
+// P1_2(18):  AN2
+// P1_1(19):  AN1 
+// P1_0(20):  AN0
+
 
 #if 0
 	const uint8_t* nmbs_[] = {
@@ -58,49 +60,7 @@ namespace {
 	};
 #endif
 
-	uint8_t enc_lvl_ = 0;
-	volatile int8_t enc_cnt_ = 0;
-
-	class encoder {
-	public:
-		void operator() () {
-			uint8_t lvl = device::P1();  ///< 状態の取得
-			uint8_t pos = ~enc_lvl_ &  lvl;  ///< 立ち上がりエッジ検出
-			uint8_t neg =  enc_lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
-			enc_lvl_ = lvl;  ///< 状態のセーブ
-
-			if(pos & device::P1.B0.b()) {
-				if(lvl & device::P1.B1.b()) {
-					--enc_cnt_;
-				} else {
-					++enc_cnt_;
-				}
-			}
-			if(neg & device::P1.B0.b()) {
-				if(lvl & device::P1.B1.b()) {
-					++enc_cnt_;
-				} else {
-					--enc_cnt_;
-				}
-			}
-			if(pos & device::P1.B1.b()) {
-				if(lvl & device::P1.B0.b()) {
-					++enc_cnt_;
-				} else {
-					--enc_cnt_;
-				}
-			}
-			if(neg & device::P1.B1.b()) {
-				if(lvl & device::P1.B0.b()) {
-					--enc_cnt_;
-				} else {
-					++enc_cnt_;
-				}
-			}
-		}
-	};
-
-	device::trb_io<encoder> timer_b_;
+	device::trb_io<utils::null_task> timer_b_;
 
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
@@ -114,19 +74,33 @@ namespace {
 	typedef device::spi_io<SPI_SCL, SPI_SDA, device::NULL_PORT> SPI;
 	SPI		spi_;
 
-	// LCD /CS: P3_7(2)
+	// LCD /CS:  P3_7(2)
 	typedef device::PORT<device::PORT3, device::bitpos::B7> LCD_SEL;
-	// LCD A0:  P1_6(14)
-	typedef device::PORT<device::PORT1, device::bitpos::B6> LCD_A0;
+	// LCD A0:   P3_3(11)
+	typedef device::PORT<device::PORT3, device::bitpos::B3> LCD_A0;
+	// LCD /RES: P4_7(4)
+	typedef device::PORT<device::PORT4, device::bitpos::B7> LCD_RES;
 
-	typedef chip::ST7565<SPI, LCD_SEL, LCD_A0> LCD;
+	typedef chip::ST7565<SPI, LCD_SEL, LCD_A0, LCD_RES> LCD;
 	LCD 	lcd_(spi_);
 
+	typedef graphics::font6x12 afont;
 	graphics::kfont_null kfont_;
-	graphics::monograph<128, 32> bitmap_(kfont_);
+	graphics::monograph<128, 32, afont> bitmap_(kfont_);
 
-	typedef device::trj_io<utils::null_task> timer_j;
-	timer_j timer_j_;
+	uint8_t v_ = 91;
+	uint8_t m_ = 123;
+	uint8_t rand_()
+	{
+		v_ += v_ << 2;
+		++v_;
+		uint8_t n = 0;
+		if(m_ & 0x02) n = 1;
+		if(m_ & 0x40) n ^= 1;
+		m_ += m_;
+		if(n == 0) ++m_;
+		return v_ ^ m_;
+	}
 }
 
 extern "C" {
@@ -176,7 +150,7 @@ extern "C" {
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (20)
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (21) /INT2
-		reinterpret_cast<void*>(timer_j_.iout),	nullptr,	// (22) タイマＲＪ２
+		reinterpret_cast<void*>(null_task_),	nullptr,	// (22) タイマＲＪ２
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (23) 周期タイマ
 
 		reinterpret_cast<void*>(timer_b_.itask),nullptr,	// (24) タイマＲＢ２
@@ -224,27 +198,6 @@ int main(int argc, char *argv[])
 		uart_.start(57600, ir_level);
 	}
 
-
-	sci_puts("Start USB Checker\n");
-	utils::format("# ");
-
-
-	while(1) {
-		timer_b_.sync();
-
-	}
-
-#if 0
-	// エンコーダー入力の設定 P10: (Phi_A), P11: (Phi_B), Vss: (COM)
-	{
-		utils::PORT_MAP(utils::port_map::P10::PORT);
-		utils::PORT_MAP(utils::port_map::P11::PORT);
-		device::PD1.B0 = 0;
-		device::PD1.B1 = 0;
-		device::PUR1.B0 = 1;	///< プルアップ
-		device::PUR1.B1 = 1;	///< プルアップ
-	}
-
 	// SPI を開始
 	{
 		spi_.start(0);
@@ -252,86 +205,36 @@ int main(int argc, char *argv[])
 
 	// LCD を開始
 	{
-		lcd_.start(0x00);
-		spi_.start(0);  // Boost SPI clock
+		lcd_.start(0x00, true, true);  // contrast, reverse=yes, BIAS9
 		bitmap_.clear(0);
 	}
 
-	uint8_t cnt = 0;
-	uint32_t value = 0;
+	utils::format("Start USB Checker\n");
+	utils::format("# ");
+
+	uint16_t x = rand_() & 127;
+	uint16_t y = rand_() & 31;
+	uint16_t xx;
+	uint16_t yy;
+	uint8_t loop = 50;
 	while(1) {
 		timer_b_.sync();
+		lcd_.copy(bitmap_.fb(), bitmap_.page_num());
 
-		// エンコーダー値の増減
-		int32_t d = 0;
-		if(enc_cnt_ >= 4) {
-			enc_cnt_ = 0;
-			d = 1;
-		} else if(enc_cnt_ <= -4) { 
-			enc_cnt_ = 0;
-			d = -1;
-		}
-		if(d) {
-			if(count < 100) {
-				d *= 1;
-			} else if(count < 1000) { // 1KHz
-				d *= 10; // 10Hz step
-			} else if(count < 10000) { // 10KHz
-				d *= 100; // 100Hz step
-			} else if(count < 100000) { // 100KHz
-				d *= 1000; // 1KHz step
-			} else if(count < 1000000) { // 1MHz
-				d *= 10000; // 10KHz step
-			} else {
-				d *= 100000; // 100KHz step
-			}
-			count += static_cast<uint32_t>(d);
-			if(count < 20) count = 20;
-			else if(count > 10000000) count = 10000000;
-		}
-
-		if(value != count) {
-			value = count;
-
-			timer_j_.set_cycle(count);
-
-			if(count > 99999) {
-				utils::format("%dKHz\n") % (count / 1000);
-			} else {
-				utils::format("%dHz\n") % count;
-			}
-		}
-
-		// 1/15 sec
-		if((cnt & 15) == 0) {
+		if(loop >= 50) {
+			loop = 0;
 			bitmap_.clear(0);
-#if 0
-			uint32_t n = count;
-			bool khz = false;
-			if(n > 99999) {
-				n /= 1000;
-				khz = true;
-			}
-			bitmap_.draw_mobj(20 * 4, 0, nmbs_[n % 10]);
-			n /= 10;
-			bitmap_.draw_mobj(20 * 3, 0, nmbs_[n % 10]);
-			n /= 10;
-			bitmap_.draw_mobj(20 * 2, 0, nmbs_[n % 10]);
-			n /= 10;
-			bitmap_.draw_mobj(20 * 1, 0, nmbs_[n % 10]);
-			n /= 10;
-			bitmap_.draw_mobj(20 * 0, 0, nmbs_[n % 10]);
-			if(khz) {
-				bitmap_.draw_mobj(20 * 5, 0, nmbs_[11]);
-				bitmap_.draw_mobj(20 * 5 + 11, 0, nmbs_[10]);
-			} else {
-				bitmap_.draw_mobj(20 * 5, 0, nmbs_[10]);
-			}
-#endif
-			lcd_.copy(bitmap_.fb(), 4);
+			bitmap_.frame(0, 0, 128, 32, 1);
+			bitmap_.frame(10, 10, 128-20, 32-20, 1);
+			bitmap_.draw_text(0, 0, "ABCDEFG");
+			bitmap_.line(0, 0, 127, 31, 1);
+			bitmap_.line(0, 31, 127,  0, 1);
 		}
-
-		++cnt;
+		xx = rand_() & 127;
+		yy = rand_() & 31;
+		bitmap_.line(x, y, xx, yy, 1);
+		x = xx;
+		y = yy;
+		++loop;
 	}
-#endif
 }

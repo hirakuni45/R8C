@@ -124,8 +124,8 @@ namespace {
 	typedef chip::ST7565<SPI, LCD_SEL, LCD_A0> LCD;
 	LCD 	lcd_(spi_);
 
-	typedef graphics::monograph mono_graph;
-	mono_graph bitmap_;
+	graphics::kfont_null kfont_;
+	graphics::monograph<128, 32> bitmap_(kfont_);
 
 	typedef device::trj_io<utils::null_task> timer_j;
 	timer_j timer_j_;
@@ -244,9 +244,7 @@ int main(int argc, char *argv[])
 	// LCD を開始
 	{
 		lcd_.start(0x00);
-		bitmap_.init();
 		bitmap_.clear(0);
-//		bitmap_.frame(0, 0, 128, 32, 1);
 	}
 
 	uint32_t count = 20;

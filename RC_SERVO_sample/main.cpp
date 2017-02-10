@@ -8,6 +8,7 @@
 #include "clock.hpp"
 #include "port.hpp"
 #include "common/delay.hpp"
+#include "common/intr_utils.hpp"
 #include "common/port_map.hpp"
 #include "common/adc_io.hpp"
 #include "common/trc_io.hpp"
@@ -53,7 +54,7 @@ namespace {
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
 
-	typedef device::adc_io adc;
+	typedef device::adc_io<utils::null_task> adc;
 	adc adc_;
 
 	uint16_t calc_pwm_(uint16_t adc_value)
@@ -151,8 +152,7 @@ int main(int argc, char *argv[])
 	{
 		utils::PORT_MAP(utils::port_map::P10::AN0);
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.setup(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
-		adc_.start();
+		adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
 	}
 
 	// ＰＷＭモード設定
