@@ -19,11 +19,12 @@
 #include "common/uart_io.hpp"
 #include "common/format.hpp"
 #include "common/trb_io.hpp"
-#include "common/trj_io.hpp"
+#include "common/adc_io.hpp"
 #include "common/spi_io.hpp"
 #include "chip/ST7565.hpp"
 #include "common/monograph.hpp"
 #include "common/font6x12.hpp"
+#include "common/fixed_string.hpp"
 
 // #include "bitmap/font32.h"
 
@@ -51,20 +52,14 @@ namespace {
 // P1_1(19):  AN1 
 // P1_0(20):  AN0
 
-
-#if 0
-	const uint8_t* nmbs_[] = {
-		nmb_0, nmb_1, nmb_2, nmb_3, nmb_4,
-		nmb_5, nmb_6, nmb_7, nmb_8, nmb_9,
-		txt_hz, txt_k
-	};
-#endif
-
 	device::trb_io<utils::null_task> timer_b_;
 
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
+
+	typedef device::adc_io<utils::null_task> adc;
+	adc adc_;
 
 	// LCD SCL: P4_2(1)
 	typedef device::PORT<device::PORT4, device::bitpos::B2> SPI_SCL;
@@ -88,19 +83,18 @@ namespace {
 	graphics::kfont_null kfont_;
 	graphics::monograph<128, 32, afont> bitmap_(kfont_);
 
-	uint8_t v_ = 91;
-	uint8_t m_ = 123;
-	uint8_t rand_()
-	{
-		v_ += v_ << 2;
-		++v_;
-		uint8_t n = 0;
-		if(m_ & 0x02) n = 1;
-		if(m_ & 0x40) n ^= 1;
-		m_ += m_;
-		if(n == 0) ++m_;
-		return v_ ^ m_;
-	}
+	typedef utils::fixed_string<32> string32;
+	string32	string32_;
+
+	class string_out {
+	public:
+		string_out() { string32_.clear(); }
+		void operator () (char ch) {
+			string32_ += ch;
+		}
+	};
+
+	typedef utils::basic_format<string_out> sformat;
 }
 
 extern "C" {
@@ -186,7 +180,7 @@ int main(int argc, char *argv[])
 	// タイマーＢ初期化
 	{
 		uint8_t ir_level = 2;
-		timer_b_.start_timer(60, ir_level);
+		timer_b_.start_timer(50, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
@@ -196,6 +190,13 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P15::RXD0);
 		uint8_t ir_level = 1;
 		uart_.start(57600, ir_level);
+	}
+
+	// ADC の設定
+	{
+		utils::PORT_MAP(utils::port_map::P10::AN0);
+		utils::PORT_MAP(utils::port_map::P11::AN1);
+		adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
 	}
 
 	// SPI を開始
@@ -210,31 +211,29 @@ int main(int argc, char *argv[])
 	}
 
 	utils::format("Start USB Checker\n");
-	utils::format("# ");
 
-	uint16_t x = rand_() & 127;
-	uint16_t y = rand_() & 31;
-	uint16_t xx;
-	uint16_t yy;
-	uint8_t loop = 50;
+	uint8_t loop = 0;
 	while(1) {
 		timer_b_.sync();
+
+		adc_.scan();  // A/D scan start
+
 		lcd_.copy(bitmap_.fb(), bitmap_.page_num());
 
-		if(loop >= 50) {
+		adc_.sync(); // A/D scan sync
+
+		if(loop >= 25) {
 			loop = 0;
 			bitmap_.clear(0);
-			bitmap_.frame(0, 0, 128, 32, 1);
-			bitmap_.frame(10, 10, 128-20, 32-20, 1);
-			bitmap_.draw_text(0, 0, "ABCDEFG");
-			bitmap_.line(0, 0, 127, 31, 1);
-			bitmap_.line(0, 31, 127,  0, 1);
+			auto v = adc_.get_value(0);
+			sformat("%d") % v;
+			bitmap_.draw_text(0, 0, string32_.c_str());
+
+			auto s = timer_b_.get_count() / 50;
+			auto h = s / 60;
+			sformat("%02d:%02d") % (h % 100) % (s % 60);
+			bitmap_.draw_text(0, 12, string32_.c_str());
 		}
-		xx = rand_() & 127;
-		yy = rand_() & 31;
-		bitmap_.line(x, y, xx, yy, 1);
-		x = xx;
-		y = yy;
 		++loop;
 	}
 }
