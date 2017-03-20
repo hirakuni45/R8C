@@ -1,6 +1,10 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C RC-Servo テスター・メイン
+	@brief	R8C RC-Servo テスター・メイン @n
+			・デバイス： R8C/M11A @n
+			・アナログ入力： P1_1(14) @n
+			・PWM 出力： P1_3(12) @n
+			・インジケーター： P3_7(1) active-low
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -152,7 +156,7 @@ int main(int argc, char *argv[])
 	// P10, P11 の A/D 変換
 	{
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
+		adc_.start(adc::cnv_type::CH1, adc::ch_grp::AN0_AN1, true);
 	}
 
 	// ＰＷＭモード設定
