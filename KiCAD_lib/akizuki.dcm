@@ -1,4 +1,4 @@
-EESchema-DOCLIB  Version 2.0  Date: 2015/06/11 8:30:45
+EESchema-DOCLIB  Version 2.0
 #
 $CMP 2N7002K
 D N Channel MOSFET
@@ -43,11 +43,6 @@ D Crystal
 K XTAL
 $ENDCMP
 #
-$CMP DIODE
-D Diode
-K D
-$ENDCMP
-#
 $CMP FDS4675
 D FAIRCHILD 40V P-Chanel PowerTrench MOSFET (-11A)
 K FDS4675
@@ -82,6 +77,10 @@ $CMP LM336
 D Reference Diode
 $ENDCMP
 #
+$CMP LT6106
+D High Side Current Sense
+$ENDCMP
+#
 $CMP MCP3204
 D MICROCHIP 12bit 4Chanel A/D Converter (2.7V to 5.5V)
 K MCP3204
@@ -107,11 +106,6 @@ D Register
 K R
 $ENDCMP
 #
-$CMP RS
-D Register
-K R
-$ENDCMP
-#
 $CMP RSS100N03
 D ROHM N-Chanle Power MOSFET (10A, 30V)
 K ROHM,MOSFET
@@ -127,11 +121,6 @@ D 128 dots by 64 dots monocolor graphics LCD
 K SG12864A
 $ENDCMP
 #
-$CMP SHOTKEY
-D Shotkey Diode
-K D
-$ENDCMP
-#
 $CMP TLP222A
 D TOSHIBA Photocoupler Photorelay
 K TLP
@@ -140,6 +129,10 @@ $ENDCMP
 $CMP VS1011E-SO
 D VLSI SOLUTION Decoder MPEG 1.0 & 2.0 audio layer I,II,III,WAV,ADPCM
 K VS1011e
+$ENDCMP
+#
+$CMP XC6202
+D 3.3V Regulator
 $ENDCMP
 #
 #End Doc Library
