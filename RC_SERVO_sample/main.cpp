@@ -170,11 +170,11 @@ int main(int argc, char *argv[])
 
 	while(1) {
 		timer_c_.task_.sync();
-		if(adc_.get_state()) {
-			auto ch_a = calc_pwm_(adc_.get_value(0));
-			timer_c_.set_pwm_b(ch_a);
-			auto ch_b = calc_pwm_(adc_.get_value(1));
-			timer_c_.set_pwm_c(ch_b);			
-		}
+		adc_.scan();
+		adc_.sync();
+		auto ch_a = calc_pwm_(adc_.get_value(0));
+		timer_c_.set_pwm_b(ch_a);
+		auto ch_b = calc_pwm_(adc_.get_value(1));
+		timer_c_.set_pwm_c(ch_b);
 	}
 }
