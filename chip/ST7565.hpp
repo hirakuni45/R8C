@@ -82,7 +82,7 @@ namespace chip {
 		}
 
 
-		void init_(bool comrvs, bool bias9) {
+		void init_(bool comrvs, bool bias9, uint8_t vratio) {
 
 			reg_select_(0);
 			chip_enable_();
@@ -133,7 +133,9 @@ namespace chip {
 			utils::delay::milli_second(10);
 
 			// set lcd operating voltage (regulator resistor, ref voltage resistor)
-			write_(CMD::SET_RESISTOR_RATIO, 0x6);
+///			write_(CMD::SET_RESISTOR_RATIO, 0x6);
+///			write_(CMD::SET_RESISTOR_RATIO, 0x3);
+			write_(CMD::SET_RESISTOR_RATIO, vratio);
 		}
 
 	public:
@@ -164,9 +166,10 @@ namespace chip {
 			@param[in]	contrast コントラスト
 			@param[in]	comrvs	コモンライン・リバースの場合：true
 			@param[in]	bias9	BIAS9 選択の場合「true」
+			@param[in]	vratio	ボルテージ・レシオ
 		*/
 		//-----------------------------------------------------------------//
-		void start(uint8_t contrast, bool comrvs = false, bool bias9 = false)
+		void start(uint8_t contrast, bool comrvs = false, bool bias9 = false, uint8_t vratio = 6)
 		{
 			CS::DIR = 1;  // (/CS) output
 			A0::DIR = 1;  // (A0) output
@@ -183,7 +186,7 @@ namespace chip {
 
 			utils::delay::milli_second(10);
 
-			init_(comrvs, bias9);
+			init_(comrvs, bias9, vratio);
 			write_(CMD::DISPLAY_ON);
 	  		write_(CMD::SET_ALLPTS_NORMAL);
 			set_brightness(contrast);
