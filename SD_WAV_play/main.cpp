@@ -23,7 +23,7 @@
 
 namespace {
 
-	typedef device::trb_io<utils::null_task> timer_b;
+	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
 	timer_b timer_b_;
 
 	typedef device::trc_io<utils::null_task> timer_c;
@@ -55,7 +55,7 @@ namespace {
 		}
 	};
 
-	typedef device::trb_io<wave_out> timer_audio;
+	typedef device::trb_io<wave_out, uint8_t> timer_audio;
 
 	audio::wav_in wav_in_;
 
