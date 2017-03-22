@@ -297,10 +297,10 @@ namespace app {
 					break;
 
 				case TASK::WATT_M:
-					watt("%6.3fWm", watt_ / 60.0f);
+					watt("%8.3fWm", watt_ / 60.0f);
 					break;
 				case TASK::WATT_H:
-					watt("%7.5fWh", watt_ / 3600.0f);
+					watt("%8.5fWh", watt_ / 3600.0f);
 					break;
 
 				default:
