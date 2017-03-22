@@ -14,21 +14,10 @@
 #include "port.hpp"
 #include "common/intr_utils.hpp"
 #include "common/delay.hpp"
-#include "common/port_map.hpp"
-#include "common/fifo.hpp"
-#include "common/uart_io.hpp"
-#include "common/format.hpp"
-#include "common/trb_io.hpp"
-#include "common/adc_io.hpp"
-#include "common/spi_io.hpp"
-#include "chip/ST7565.hpp"
-#include "common/monograph.hpp"
-#include "common/font6x12.hpp"
-#include "common/fixed_string.hpp"
 
 // #include "bitmap/font32.h"
 
-namespace {
+#include "checker.hpp"
 
 // ポートの配置
 // P4_2(1):   LCD_SCK(SCL)
@@ -52,108 +41,34 @@ namespace {
 // P1_1(19):  AN1 voltage sense (19.8V max)
 // P1_0(20):  AN0 current sense (1.2 V/A)
 
-	/// タイマーＢ、割り込みタスク
-	class trb_task {
-		uint32_t	time_;
-		uint8_t		lvl_;
-		uint8_t		pos_;
-		uint8_t		neg_;
-
-	public:
-		enum class type : uint8_t {
-			SW_A = 0x20,	///< SW-A
-			SW_B = 0x10		///< SW-B
-		};
-
-		trb_task() : time_(0), lvl_(0), pos_(0), neg_(0) { }
-
-		void init() const {
-			utils::PORT_MAP(utils::port_map::P34::PORT);
-			utils::PORT_MAP(utils::port_map::P35::PORT);
-			device::PD3.B4 = 0;
-			device::PD3.B5 = 0;
-			device::PUR3.B4 = 1;	///< プルアップ
-			device::PUR3.B5 = 1;	///< プルアップ
-		}
-
-		void operator() () {
-			++time_;
-			uint8_t lvl = ~device::P3();
-			pos_ = ~lvl_ &  lvl;  ///< 立ち上がりエッジ検出
-			neg_ =  lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
-		}
-
-		bool level(type t) const { return lvl_ & static_cast<uint8_t>(t); }
-		bool positive(type t) const { return pos_ & static_cast<uint8_t>(t); }
-		bool negative(type t) const { return neg_ & static_cast<uint8_t>(t); }
-
-		void set_time(uint32_t v) { time_ = v; }
-
-		uint32_t get_time() const { return time_; }
-	};
-
-	typedef device::trb_io<trb_task, uint8_t> timer_b;
-	timer_b timer_b_;
-
-	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
-
-	typedef device::adc_io<utils::null_task> adc;
-	adc adc_;
-
-	// LCD SCL: P4_2(1)
-	typedef device::PORT<device::PORT4, device::bitpos::B2> SPI_SCL;
-	// LCD SDA: P4_5(12)
-	typedef device::PORT<device::PORT4, device::bitpos::B5> SPI_SDA;
-
-	typedef device::spi_io<SPI_SCL, SPI_SDA, device::NULL_PORT> SPI;
-	SPI		spi_;
-
-	// LCD /CS:  P3_7(2)
-	typedef device::PORT<device::PORT3, device::bitpos::B7> LCD_SEL;
-	// LCD A0:   P3_3(11)
-	typedef device::PORT<device::PORT3, device::bitpos::B3> LCD_A0;
-	// LCD /RES: P4_7(4)
-	typedef device::PORT<device::PORT4, device::bitpos::B7> LCD_RES;
-
-	typedef chip::ST7565<SPI, LCD_SEL, LCD_A0, LCD_RES> LCD;
-	LCD 	lcd_(spi_);
-
-	typedef graphics::font6x12 afont;
-	graphics::kfont_null kfont_;
-	graphics::monograph<128, 24, afont> bitmap_(kfont_);
-
-	typedef utils::fixed_string<32> string32;
-	string32	string32_;
-
-	class string_out {
-	public:
-		string_out() { string32_.clear(); }
-		void operator () (char ch) {
-			string32_ += ch;
-		}
-	};
-
-	typedef utils::basic_format<string_out> sformat;
+namespace {
+	app::checker checker_;
 }
 
 extern "C" {
 	void sci_putch(char ch) {
-		uart_.putch(ch);
+#ifdef UART
+		checker_.uart_.putch(ch);
+#endif
 	}
 
 	char sci_getch(void) {
-		return uart_.getch();
+#ifdef UART
+		return checker_.uart_.getch();
+#else
+		return 0;
+#endif
 	}
 
+#if 0
 	uint16_t sci_length() {
-		return uart_.length();
+		return checker_.uart_.length();
 	}
 
 	void sci_puts(const char* str) {
-		uart_.puts(str);
+		checker_.uart_.puts(str);
 	}
+#endif
 }
 
 extern "C" {
@@ -179,8 +94,13 @@ extern "C" {
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (15)
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (16)
-		reinterpret_cast<void*>(uart_.isend),	nullptr,	// (17) UART0 送信
-		reinterpret_cast<void*>(uart_.irecv),	nullptr,	// (18) UART0 受信
+#ifdef UART
+		reinterpret_cast<void*>(checker_.uart_.isend),	nullptr,	// (17) UART0 送信
+		reinterpret_cast<void*>(checker_.uart_.irecv),	nullptr,	// (18) UART0 受信
+#else
+		reinterpret_cast<void*>(null_task_),	nullptr,	// (17)
+		reinterpret_cast<void*>(null_task_),	nullptr,	// (18)
+#endif
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (19)
 
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (20)
@@ -188,7 +108,7 @@ extern "C" {
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (22) タイマＲＪ２
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (23) 周期タイマ
 
-		reinterpret_cast<void*>(timer_b_.itask),nullptr,	// (24) タイマＲＢ２
+		reinterpret_cast<void*>(checker_.timer_b_.itask),nullptr,	// (24) タイマＲＢ２
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (25) /INT1
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (26) /INT3
 		reinterpret_cast<void*>(null_task_),	nullptr,	// (27)
@@ -218,81 +138,9 @@ int main(int argc, char *argv[])
 
 	PRCR.PRC0 = 0;
 
-	// タイマーＢ初期化
-	{
-		timer_b::task_.init();
-		uint8_t ir_level = 2;
-		timer_b_.start_timer(50, ir_level);
-	}
+	checker_.init();
 
-	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
-	// ※シリアルライターでは、RXD 端子は、P1_6 となっているので注意！
-	{
-		utils::PORT_MAP(utils::port_map::P14::TXD0);
-		utils::PORT_MAP(utils::port_map::P15::RXD0);
-		uint8_t ir_level = 1;
-		uart_.start(57600, ir_level);
-	}
-
-	// ADC の設定
-	{
-		utils::PORT_MAP(utils::port_map::P10::AN0);
-		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
-	}
-
-	// SPI を開始
-	{
-		spi_.start(0);
-	}
-
-	// LCD を開始
-	{
-		lcd_.start(0x1C, true, false, 3);  // contrast, reverse=yes, BIAS9=false(BIAS7), Voltage-Ratio: 3
-		bitmap_.clear(0);
-	}
-
-	utils::format("Start USB Checker\n");
-
-	uint8_t loop = 0;
 	while(1) {
-		timer_b_.sync();
-
-		adc_.scan(); // A/D scan start
-
-		if(timer_b::task_.positive(timer_b::task_type::type::SW_B)) {
-			timer_b::task_.set_time(0);
-		}
-
-		adc_.sync(); // A/D scan sync
-
-		if(loop >= 25) {
-			loop = 0;
-			// 400mV/A * 3
-			uint32_t i = adc_.get_value(0);
-			i <<= 8;
-			i /= (124 * 3);
-			uint32_t v = adc_.get_value(1);
-			v *= 845 * 6;
-//			utils::format("Vol: %1.2:8y [V], Cur: %1.2:8y [A]\n") % (v >> 10) % i;
-
-			bitmap_.clear(0);
-			sformat("%1.2:8y [V]") % (v >> 10);
-			bitmap_.draw_text(0, 0, string32_.c_str());
-
-			sformat("%1.2:8y [A]") % i;
-			bitmap_.draw_text(0, 12, string32_.c_str());
-
-			lcd_.copy(bitmap_.fb(), bitmap_.page_num(), 0);
-
-			bitmap_.clear(0);
-			auto s = timer_b::task_.get_time() / 50;
-			auto h = s / 60;
-			sformat("%02d:%02d") % (h % 100) % (s % 60);
-			bitmap_.draw_text(0, 0, string32_.c_str());
-
-			lcd_.copy(bitmap_.fb(), bitmap_.page_num(), 3);
-		}
-		++loop;
+		checker_.service();
 	}
 }
