@@ -26,7 +26,7 @@
 
 namespace {
 
-	device::trb_io<utils::null_task> timer_b_;
+	device::trb_io<utils::null_task, uint8_t> timer_b_;
 
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;

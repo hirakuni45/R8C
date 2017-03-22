@@ -30,7 +30,7 @@ namespace {
 		}
 	};
 
-	device::trb_io<trb_intr_task> timer_b_;
+	device::trb_io<trb_intr_task, uint8_t> timer_b_;
 
 }
 

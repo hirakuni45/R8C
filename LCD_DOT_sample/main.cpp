@@ -26,7 +26,7 @@
 
 namespace {
 
-	device::trb_io<utils::null_task> timer_b_;
+	device::trb_io<utils::null_task, uint8_t> timer_b_;
 
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
@@ -46,8 +46,10 @@ namespace {
 	typedef device::PORT<device::PORT3, device::bitpos::B7> LCD_SEL;
 	// LCD A0:  P1_6(14)
 	typedef device::PORT<device::PORT1, device::bitpos::B6> LCD_A0;
+	// LCD RESET
+	typedef device::NULL_PORT LCD_RES;
 
-	typedef chip::ST7565<SPI, LCD_SEL, LCD_A0> LCD;
+	typedef chip::ST7565<SPI, LCD_SEL, LCD_A0, LCD_RES> LCD;
 	LCD 	lcd_(spi_);
 
 	graphics::kfont_null kfont_;

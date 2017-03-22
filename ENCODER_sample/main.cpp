@@ -63,8 +63,8 @@ namespace {
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
 
-	typedef device::trb_io<utils::null_task> timer_b;
-	device::trb_io<encoder> timer_b_;
+	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
+	timer_b timer_b_;
 }
 
 extern "C" {

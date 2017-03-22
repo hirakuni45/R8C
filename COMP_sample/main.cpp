@@ -18,7 +18,7 @@
 
 namespace {
 
-	typedef device::trb_io<utils::null_task> timer_b;
+	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
 	timer_b timer_b_;
 
 	typedef device::comp_io<utils::null_task, utils::null_task> comp;

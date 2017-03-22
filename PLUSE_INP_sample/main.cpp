@@ -24,7 +24,7 @@ namespace {
 	typedef device::trj_io<utils::null_task> timer_j;
 	timer_j timer_j_;
 
-	typedef device::trb_io<utils::null_task> timer_b;
+	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
 	timer_b timer_b_;
 
 }
