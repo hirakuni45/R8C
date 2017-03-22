@@ -53,7 +53,9 @@ R8C sources
  - /SD_monitor      --->   pFatFS を使った、SD カードのモニター（未完）
  - /SD_WAV_play     --->   SD カード上の WAV 形式ファイルの PWM 再生
  - /ARITH_sample    --->   数値計算テンプレートサンプル
-
+ - /RC_SERVO_tester --->   ラジコン用サーボのテスター（ＪＲ、又はフタバＰＷＭ出力、１チャネル用）
+ - /USB_CHECKER     --->   USB 電流、電圧チェッカー
+   
 ---
 
 ## R8C 開発環境準備（Windows、MSYS2）
