@@ -52,7 +52,48 @@ namespace {
 // P1_1(19):  AN1 voltage sense (19.8V max)
 // P1_0(20):  AN0 current sense (1.2 V/A)
 
-	device::trb_io<utils::null_task, uint32_t> timer_b_;
+	/// タイマーＢ、割り込みタスク
+	class trb_task {
+		uint32_t	time_;
+		uint8_t		lvl_;
+		uint8_t		pos_;
+		uint8_t		neg_;
+
+	public:
+		enum class type : uint8_t {
+			SW_A = 0x20,	///< SW-A
+			SW_B = 0x10		///< SW-B
+		};
+
+		trb_task() : time_(0), lvl_(0), pos_(0), neg_(0) { }
+
+		void init() const {
+			utils::PORT_MAP(utils::port_map::P34::PORT);
+			utils::PORT_MAP(utils::port_map::P35::PORT);
+			device::PD3.B4 = 0;
+			device::PD3.B5 = 0;
+			device::PUR3.B4 = 1;	///< プルアップ
+			device::PUR3.B5 = 1;	///< プルアップ
+		}
+
+		void operator() () {
+			++time_;
+			uint8_t lvl = ~device::P3();
+			pos_ = ~lvl_ &  lvl;  ///< 立ち上がりエッジ検出
+			neg_ =  lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
+		}
+
+		bool level(type t) const { return lvl_ & static_cast<uint8_t>(t); }
+		bool positive(type t) const { return pos_ & static_cast<uint8_t>(t); }
+		bool negative(type t) const { return neg_ & static_cast<uint8_t>(t); }
+
+		void set_time(uint32_t v) { time_ = v; }
+
+		uint32_t get_time() const { return time_; }
+	};
+
+	typedef device::trb_io<trb_task, uint8_t> timer_b;
+	timer_b timer_b_;
 
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
@@ -179,6 +220,7 @@ int main(int argc, char *argv[])
 
 	// タイマーＢ初期化
 	{
+		timer_b::task_.init();
 		uint8_t ir_level = 2;
 		timer_b_.start_timer(50, ir_level);
 	}
@@ -217,6 +259,11 @@ int main(int argc, char *argv[])
 		timer_b_.sync();
 
 		adc_.scan(); // A/D scan start
+
+		if(timer_b::task_.positive(timer_b::task_type::type::SW_B)) {
+			timer_b::task_.set_time(0);
+		}
+
 		adc_.sync(); // A/D scan sync
 
 		if(loop >= 25) {
@@ -239,7 +286,7 @@ int main(int argc, char *argv[])
 			lcd_.copy(bitmap_.fb(), bitmap_.page_num(), 0);
 
 			bitmap_.clear(0);
-			auto s = timer_b_.get_count() / 50;
+			auto s = timer_b::task_.get_time() / 50;
 			auto h = s / 60;
 			sformat("%02d:%02d") % (h % 100) % (s % 60);
 			bitmap_.draw_text(0, 0, string32_.c_str());
