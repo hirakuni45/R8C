@@ -9,7 +9,7 @@
 			※ N には、小数点、符号が含まれる @n
 			Ex: %1.2:8y ---> 256 で 1.00、128 で 0.50、384 で 1.50 と @n
 			と表示される。
-			Copyright 2013,2017 Kunihito Hiramatsu
+			Copyright 2013,2016 Kunihito Hiramatsu
     @author 平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -51,10 +51,20 @@ namespace utils {
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class def_chaout {
+		char*		out_;
+		uint16_t	len_;
+		uint16_t	pos_;
 	public:
+		def_chaout(char* out = nullptr, uint16_t len = 0) : out_(out), len_(len), pos_(0) { } 
 		void operator() (char ch) {
-			char tmp = ch;
-			write(1, &tmp, 1);
+			if(out_ != nullptr && len_ > 1 && pos_ < (len_ - 1)) {
+				out_[pos_] = ch;
+				++pos_;
+				out_[pos_] = 0;
+			} else {
+				char tmp = ch;
+				write(1, &tmp, 1);
+			}
 		}
 	};
 
@@ -80,8 +90,6 @@ namespace utils {
 		};
 
 	private:
-		chaout	chaout_;
-
 		enum class mode : uint8_t {
 			CHA,		///< 文字
 			STR,		///< 文字列
@@ -102,6 +110,8 @@ namespace utils {
 		error		error_;
 
 		const char*	form_;
+
+		chaout	chaout_;
 
 		char		buff_[34];
 
@@ -354,6 +364,7 @@ namespace utils {
 		template <typename VAL>
 		void out_fixed_point_(VAL v, uint8_t fixpoi, bool sign)
 		{
+// std::cout << "Shift: " << static_cast<int>(fixpoi) << std::endl;
 			// 四捨五入処理用 0.5
 			VAL m = 0;
 			if(fixpoi < (sizeof(VAL) * 8 - 4)) {
@@ -462,8 +473,10 @@ namespace utils {
 			@param[in]	form	フォーマット式
 		*/
 		//-----------------------------------------------------------------//
-		basic_format(const char* form) noexcept : chaout_(),
-			error_(error::none), form_(form), num_(0), point_(0),
+		basic_format(const char* form, char* out = nullptr, uint16_t len = 0) noexcept :
+			error_(error::none),
+			form_(form), chaout_(out, len),
+			num_(0), point_(0),
 			bitlen_(0),
 			mode_(mode::NONE), zerosupp_(false), sign_(false) {
 			next_();
