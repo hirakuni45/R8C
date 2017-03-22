@@ -29,7 +29,7 @@ namespace {
 		}
 	};
 
-	typedef device::trb_io<timer_task> timer_bt;
+	typedef device::trb_io<timer_task, uint8_t> timer_bt;
 	timer_bt timer_b_;
 
 	typedef utils::fifo<uint8_t, 16> buffer;
