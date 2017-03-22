@@ -1,8 +1,8 @@
 //=====================================================================//
 /*!	@file
 	@brief	R8C USB チェッカー・メイン @n
-			for ST7567 SPI (128 x 32) @n
-			LCD: Aitendo M-G0812P7567
+			for ST7567 SPI @n
+			LCD: AQM1284A-RN (128x48) Akizuki
 	@author	平松邦仁 (hira@rvf-rc45.net)
 */
 //=====================================================================//
@@ -38,21 +38,21 @@ namespace {
 // VSS:(5)   (Power GND)
 // P4_6(6):
 // VCC(7):   (Power +3.3V)
-// MODE(8):  (System mode)
-// P3_5(9):  
-// P3_4(10): 
+// MODE(8):  (System mode) Flash program for 'L'
+// P3_5(9):   SW-A 
+// P3_4(10):  SW-B
 // P3_3(11):  LCD_A0
 // P4_5(12):  LCD_SDA
 // P1_7(13):
-// P1_6(14):  ---
+// P1_6(14):  (System RXD) Flash program for 'RXD'
 // P1_5(15):  RXD0
 // P1_4(16):  TXD0
 // P1_3(17):  AN3
 // P1_2(18):  AN2
-// P1_1(19):  AN1 
-// P1_0(20):  AN0
+// P1_1(19):  AN1 voltage sense (19.8V max)
+// P1_0(20):  AN0 current sense (1.2 V/A)
 
-	device::trb_io<utils::null_task> timer_b_;
+	device::trb_io<utils::null_task, uint32_t> timer_b_;
 
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
@@ -81,7 +81,7 @@ namespace {
 
 	typedef graphics::font6x12 afont;
 	graphics::kfont_null kfont_;
-	graphics::monograph<128, 32, afont> bitmap_(kfont_);
+	graphics::monograph<128, 24, afont> bitmap_(kfont_);
 
 	typedef utils::fixed_string<32> string32;
 	string32	string32_;
@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
 
 	// LCD を開始
 	{
-		lcd_.start(0x00, true, true);  // contrast, reverse=yes, BIAS9
+		lcd_.start(0x1C, true, false, 3);  // contrast, reverse=yes, BIAS9=false(BIAS7), Voltage-Ratio: 3
 		bitmap_.clear(0);
 	}
 
@@ -216,23 +216,35 @@ int main(int argc, char *argv[])
 	while(1) {
 		timer_b_.sync();
 
-		adc_.scan();  // A/D scan start
-
-		lcd_.copy(bitmap_.fb(), bitmap_.page_num());
-
+		adc_.scan(); // A/D scan start
 		adc_.sync(); // A/D scan sync
 
 		if(loop >= 25) {
 			loop = 0;
+			// 400mV/A * 3
+			uint32_t i = adc_.get_value(0);
+			i <<= 8;
+			i /= (124 * 3);
+			uint32_t v = adc_.get_value(1);
+			v *= 845 * 6;
+//			utils::format("Vol: %1.2:8y [V], Cur: %1.2:8y [A]\n") % (v >> 10) % i;
+
 			bitmap_.clear(0);
-			auto v = adc_.get_value(0);
-			sformat("%d") % v;
+			sformat("%1.2:8y [V]") % (v >> 10);
 			bitmap_.draw_text(0, 0, string32_.c_str());
 
+			sformat("%1.2:8y [A]") % i;
+			bitmap_.draw_text(0, 12, string32_.c_str());
+
+			lcd_.copy(bitmap_.fb(), bitmap_.page_num(), 0);
+
+			bitmap_.clear(0);
 			auto s = timer_b_.get_count() / 50;
 			auto h = s / 60;
 			sformat("%02d:%02d") % (h % 100) % (s % 60);
-			bitmap_.draw_text(0, 12, string32_.c_str());
+			bitmap_.draw_text(0, 0, string32_.c_str());
+
+			lcd_.copy(bitmap_.fb(), bitmap_.page_num(), 3);
 		}
 		++loop;
 	}
