@@ -233,11 +233,6 @@ namespace app {
         //-------------------------------------------------------------//
 		void watt()
 		{
-			if(timer_b::task_.positive(timer_b::task_type::type::SW_B)) {
-				timer_b::task_.set_time(0);
-				watt_ = 0;
-			}
-
 			bitmap_.clear(0);
 
 			auto s = timer_b::task_.get_time() / 50;
@@ -275,9 +270,18 @@ namespace app {
 				task_ = static_cast<TASK>(n);
 			}
 
+			if(task_ == TASK::WATT) {
+				if(timer_b::task_.positive(timer_b::task_type::type::SW_B)) {
+					timer_b::task_.set_time(0);
+					watt_ = 0;
+				}
+			}
+
 			adc_.sync(); // A/D scan sync
 
-			current_ = static_cast<float>(adc_.get_value(0)) / 1024.0f * 3.3f / (0.4f * 3.0f);
+			auto i = adc_.get_value(0);
+			if(i <= 3) i = 0;  // noise bias
+			current_ = static_cast<float>(i) / 1024.0f * 3.3f / (0.4f * 3.0f);
 			volt_ = static_cast<float>(adc_.get_value(1)) / 1024.0f * 3.3f * 6.0f;
 			watt_ += volt_ * current_ / 50.0f;
 
