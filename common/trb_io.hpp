@@ -24,12 +24,12 @@ namespace device {
 		@param[in]	TASK 割り込み内で実行されるクラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class TASK>
+	template <class TASK, typename CNT>
 	class trb_io {
 	public:
 		static TASK task_;
 
-		static volatile uint16_t	count_;
+		static volatile CNT	count_;
 
 		static INTERRUPT_FUNC void itask() {
 			++count_;
@@ -48,7 +48,7 @@ namespace device {
 			asm("nop");
 		}
 
-		uint16_t get_timer_() const {
+		CNT get_timer_() const {
 			return TRBPRE() | (TRBPR() << 8);
 		}
 
@@ -119,7 +119,7 @@ namespace device {
 		//-----------------------------------------------------------------//
 		void sync() const {
 			if(TRBIR.TRBIE()) {
-				volatile uint16_t n = count_;
+				volatile CNT n = count_;
 				while(n == count_) sleep_();
 			} else {
 				while(TRBIR.TRBIF() == 0) sleep_();
@@ -135,7 +135,7 @@ namespace device {
 			@return カウント値
 		*/
 		//-----------------------------------------------------------------//
-		uint16_t get_count() const { return count_; }
+		CNT get_count() const { return count_; }
 
 
 		//-----------------------------------------------------------------//
@@ -165,8 +165,8 @@ namespace device {
 	};
 
 	// スタティック実態定義
-	template<class TASK>
-	TASK trb_io<TASK>::task_;
-	template<class TASK>
-	volatile uint16_t trb_io<TASK>::count_;
+	template<class TASK, typename CNT>
+	TASK trb_io<TASK, CNT>::task_;
+	template<class TASK, typename CNT>
+	volatile CNT trb_io<TASK, CNT>::count_;
 }
