@@ -56,13 +56,15 @@ namespace graphics {
 		uint16_t	code_;
 		uint8_t		cnt_;
 
+		bool		x2_;
+
 	public:
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		monograph(KFONT& kf) : kfont_(kf), code_(0), cnt_(0) { }
+		monograph(KFONT& kf) : kfont_(kf), code_(0), cnt_(0), x2_(false) { }
 
 
 		//-----------------------------------------------------------------//
@@ -135,6 +137,14 @@ namespace graphics {
 		*/
 		//-----------------------------------------------------------------//
 		uint8_t page_num() const { return HEIGHT / 8; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	２Ｘ の設定
+		*/
+		//-----------------------------------------------------------------//
+		void enable_2x(bool f = true) { x2_ = f; }
 
 
 		//-----------------------------------------------------------------//
@@ -374,6 +384,45 @@ namespace graphics {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief	ビットマップイメージを描画する
+			@param[in]	x	開始点Ｘ軸を指定
+			@param[in]	y	開始点Ｙ軸を指定
+			@param[in]	img	描画ソースのポインター
+			@param[in]	w	描画ソースの幅
+			@param[in]	h	描画ソースの高さ
+		*/
+		//-----------------------------------------------------------------//
+		void draw_image2x(int16_t x, int16_t y, const void* img, uint8_t w, uint8_t h)
+		{
+			if(img == nullptr) return;
+
+			const uint8_t* p = static_cast<const uint8_t*>(img);
+			uint8_t k = 1;
+			uint8_t c = *p++;
+			int16_t yy = y;
+			for(uint8_t i = 0; i < h; ++i) {
+				int16_t xx = x;
+				for(uint8_t j = 0; j < w; ++j) {
+					if(c & k) {
+						point_set(xx+0, yy+0);
+						point_set(xx+1, yy+0);
+						point_set(xx+0, yy+1);
+						point_set(xx+1, yy+1);
+					}
+					k <<= 1;
+					if(k == 0) {
+						k = 1;
+						c = *p++;
+					}
+					xx += 2;
+				}
+				yy += 2;
+			}
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief	モーションオブジェクトのサイズを取得
 			@param[in]	src	描画オブジェクト
 			@param[in]	w	横幅
@@ -428,7 +477,11 @@ namespace graphics {
 				if(x <= -AFONT::width || x >= static_cast<int16_t>(WIDTH)) {
 					return;
 				}
-				draw_image(x, y, AFONT::get(code), AFONT::width, AFONT::height);
+				if(x2_) {
+					draw_image2x(x, y, AFONT::get(code), AFONT::width, AFONT::height);
+				} else {
+					draw_image(x, y, AFONT::get(code), AFONT::width, AFONT::height);
+				}
 			} else {
 				if(x <= -KFONT::width || x >= static_cast<int16_t>(WIDTH)) {
 					return;
@@ -466,8 +519,10 @@ namespace graphics {
 				draw_font_utf16(x + o, y, c);
 				if(prop) {
 					x += AFONT::get_width(c);
+					if(x2_) x += AFONT::get_width(c);
 				} else {
 					x += AFONT::width;
+					if(x2_) x += AFONT::width;
 				}
 				code_ = 0;
 				return x;
