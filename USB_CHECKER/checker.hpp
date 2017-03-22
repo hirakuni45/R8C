@@ -122,7 +122,8 @@ namespace app {
 
 		enum class TASK : uint8_t {
 			ROOT,	///< 電圧、電流、表示
-			WATT,	///< 時間、電力、表示
+			WATT_M,	///< 時間、電力(分）、表示
+			WATT_H,	///< 時間、電力(時）、表示
 
 			limit	///< 最大値
 		};
@@ -229,9 +230,11 @@ namespace app {
         //-------------------------------------------------------------//
         /*!
             @brief  経過時間、電力
+			@param[in]	ch		表示単位
+			@param[in]	wdiv	積算電力の母数
         */
         //-------------------------------------------------------------//
-		void watt()
+		void watt(const char* form, float watt)
 		{
 			bitmap_.clear(0);
 
@@ -244,7 +247,7 @@ namespace app {
 			lcd_.copy(bitmap_.fb(), bitmap_.page_num(), 0);
 
 			bitmap_.clear(0);
-			utils::format("%6.2fW/h", str_, sizeof(str_)) % (watt_ / 60.0f);
+			utils::format(form, str_, sizeof(str_)) % watt;
 			bitmap_.draw_text(0, 0, str_);
 
 			lcd_.copy(bitmap_.fb(), bitmap_.page_num(), 3);
@@ -270,7 +273,7 @@ namespace app {
 				task_ = static_cast<TASK>(n);
 			}
 
-			if(task_ == TASK::WATT) {
+			if(task_ == TASK::WATT_M || task_ == TASK::WATT_H) {
 				if(timer_b::task_.positive(timer_b::task_type::type::SW_B)) {
 					timer_b::task_.set_time(0);
 					watt_ = 0;
@@ -293,8 +296,11 @@ namespace app {
 					root();
 					break;
 
-				case TASK::WATT:
-					watt();
+				case TASK::WATT_M:
+					watt("%6.3fWm", watt_ / 60.0f);
+					break;
+				case TASK::WATT_H:
+					watt("%7.5fWh", watt_ / 3600.0f);
 					break;
 
 				default:
