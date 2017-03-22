@@ -113,6 +113,7 @@ namespace app {
 		graphics::monograph<128, 24, afont> bitmap_;
 
 		uint8_t		loop_;
+		uint8_t		page_;
 
 		float		volt_;
 		float		current_;
@@ -135,7 +136,8 @@ namespace app {
             @brief  コンストラクター
         */
         //-------------------------------------------------------------//
-		checker() : lcd_(spi_), bitmap_(kfont_), loop_(0), volt_(0), current_(0), watt_(0),
+		checker() : lcd_(spi_), bitmap_(kfont_), loop_(0), page_(0),
+					volt_(0.0f), current_(0.0f), watt_(0.0f),
 					task_(TASK::ROOT) { }
 
 
@@ -206,23 +208,17 @@ namespace app {
 			uint32_t v = adc_.get_value(1);
 			v *= 845 * 6;
 #endif
-			bitmap_.clear(0);
-///			utils::format("%1.2:8yV", str_, sizeof(str_)) % (v >> 10);
-			utils::format("%3.2fV", str_, sizeof(str_)) % volt_;
-			bitmap_.draw_text(0, 0, str_);
-
-			lcd_.copy(bitmap_.fb(), bitmap_.page_num(), 0);
-
-			bitmap_.clear(0);
-
-///			utils::format("%1.2:8yA", str_, sizeof(str_)) % i;
-			utils::format("%3.2fA", str_, sizeof(str_)) % current_;
-			bitmap_.draw_text(0, 0, str_);
-
-			lcd_.copy(bitmap_.fb(), bitmap_.page_num(), 3);
-
+			if(page_ == 0) {
+///				utils::format("%1.2:8yV", str_, sizeof(str_)) % (v >> 10);
+				utils::format("%3.2fV", str_, sizeof(str_)) % volt_;
+				bitmap_.draw_text(0, 0, str_);
+			} else {
+///				utils::format("%1.2:8yA", str_, sizeof(str_)) % i;
+				utils::format("%3.2fA", str_, sizeof(str_)) % current_;
+				bitmap_.draw_text(0, 0, str_);
+			}
 #ifdef UART
-			utils::format("Vol: %1.2:8y [V], Cur: %1.2:8y [A]\n") % (v >> 10) % i;
+///			utils::format("Vol: %1.2:8y [V], Cur: %1.2:8y [A]\n") % (v >> 10) % i;
 #endif
 		}
 
@@ -236,21 +232,16 @@ namespace app {
         //-------------------------------------------------------------//
 		void watt(const char* form, float watt)
 		{
-			bitmap_.clear(0);
-
-			auto s = timer_b::task_.get_time() / 50;
-			auto m = s / 60;
-			auto h = m / 60;
-			utils::format("%02d:%02d:%02d", str_, sizeof(str_)) % (h % 24) % (m % 60) % (s % 60);
-			bitmap_.draw_text(0, 0, str_);
-
-			lcd_.copy(bitmap_.fb(), bitmap_.page_num(), 0);
-
-			bitmap_.clear(0);
-			utils::format(form, str_, sizeof(str_)) % watt;
-			bitmap_.draw_text(0, 0, str_);
-
-			lcd_.copy(bitmap_.fb(), bitmap_.page_num(), 3);
+			if(page_ == 0) {
+				auto s = timer_b::task_.get_time() / 50;
+				auto m = s / 60;
+				auto h = m / 60;
+				utils::format("%02d:%02d:%02d", str_, sizeof(str_)) % (h % 24) % (m % 60) % (s % 60);
+				bitmap_.draw_text(0, 0, str_);
+			} else {
+				utils::format(form, str_, sizeof(str_)) % watt;
+				bitmap_.draw_text(0, 0, str_);
+			}
 		}
 
 
@@ -288,9 +279,9 @@ namespace app {
 			volt_ = static_cast<float>(adc_.get_value(1)) / 1024.0f * 3.3f * 6.0f;
 			watt_ += volt_ * current_ / 50.0f;
 
-			if(loop_ >= 25) {
-				loop_ = 0;
-
+			if(loop_ == 0) {
+				bitmap_.clear(0);
+			} else if(loop_ == 1) {
 				switch(task_) {
 				case TASK::ROOT:
 					root();
@@ -306,8 +297,16 @@ namespace app {
 				default:
 					break;
 				}
+			} else if(loop_ == 2) {
+				lcd_.copy(bitmap_.fb(), bitmap_.page_num(), page_ * 3);
+				++page_;
+				page_ &= 1;
 			}
+
 			++loop_;
+			if(loop_ >= 3) {
+				loop_ = 0;
+			}
 		}
 	};
 }
