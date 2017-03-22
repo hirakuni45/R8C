@@ -27,6 +27,8 @@ namespace device {
 	template <class TASK, typename CNT>
 	class trb_io {
 	public:
+		typedef TASK task_type;
+
 		static TASK task_;
 
 		static volatile CNT	count_;
