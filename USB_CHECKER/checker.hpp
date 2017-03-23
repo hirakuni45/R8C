@@ -260,6 +260,12 @@ namespace app {
 		{
 			static const int8_t gain_tbl[] = { 1, 2, 3, 4, 6, 8, 12, 16 };
 			int16_t gain = gain_tbl[gain_idx_];
+			if(page_ == 0) {
+ 				int16_t v = w - gain * w / 16;
+				bitmap_.line(o, 0, o + v, 0, true);
+				bitmap_.line(o, 1, o + v, 1, true);
+			}
+
 			uint8_t pos = log_ - w - 1;
 			pos &= 127;
 			int16_t v0 = static_cast<int16_t>(buff_[pos]);
