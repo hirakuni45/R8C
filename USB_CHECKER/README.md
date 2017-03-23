@@ -69,8 +69,8 @@ USB 電流、電圧チェッカー
 
 [ELF-file](usb_checker.elf)  
 [MAP-file](usb_checker.map)  
-[LST-file](usb_checker.lst)  
-[MOT-file](usb_checker.mot)  
+[LIST-file](usb_checker.lst)  
+[MOTOROLAR-file](usb_checker.mot)  
    
 ---
 License
