@@ -135,7 +135,7 @@ namespace app {
 
 		uint8_t		log_;
 		uint8_t		log_itv_;
-		uint8_t		gain_;
+		uint8_t		gain_idx_;
 
 #ifdef UART
 		uint8_t		list_cnt_;
@@ -152,7 +152,7 @@ namespace app {
 		checker() : lcd_(spi_), bitmap_(kfont_), loop_(0), page_(0),
 					volt_(0.0f), current_(0.0f), watt_(0.0f),
 					task_(TASK::MAIN),
-					log_(0), log_itv_(0), gain_(1)
+					log_(0), log_itv_(0), gain_idx_(0)
 #ifdef UART
 					, list_cnt_(0)
 #endif
@@ -258,18 +258,20 @@ namespace app {
         //-------------------------------------------------------------//
 		void graph(uint8_t o = 0, uint8_t w = 127)
 		{
+			static const int8_t gain_tbl[] = { 1, 2, 3, 4, 6, 8, 12, 16 };
+			int16_t gain = gain_tbl[gain_idx_];
 			uint8_t pos = log_ - w - 1;
 			pos &= 127;
 			int16_t v0 = static_cast<int16_t>(buff_[pos]);
 			v0 *= 3;
-			v0 /= gain_;
+			v0 /= gain;
 			for(uint8_t x = 0; x < w; ++x) {
 				++pos;
 				pos &= 127;
 				int16_t y0 = 47 - v0;
 				int16_t v1 = static_cast<int16_t>(buff_[pos]);
 				v1 *= 3;
-				v1 /= gain_;
+				v1 /= gain;
 				int16_t y1 = 47 - v1;
 				if(page_) {
 					y0 -= 24;
@@ -309,8 +311,8 @@ namespace app {
 				}
 			} else if(task_ == TASK::MAIN || task_ == TASK::GRAPH) {
 				if(timer_b::task_.positive(timer_b::task_type::type::SW_B)) {
-					++gain_;
-					if(gain_ > 16) gain_ = 1;  // 1 to 16
+					++gain_idx_;
+					if(gain_idx_ >= 8) gain_idx_ = 0;  // 0 to 7
 				}
 			}
 
