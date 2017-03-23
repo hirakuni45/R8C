@@ -252,17 +252,22 @@ namespace app {
         //-------------------------------------------------------------//
         /*!
             @brief  グラフ表示
+			@param[in]	o	表示オフセット
+			@param[in]	w	表示範囲
         */
         //-------------------------------------------------------------//
-		void graph()
+		void graph(uint8_t o = 0, uint8_t w = 127)
 		{
-			for(uint8_t x = 0; x < 127; ++x) {
-				uint16_t pos = (x + log_) & 127;
-				int16_t v0 = static_cast<int16_t>(buff_[pos]);
-				v0 *= 3;
-				v0 /= gain_;
+			uint8_t pos = log_ - w - 1;
+			pos &= 127;
+			int16_t v0 = static_cast<int16_t>(buff_[pos]);
+			v0 *= 3;
+			v0 /= gain_;
+			for(uint8_t x = 0; x < w; ++x) {
+				++pos;
+				pos &= 127;
 				int16_t y0 = 47 - v0;
-				int16_t v1 = static_cast<int16_t>(buff_[(pos + 1) & 127]);
+				int16_t v1 = static_cast<int16_t>(buff_[pos]);
 				v1 *= 3;
 				v1 /= gain_;
 				int16_t y1 = 47 - v1;
@@ -270,9 +275,10 @@ namespace app {
 					y0 -= 24;
 					y1 -= 24;
 				}
-				int16_t x0 = static_cast<int16_t>(x);
+				int16_t x0 = static_cast<int16_t>(x) + o;
 				int16_t x1 = x0 + 1;
 				bitmap_.line(x0, y0, x1, y1, true);
+				v0 = v1;
 			}
 		}
 
@@ -301,7 +307,7 @@ namespace app {
 					timer_b::task_.set_time(0);
 					watt_ = 0;
 				}
-			} else if(task_ == TASK::GRAPH) {
+			} else if(task_ == TASK::MAIN || task_ == TASK::GRAPH) {
 				if(timer_b::task_.positive(timer_b::task_type::type::SW_B)) {
 					++gain_;
 					if(gain_ > 16) gain_ = 1;  // 1 to 16
@@ -322,8 +328,8 @@ namespace app {
 				--log_itv_;
 			}
 
-			current_ = static_cast<float>(i) / 1024.0f * 3.3f / (0.4f * 3.0f);
-			volt_ = static_cast<float>(v) / 1024.0f * 3.3f * 6.0f;
+			current_ = static_cast<float>(i) / 1023.0f * 3.3f / (0.4f * 3.0f);
+			volt_    = static_cast<float>(v) / 1023.0f * 3.3f * 6.0f;
 			watt_ += volt_ * current_ / 50.0f;
 
 #ifdef UART
@@ -341,6 +347,7 @@ namespace app {
 				switch(task_) {
 				case TASK::MAIN:
 					vc();
+					graph(64, 64 - 1);
 					break;
 
 				case TASK::WATT_M:
