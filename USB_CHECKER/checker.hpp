@@ -87,6 +87,7 @@ namespace app {
 		uart uart_;
 #endif
 
+	private:
 		typedef device::adc_io<utils::null_task> adc;
 		adc adc_;
 
@@ -122,15 +123,27 @@ namespace app {
 		char		str_[32];
 
 		enum class TASK : uint8_t {
-			ROOT,	///< 電圧、電流、表示
+			MAIN,	///< 電圧、電流、表示
 			WATT_M,	///< 時間、電力(分）、表示
 			WATT_H,	///< 時間、電力(時）、表示
+			GRAPH,	///< グラフ表示
 
 			limit	///< 最大値
 		};
 
 		TASK		task_;
 
+		uint8_t		log_;
+		uint8_t		log_itv_;
+		uint8_t		gain_;
+
+#ifdef UART
+		uint8_t		list_cnt_;
+#endif
+
+		uint8_t		buff_[128];
+
+	public:
         //-------------------------------------------------------------//
         /*!
             @brief  コンストラクター
@@ -138,7 +151,12 @@ namespace app {
         //-------------------------------------------------------------//
 		checker() : lcd_(spi_), bitmap_(kfont_), loop_(0), page_(0),
 					volt_(0.0f), current_(0.0f), watt_(0.0f),
-					task_(TASK::ROOT) { }
+					task_(TASK::MAIN),
+					log_(0), log_itv_(0), gain_(1)
+#ifdef UART
+					, list_cnt_(0)
+#endif
+			{ }
 
 
         //-------------------------------------------------------------//
@@ -181,7 +199,7 @@ namespace app {
 			{
 				// contrast, reverse=yes, BIAS9=false(BIAS7), Voltage-Ratio: 3
 				lcd_.start(0x1C, true, false, 3);
-				bitmap_.clear(0);
+				bitmap_.flash(0);
 				bitmap_.enable_2x();
 			}
 
@@ -193,33 +211,19 @@ namespace app {
 
         //-------------------------------------------------------------//
         /*!
-            @brief  電圧、電流
+            @brief  電圧、電流表示
         */
         //-------------------------------------------------------------//
-		void root()
+		void vc()
 		{
 			// 400mV/A * 3
-#if 0
-			uint32_t i = adc_.get_value(0);
-			if(i <= 3) i = 0;  // noise bias
-			i <<= 8;
-			i /= (124 * 3);
-
-			uint32_t v = adc_.get_value(1);
-			v *= 845 * 6;
-#endif
 			if(page_ == 0) {
-///				utils::format("%1.2:8yV", str_, sizeof(str_)) % (v >> 10);
 				utils::format("%3.2fV", str_, sizeof(str_)) % volt_;
 				bitmap_.draw_text(0, 0, str_);
 			} else {
-///				utils::format("%1.2:8yA", str_, sizeof(str_)) % i;
 				utils::format("%3.2fA", str_, sizeof(str_)) % current_;
 				bitmap_.draw_text(0, 0, str_);
 			}
-#ifdef UART
-///			utils::format("Vol: %1.2:8y [V], Cur: %1.2:8y [A]\n") % (v >> 10) % i;
-#endif
 		}
 
 
@@ -241,6 +245,34 @@ namespace app {
 			} else {
 				utils::format(form, str_, sizeof(str_)) % watt;
 				bitmap_.draw_text(0, 0, str_);
+			}
+		}
+
+
+        //-------------------------------------------------------------//
+        /*!
+            @brief  グラフ表示
+        */
+        //-------------------------------------------------------------//
+		void graph()
+		{
+			for(uint8_t x = 0; x < 127; ++x) {
+				uint16_t pos = (x + log_) & 127;
+				int16_t v0 = static_cast<int16_t>(buff_[pos]);
+				v0 *= 3;
+				v0 /= gain_;
+				int16_t y0 = 47 - v0;
+				int16_t v1 = static_cast<int16_t>(buff_[(pos + 1) & 127]);
+				v1 *= 3;
+				v1 /= gain_;
+				int16_t y1 = 47 - v1;
+				if(page_) {
+					y0 -= 24;
+					y1 -= 24;
+				}
+				int16_t x0 = static_cast<int16_t>(x);
+				int16_t x1 = x0 + 1;
+				bitmap_.line(x0, y0, x1, y1, true);
 			}
 		}
 
@@ -269,22 +301,46 @@ namespace app {
 					timer_b::task_.set_time(0);
 					watt_ = 0;
 				}
+			} else if(task_ == TASK::GRAPH) {
+				if(timer_b::task_.positive(timer_b::task_type::type::SW_B)) {
+					++gain_;
+					if(gain_ > 16) gain_ = 1;  // 1 to 16
+				}
 			}
 
 			adc_.sync(); // A/D scan sync
 
-			auto i = adc_.get_value(0);
+			uint32_t i = adc_.get_value(0);
+			uint32_t v = adc_.get_value(1);
 			if(i <= 3) i = 0;  // noise bias
+			if(log_itv_ == 0) {
+				buff_[log_] = (i * v) >> 12;
+				++log_;
+				log_ &= 127;
+				log_itv_ = 12;
+			} else {
+				--log_itv_;
+			}
+
 			current_ = static_cast<float>(i) / 1024.0f * 3.3f / (0.4f * 3.0f);
-			volt_ = static_cast<float>(adc_.get_value(1)) / 1024.0f * 3.3f * 6.0f;
+			volt_ = static_cast<float>(v) / 1024.0f * 3.3f * 6.0f;
 			watt_ += volt_ * current_ / 50.0f;
 
+#ifdef UART
+			++list_cnt_;
+			if(list_cnt_ >= 50) {
+				list_cnt_ = 0;
+				utils::format("Vol: %3.2f [V], Cur: %3.2f [A]\n") % volt_ % current_;
+				utils::format("Watt: %8.5f [Wh]\n") % (watt_ / 3600.0f);
+			}
+#endif
+
 			if(loop_ == 0) {
-				bitmap_.clear(0);
+				bitmap_.flash(0);
 			} else if(loop_ == 1) {
 				switch(task_) {
-				case TASK::ROOT:
-					root();
+				case TASK::MAIN:
+					vc();
 					break;
 
 				case TASK::WATT_M:
@@ -292,6 +348,10 @@ namespace app {
 					break;
 				case TASK::WATT_H:
 					watt("%8.5fWh", watt_ / 3600.0f);
+					break;
+
+				case TASK::GRAPH:
+					graph();
 					break;
 
 				default:

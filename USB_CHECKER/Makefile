@@ -34,7 +34,8 @@ OPTIMIZE	=	-Os
 
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
-				-fno-exceptions
+				-fno-exceptions \
+				-fno-strict-overflow
 
 CC_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
