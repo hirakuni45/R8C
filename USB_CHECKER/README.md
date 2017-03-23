@@ -57,20 +57,20 @@ USB 電流、電圧チェッカー
 
 ![USB_Checker](usb_checker.png)
 ※回路図プロジェクトは「KiCAD」ディレクトリーを参照
-
+   
 ## 主な機能
 
 ・電流、電圧表示   
 ・経過時間、積算電力表示（リセット可能）
 ・グラフ表示   
-・電流、電圧変化の記録と表示   
-
+・ＵＳＢ差動信号電圧の測定   
+   
 ## コンパイル済みバイナリーなど
 
-[ELF-file][usb_checker.elf]  
-[MAP-file][usb_checker.map]  
-[LST-file][usb_checker.lst]  
-[MOT-file][usb_checker.mot]  
+[ELF-file](usb_checker.elf)  
+[MAP-file](usb_checker.map)  
+[LST-file](usb_checker.lst)  
+[MOT-file](usb_checker.mot)  
    
 ---
 License
