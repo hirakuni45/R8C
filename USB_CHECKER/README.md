@@ -52,6 +52,11 @@ USB 電流、電圧チェッカー
 ・P1_1(19):  AN1 voltage sense (19.8V max)   
 ・P1_0(20):  AN0 current sense (1.2 V/A)   
    
+## 回路図
+
+![USB_Checker](usb_checker.png)
+※回路図プロジェクトは「KiCAD」ディレクトリーを参照
+
 ## 主な機能
 
 ・電流、電圧表示   
