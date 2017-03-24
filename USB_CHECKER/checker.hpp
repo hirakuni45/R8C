@@ -123,10 +123,11 @@ namespace app {
 		char		str_[32];
 
 		enum class TASK : uint8_t {
-			MAIN,	///< 電圧、電流、表示
-			WATT_M,	///< 時間、電力(分）、表示
-			WATT_H,	///< 時間、電力(時）、表示
-			GRAPH,	///< グラフ表示
+			MAIN,		///< 電圧、電流、表示
+			WATT_M,		///< 時間、電力(分）、表示
+			WATT_H,		///< 時間、電力(時）、表示
+			GRAPH,		///< グラフ表示
+			USB_REF,	///< USB D-, D+ 差動信号電圧表示
 
 			limit	///< 最大値
 		};
@@ -136,6 +137,9 @@ namespace app {
 		uint8_t		log_;
 		uint8_t		log_itv_;
 		uint8_t		gain_idx_;
+
+		float		usb_m_;
+		float		usb_p_;
 
 #ifdef UART
 		uint8_t		list_cnt_;
@@ -152,7 +156,8 @@ namespace app {
 		checker() : lcd_(spi_), bitmap_(kfont_), loop_(0), page_(0),
 					volt_(0.0f), current_(0.0f), watt_(0.0f),
 					task_(TASK::MAIN),
-					log_(0), log_itv_(0), gain_idx_(0)
+					log_(0), log_itv_(0), gain_idx_(0),
+					usb_m_(0.0f), usb_p_(0.0f)
 #ifdef UART
 					, list_cnt_(0)
 #endif
@@ -187,7 +192,8 @@ namespace app {
 			{
 				utils::PORT_MAP(utils::port_map::P10::AN0);
 				utils::PORT_MAP(utils::port_map::P11::AN1);
-				adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
+				utils::PORT_MAP(utils::port_map::P12::AN2);
+				utils::PORT_MAP(utils::port_map::P13::AN3);
 			}
 
 			// SPI を開始
@@ -293,6 +299,23 @@ namespace app {
 
         //-------------------------------------------------------------//
         /*!
+            @brief  USB 信号電圧表示
+        */
+        //-------------------------------------------------------------//
+		void usb_ref()
+		{
+			if(page_ == 0) {
+				utils::format("-D: %3.2fV", str_, sizeof(str_)) % usb_m_;
+				bitmap_.draw_text(0, 0, str_);
+			} else {
+				utils::format("+D: %3.2fV", str_, sizeof(str_)) % usb_p_;
+				bitmap_.draw_text(0, 0, str_);
+			}
+		}
+
+
+        //-------------------------------------------------------------//
+        /*!
             @brief  サービス
         */
         //-------------------------------------------------------------//
@@ -302,7 +325,8 @@ namespace app {
 
 			timer_b_.task_.service();
 
-			adc_.scan(); // A/D scan start
+			adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, false);
+			adc_.scan(); // AN0, AN1 A/D scan start
 
 			if(timer_b::task_.positive(timer_b::task_type::type::SW_A)) {
 				auto n = static_cast<uint8_t>(task_) + 1;
@@ -321,24 +345,33 @@ namespace app {
 					if(gain_idx_ >= 8) gain_idx_ = 0;  // 0 to 7
 				}
 			}
-
 			adc_.sync(); // A/D scan sync
+			{
+				uint32_t i = adc_.get_value(0);
+				uint32_t v = adc_.get_value(1);
 
-			uint32_t i = adc_.get_value(0);
-			uint32_t v = adc_.get_value(1);
-			if(i <= 3) i = 0;  // noise bias
-			if(log_itv_ == 0) {
-				buff_[log_] = (i * v) >> 12;
-				++log_;
-				log_ &= 127;
-				log_itv_ = 12;
-			} else {
-				--log_itv_;
+				adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN2_AN3, false);
+				adc_.scan(); // AN2, AN3 A/D scan start
+
+				if(i <= 3) i = 0;  // noise bias
+				if(log_itv_ == 0) {
+					buff_[log_] = (i * v) >> 12;
+					++log_;
+					log_ &= 127;
+					log_itv_ = 12;
+				} else {
+					--log_itv_;
+				}
+				current_ = static_cast<float>(i) / 1023.0f * 3.3f / (0.4f * 3.0f);
+				volt_    = static_cast<float>(v) / 1023.0f * 3.3f * 6.0f;
+				watt_ += volt_ * current_ / 50.0f;
 			}
 
-			current_ = static_cast<float>(i) / 1023.0f * 3.3f / (0.4f * 3.0f);
-			volt_    = static_cast<float>(v) / 1023.0f * 3.3f * 6.0f;
-			watt_ += volt_ * current_ / 50.0f;
+			{
+				adc_.sync(); // A/D scan sync
+				usb_m_ = static_cast<float>(adc_.get_value(0)) / 1023.0f * 3.3f;
+				usb_p_ = static_cast<float>(adc_.get_value(1)) / 1023.0f * 3.3f;
+			}
 
 #ifdef UART
 			++list_cnt_;
@@ -367,6 +400,10 @@ namespace app {
 
 				case TASK::GRAPH:
 					graph();
+					break;
+
+				case TASK::USB_REF:
+					usb_ref();
 					break;
 
 				default:
