@@ -45,6 +45,14 @@ void _init(void)
 		}
 	}
 
+	{  // C++ 静的コンストラクターの実行
+		short *p = &_fini_array_start;
+		while(p < &_fini_array_end) {
+			void (*prog)(void) = (void *)*p++;
+			(*prog)();
+		}
+	}
+
 	{  // C++ 事前静的コンストラクターの実行
 		short *p = &_preinit_array_start;
 		while(p < &_preinit_array_end) {
@@ -56,14 +64,6 @@ void _init(void)
 	{  // C++ 静的コンストラクターの実行
 		short *p = &_init_array_start;
 		while(p < &_init_array_end) {
-			void (*prog)(void) = (void *)*p++;
-			(*prog)();
-		}
-	}
-
-	{  // C++ 静的コンストラクターの実行
-		short *p = &_fini_array_start;
-		while(p < &_fini_array_end) {
 			void (*prog)(void) = (void *)*p++;
 			(*prog)();
 		}

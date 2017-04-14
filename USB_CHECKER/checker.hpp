@@ -128,6 +128,7 @@ namespace app {
 			WATT_H,		///< 時間、電力(時）、表示
 			GRAPH,		///< グラフ表示
 			USB_REF,	///< USB D-, D+ 差動信号電圧表示
+			SETUP,		///< 設定
 
 			limit	///< 最大値
 		};
@@ -137,6 +138,7 @@ namespace app {
 		uint8_t		log_;
 		uint8_t		log_itv_;
 		uint8_t		gain_idx_;
+		uint8_t		interval_;
 
 		float		usb_m_;
 		float		usb_p_;
@@ -156,7 +158,7 @@ namespace app {
 		checker() : lcd_(spi_), bitmap_(kfont_), loop_(0), page_(0),
 					volt_(0.0f), current_(0.0f), watt_(0.0f),
 					task_(TASK::MAIN),
-					log_(0), log_itv_(0), gain_idx_(0),
+					log_(0), log_itv_(0), gain_idx_(0), interval_(12),
 					usb_m_(0.0f), usb_p_(0.0f)
 #ifdef UART
 					, list_cnt_(0)
@@ -316,6 +318,21 @@ namespace app {
 
         //-------------------------------------------------------------//
         /*!
+            @brief  設定
+        */
+        //-------------------------------------------------------------//
+		void setup()
+		{
+			if(page_ == 0) {
+
+			} else {
+
+			}
+		}
+
+
+        //-------------------------------------------------------------//
+        /*!
             @brief  サービス
         */
         //-------------------------------------------------------------//
@@ -334,17 +351,29 @@ namespace app {
 				task_ = static_cast<TASK>(n);
 			}
 
-			if(task_ == TASK::WATT_M || task_ == TASK::WATT_H) {
+			switch(task_) {
+			case TASK::WATT_M:
+			case TASK::WATT_H:
 				if(timer_b::task_.positive(timer_b::task_type::type::SW_B)) {
 					timer_b::task_.set_time(0);
 					watt_ = 0;
 				}
-			} else if(task_ == TASK::MAIN || task_ == TASK::GRAPH) {
+				break;
+			case TASK::MAIN:
+			case TASK::GRAPH:
 				if(timer_b::task_.positive(timer_b::task_type::type::SW_B)) {
 					++gain_idx_;
 					if(gain_idx_ >= 8) gain_idx_ = 0;  // 0 to 7
 				}
+				break;
+			case TASK::SETUP:
+				if(timer_b::task_.positive(timer_b::task_type::type::SW_B)) {
+				}
+				break;
+			default:
+				break;
 			}
+
 			adc_.sync(); // A/D scan sync
 			{
 				uint32_t i = adc_.get_value(0);
@@ -358,7 +387,7 @@ namespace app {
 					buff_[log_] = (i * v) >> 12;
 					++log_;
 					log_ &= 127;
-					log_itv_ = 12;
+					log_itv_ = interval_;
 				} else {
 					--log_itv_;
 				}
@@ -404,6 +433,10 @@ namespace app {
 
 				case TASK::USB_REF:
 					usb_ref();
+					break;
+
+				case TASK::SETUP:
+					setup();
 					break;
 
 				default:

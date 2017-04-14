@@ -1,13 +1,8 @@
-update=2015/06/11 8:25:48
+update=2017/03/25 21:08:12
 last_client=eeschema
 [eeschema]
 version=1
-LibDir=
-NetFmtName=
-RptD_X=0
-RptD_Y=100
-RptLab=1
-LabSize=60
+LibDir=../../KiCAD_lib
 [eeschema/libraries]
 LibName1=power
 LibName2=akizuki

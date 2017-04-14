@@ -283,12 +283,10 @@ make install
    
 ## R8C フラッシュプログラマーの構築
 
- - 以下は、まだ未完、実装中です・・・・・
  - ※ Renesas Flash Programmer の最新版を使って下さい。
  - r8c_prog のビルドには「boost_1_60_0」が必要です。
  - boost はヘッダーのみ利用なので、ビルドの必要はありません、boost_1_60_0.zip を展開するだけです。
  - 又は、mingw64 環境などに pacman を使い boost をインストールして、そのパスを設定しても良いでしょう。
-
  - boost の展開は、MSYS2（Windows）の場合だけ必要です。
 ``` 
     cd /usr/local
