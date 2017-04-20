@@ -3,7 +3,7 @@
 #	R8C Makefile 				        				#
 #														#
 #=======================================================#
-TARGET		=	adc_sample
+TARGET		=	thm_sample
 
 BUILD		=	release
 
