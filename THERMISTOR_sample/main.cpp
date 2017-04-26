@@ -32,7 +32,7 @@ namespace {
 
 	// サーミスタ定義
 	// A/D: 10 bits, NT103_41G, 分圧抵抗: 10K オーム、サーミスタ: ＶＣＣ側
-	typedef chip::NTCTH<1023, chip::thermistor::NT103_41G, 10000, true> THMISTER;
+	typedef chip::NTCTH<1023, chip::thermistor::HX103_3380, 10000, true> THMISTER;
 	THMISTER thmister_;
 
 }
