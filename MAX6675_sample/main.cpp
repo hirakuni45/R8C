@@ -1,8 +1,10 @@
 //=====================================================================//
 /*!	@file
 	@brief	R8C MAX6675・メイン
-			Copyright 2017 Kunihito Hiramatsu
-	@author	平松邦仁 (hira@rvf-rc45.net)
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/RX/blob/master/LICENSE
 */
 //=====================================================================//
 #include "system.hpp"
@@ -16,6 +18,7 @@
 #include "common/uart_io.hpp"
 #include "common/adc_io.hpp"
 #include "common/trb_io.hpp"
+#include "common/spi_io.hpp"
 #include "chip/MAX6675.hpp"
 
 namespace {
@@ -30,7 +33,18 @@ namespace {
 	typedef device::adc_io<utils::null_task> adc;
 	adc adc_;
 
+	// P1_0(20):
+	typedef device::PORT<device::PORT1, device::bitpos::B0> SPI_SCK;
+	// P1_1(19):
+	typedef device::PORT<device::PORT1, device::bitpos::B1> MAX_CS;
+	// P1_2(18):
+	typedef device::PORT<device::PORT1, device::bitpos::B2> SPI_SDI;
 
+	typedef device::spi_io<SPI_SCK, device::NULL_PORT, SPI_SDI> SPI;
+	SPI		spi_;
+
+	typedef chip::MAX6675<SPI, MAX_CS> MAX6675;
+	MAX6675	max6675_(spi_);
 }
 
 extern "C" {
@@ -127,6 +141,11 @@ int main(int argc, char *argv[])
 
 	uart_.puts("Start R8C MAX6675 sample\n");
 
+	// SPI 開始
+	spi_.start();
+
+	// MAX6675 開始
+	max6675_.start();
 
 	using namespace utils;
 
@@ -138,8 +157,8 @@ int main(int argc, char *argv[])
 		if(cnt >= 30) {
 			cnt = 0;
 
-
-
+			auto v = max6675_.get_temp();
+			utils::format("%6.3f\n") % v;
 		}
 
 		if(uart_.length()) {  // UART のレシーブデータがあるか？
