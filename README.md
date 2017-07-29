@@ -149,7 +149,7 @@ R8C sources
 ```
 
 ---
-## RL78 開発環境準備（Ubuntu）
+## R8C 開発環境準備（Ubuntu）
 
 Linux 環境は、複数あるので、ここでは「Ubuntu 16.04 LTS」環境の場合を書いておきます。
 
