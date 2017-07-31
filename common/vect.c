@@ -48,6 +48,24 @@ void FLASH_READY_intr(void) __attribute__((weak));
 void FLASH_READY_intr(void) { }
 
 
+void COMP_B1_intr(void) __attribute__((weak));
+//-----------------------------------------------------------------//
+/*!
+	@brief  コンパレーター１
+*/
+//-----------------------------------------------------------------//
+void COMP_B1_intr(void) { }
+
+
+void COMP_B3_intr(void) __attribute__((weak));
+//-----------------------------------------------------------------//
+/*!
+	@brief  コンパレーター３
+*/
+//-----------------------------------------------------------------//
+void COMP_B3_intr(void) { }
+
+
 void TIMER_RB_intr(void) __attribute__((weak));
 //-----------------------------------------------------------------//
 /*!
@@ -93,6 +111,15 @@ void UART0_TX_intr(void) __attribute__((weak));
 void UART0_TX_intr(void) { }
 
 
+void UART0_RX_intr(void) __attribute__((weak));
+//-----------------------------------------------------------------//
+/*!
+	@brief  UART 受信割り込み
+*/
+//-----------------------------------------------------------------//
+void UART0_RX_intr(void) { }
+
+
 void INT0_intr(void) __attribute__((weak));
 //-----------------------------------------------------------------//
 /*!
@@ -129,15 +156,6 @@ void INT3_intr(void) __attribute__((weak));
 void INT3_intr(void) { }
 
 
-void UART0_RX_intr(void) __attribute__((weak));
-//-----------------------------------------------------------------//
-/*!
-	@brief  UART 受信割り込み
-*/
-//-----------------------------------------------------------------//
-void UART0_RX_intr(void) { }
-
-
 //-----------------------------------------------------------------//
 /*!
 	@brief  割り込みテーブル
@@ -149,8 +167,8 @@ const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
 	null_intr,       NULL,	// (2)
 	null_intr,       NULL,	// (3)
 
-	null_intr,       NULL,	// (4) コンパレーターB1
-	null_intr,       NULL,	// (5) コンパレーターB3
+	COMP_B1_intr,    NULL,	// (4) コンパレーターB1
+	COMP_B3_intr,    NULL,	// (5) コンパレーターB3
 	null_intr,       NULL,	// (6)
 	TIMER_RC_intr,   NULL,	// (7) タイマＲＣ
 

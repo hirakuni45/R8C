@@ -2,6 +2,9 @@
 /*! @file
     @brief  R8C 起動前初期化
     @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2015, 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include <stdlib.h>

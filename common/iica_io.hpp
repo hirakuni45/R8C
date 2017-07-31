@@ -1,9 +1,11 @@
 #pragma once
 //=====================================================================//
 /*!	@file
-	@brief	IICA(I2C) テンプレートクラス (20MHz system clock) @n
-			Copyright 2015 Kunihito Hiramatsu
-	@author	平松邦仁 (hira@rvf-rc45.net)
+	@brief	IICA(I2C) テンプレートクラス (20MHz system clock) 
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2015, 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include <cstdint>

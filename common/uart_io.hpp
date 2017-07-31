@@ -43,8 +43,7 @@ namespace device {
 			@brief  受信割り込みタスク
 		*/
 		//-----------------------------------------------------------------//
-		static inline void irecv()
-		{
+		static void irecv() {
 			uint16_t ch = UART::URB();
 			///< フレーミングエラー/パリティエラー状態確認
 			if(ch & (UART::URB.OER.b() | UART::URB.FER.b() | UART::URB.PER.b() | UART::URB.SUM.b())) {
@@ -254,5 +253,5 @@ private:
 	template<class UART, class SEND, class RECV>
 		RECV uart_io<UART, SEND, RECV>::recv_;
 	template<class UART, class SEND, class RECV>
-		volatile bool uart_io<UART, SEND, RECV>::send_stall_ = true; 
+		volatile bool uart_io<UART, SEND, RECV>::send_stall_ = true;
 }
