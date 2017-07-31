@@ -3,9 +3,11 @@
 /*!	@file
 	@brief	R8C/M110AN, R8C/M120AN グループ・シリアルインターフェース定義 @n
    			※複数チャネルを持つデバイスを考慮している為、シングルチャネル@n
-			デバイスでは、レジスター名を読み替える必要があります。@n
-			Copyright 2014,2016 Kunihito Hiramatsu
-	@author	平松邦仁 (hira@rvf-rc45.net)
+			デバイスでは、レジスター名を読み替える必要があります。
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2014, 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include "common/io_utils.hpp"

@@ -1,11 +1,14 @@
-/*==============================================================/
-/																/
-/   R8C(Tiny)/M110AN, R8C(Tiny)/M120AN Link Loader Script       /
-/	Flash-ROM and RAM extends version                           /
-/   Flash-ROM: 2048(0xF800) ---> 32768(start: 0x8000) bytes     /
-/   RAM:        256(0x0400) --->  1280(start: 0x0300) bytes     / 
-/																/ 
-/==============================================================*/
+/*======================================================================/
+/	@file
+/	@brief    R8C(Tiny)/M110AN, R8C(Tiny)/M120AN Link Loader Script @n
+/	Flash-ROM and RAM extends version @n
+/   Flash-ROM: 2048(0xF800) ---> 32768(start: 0x8000) bytes @n
+/   RAM:        256(0x0400) --->  1280(start: 0x0300) bytes
+/   @author 平松邦仁 (hira@rvf-rc45.net)
+/   @copyright	Copyright (C) 2015, 2017 Kunihito Hiramatsu @n
+/				Released under the MIT license @n
+/				https://github.com/hirakuni45/RX/blob/master/LICENSE
+/======================================================================*/
 
 /* Default linker script, for normal executables */
 OUTPUT_FORMAT("elf32-m32c", "elf32-m32c",

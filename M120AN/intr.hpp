@@ -1,9 +1,11 @@
 #pragma once
 //=====================================================================//
 /*!	@file
-	@brief	R8C/M110AN, R8C/M120AN グループ・割り込み・レジスター定義 @n
-			Copyright 2015, 2016 Kunihito Hiramatsu
-	@author	平松邦仁 (hira@rvf-rc45.net)
+	@brief	R8C/M110AN, R8C/M120AN グループ・割り込み・レジスター定義
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2015, 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include "common/io_utils.hpp"
@@ -124,9 +126,6 @@ namespace device {
 	static ilvl_t<0x4C> ILVLC;
 	static ilvl_t<0x4D> ILVLD;
 	static ilvl_t<0x4E> ILVLE;
-
-
-
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//

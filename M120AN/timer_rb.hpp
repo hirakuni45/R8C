@@ -5,9 +5,11 @@
 			・タイマモード @n
 			・波形発生モード（任意もパルス幅を連続して出力）@n
 			・ワンショットモード（ワンショットパルスを出力）@n
-			・ウェエイトワンショットモード（遅延ワンショットパルス出力）@n
-			Copyright 2015, 2016 Kunihito Hiramatsu
-	@author	平松邦仁 (hira@rvf-rc45.net)
+			・ウェエイトワンショットモード（遅延ワンショットパルス出力
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2014, 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include "common/io_utils.hpp"
