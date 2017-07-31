@@ -30,7 +30,9 @@ INC_SYS		=
 
 INC_APP		=	. ../ ../M120AN
 
-OPTIMIZE	=	-Os -flto
+# -flto は、gcc がクラッシュする場合がある・・
+# OPTIMIZE	=	-Os -flto
+OPTIMIZE	=	-Os
 
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
