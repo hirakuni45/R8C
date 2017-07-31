@@ -1,9 +1,11 @@
 #pragma once
 //=====================================================================//
 /*!	@file
-	@brief	R8C グループ・UART I/O 制御 @n
-			Copyright 2014,2015 Kunihito Hiramatsu
-	@author	平松邦仁 (hira@rvf-rc45.net)
+	@brief	R8C グループ・UART I/O 制御
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2015, 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include "common/vect.h"
@@ -35,8 +37,14 @@ namespace device {
 		bool	crlf_;
 
 	public:
-		// __attribute__ ((section (".text")))
-		static INTERRUPT_FUNC void irecv() {
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  受信割り込みタスク
+		*/
+		//-----------------------------------------------------------------//
+		static inline void irecv()
+		{
 			uint16_t ch = UART::URB();
 			///< フレーミングエラー/パリティエラー状態確認
 			if(ch & (UART::URB.OER.b() | UART::URB.FER.b() | UART::URB.PER.b() | UART::URB.SUM.b())) {
@@ -51,7 +59,15 @@ namespace device {
 				| (r & (UART::UIR.UTIE.b() | UART::UIR.URIE.b()));
 		}
 
-		static INTERRUPT_FUNC void isend() {
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  送信割り込みタスク @n
+					※「send_uart_intr」関数から呼ぶ
+		*/
+		//-----------------------------------------------------------------//
+		static inline void isend()
+		{
 			if(send_.length()) {
 				UART::UTBL = send_.get();
 			} else {
@@ -102,7 +118,6 @@ private:
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-///		__attribute__ ((section (".text")))
 		uart_io() : crlf_(true) { }
 
 

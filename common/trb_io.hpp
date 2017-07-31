@@ -33,7 +33,7 @@ namespace device {
 
 		static volatile CNT	count_;
 
-		static INTERRUPT_FUNC void itask() {
+		static void itask() {
 			++count_;
 			task_();
 			// IR 関係フラグは必ず mov 命令で・・
