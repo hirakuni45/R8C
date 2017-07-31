@@ -1,3 +1,12 @@
+# ===============================================================
+/*!	@file
+	@brief	R8C スタート・アップ
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2014, 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
+*/
+# ===============================================================
 	.text
 	.global _reset_start
 _reset_start:
