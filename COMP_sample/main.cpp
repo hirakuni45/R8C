@@ -27,47 +27,24 @@ namespace {
 }
 
 extern "C" {
-	const void* variable_vectors_[] __attribute__ ((section (".vvec"))) = {
-		reinterpret_cast<void*>(brk_inst_),		nullptr,	// (0)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (1) flash_ready
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (2)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (3)
 
-		reinterpret_cast<void*>(comp_.itask1),	nullptr,	// (4) コンパレーターB1
-		reinterpret_cast<void*>(comp_.itask3),	nullptr,	// (5) コンパレーターB3
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (6)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (7) タイマＲＣ
+	void COMP_B1_intr(void)
+	{
+		comp_.itask1();
+	}
 
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (8)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (9)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (10)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (11)
 
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (12)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (13) キー入力
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (14) A/D 変換
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (15)
+	void COMP_B3_intr(void)
+	{
+		comp_.itask3();
+	}
 
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (16)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (17) UART0 送信
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (18) UART0 受信
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (19)
 
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (20)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (21) /INT2
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (22) タイマＲＪ２
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (23) 周期タイマ
+	void TIMER_RB_intr(void)
+	{
+		timer_b_.itask();
+	}
 
-		reinterpret_cast<void*>(timer_b_.itask),nullptr,	// (24) タイマＲＢ２
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (25) /INT1
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (26) /INT3
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (27)
-
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (28)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (29) /INT0
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (30)
-		reinterpret_cast<void*>(null_task_),	nullptr,	// (31)
-	};
 }
 
 int main(int argc, char *argv[])
