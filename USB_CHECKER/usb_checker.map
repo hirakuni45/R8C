@@ -84,13 +84,12 @@ Discarded input sections
  .group         0x0000000000000000        0x8 release/main.o
  .group         0x0000000000000000        0x8 release/main.o
  .group         0x0000000000000000        0x8 release/main.o
- .group         0x0000000000000000        0x8 release/main.o
 
 Memory Configuration
 
 Name             Origin             Length             Attributes
 RAM              0x0000000000000300 0x0000000000000400 w
-ROM              0x0000000000008000 0x0000000000007fd8 r
+ROM              0x0000000000008000 0x0000000000007ed8 r
 EXT              0x0000000000010000 0x0000000000008000 r
 VVEC             0x000000000000fed8 0x0000000000000100 r
 FVEC             0x000000000000ffd8 0x0000000000000028 r
@@ -115,196 +114,207 @@ LOAD /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libm32c
                 0x00000000000007c0                _usp_init = 0x7c0
                 0x0000000000000800                _isp_init = 0x800
 
-.text           0x0000000000008000     0x5274
+.text           0x0000000000008000     0x5288
  *(.text .stub .text.* .gnu.linkonce.t.*)
  .text          0x0000000000008000       0x1c release/common/start.o
                 0x0000000000008000                _start
                 0x0000000000008000                _reset_start
                 0x0000000000008018                _exit
- .text          0x000000000000801c        0xd release/common/vect.o
-                0x000000000000801c                _undef_inst_
-                0x000000000000801d                _null_task_
-                0x000000000000801e                _brk_inst_
-                0x000000000000801f                _di
-                0x0000000000008024                _ei
- .text          0x0000000000008029       0x9e release/common/init.o
-                0x0000000000008029                __init
- .text          0x00000000000080c7       0xfa release/common/syscalls.o
-                0x00000000000080c7                _open
-                0x00000000000080d8                _read
-                0x0000000000008113                _write
-                0x0000000000008156                _lseek
-                0x000000000000816b                _link
-                0x000000000000816e                _unlink
-                0x0000000000008179                _fstat
-                0x000000000000818e                _close
-                0x000000000000819b                _isatty
-                0x00000000000081ba                _kill
-                0x00000000000081bb                _getpid
- .text          0x00000000000081c1        0x8 release/main.o
-                0x00000000000081c6                _sci_putch
-                0x00000000000081c7                _sci_getch
- .text._ZN6device6trb_ioIN3app8trb_taskEhE5itaskEv
-                0x00000000000081c9       0x30 release/main.o
-                0x00000000000081c9                __ZN6device6trb_ioIN3app8trb_taskEhE5itaskEv
+ .text          0x000000000000801c       0x1a release/common/vect.o
+                0x000000000000801c                _undef_inst
+                0x000000000000801d                _brk_inst
+                0x000000000000801e                _null_intr
+                0x000000000000801f                _FLASH_READY_intr
+                0x0000000000008020                _COMP_B1_intr
+                0x0000000000008021                _COMP_B3_intr
+                0x0000000000008023                _TIMER_RC_intr
+                0x0000000000008024                _TIMER_RJ_intr
+                0x0000000000008025                _ADC_intr
+                0x0000000000008026                _UART0_TX_intr
+                0x0000000000008027                _UART0_RX_intr
+                0x0000000000008028                _INT0_intr
+                0x0000000000008029                _INT1_intr
+                0x000000000000802a                _INT2_intr
+                0x000000000000802b                _INT3_intr
+                0x000000000000802c                _di
+                0x0000000000008031                _ei
+ .text          0x0000000000008036       0x9e release/common/init.o
+                0x0000000000008036                __init
+ .text          0x00000000000080d4       0xfa release/common/syscalls.o
+                0x00000000000080d4                _open
+                0x00000000000080e5                _read
+                0x0000000000008120                _write
+                0x0000000000008163                _lseek
+                0x0000000000008178                _link
+                0x000000000000817b                _unlink
+                0x0000000000008186                _fstat
+                0x000000000000819b                _close
+                0x00000000000081a8                _isatty
+                0x00000000000081c7                _kill
+                0x00000000000081c8                _getpid
+ .text          0x00000000000081ce       0x38 release/main.o
+                0x00000000000081d3                _sci_putch
+                0x00000000000081d4                _sci_getch
+                0x00000000000081d6                _TIMER_RB_intr
  .text._ZN5utils5delay12micro_secondEt
-                0x00000000000081f9       0x17 release/main.o
-                0x00000000000081f9                __ZN5utils5delay12micro_secondEt
+                0x0000000000008206       0x17 release/main.o
+                0x0000000000008206                __ZN5utils5delay12micro_secondEt
  .text._ZN5utils5delay12milli_secondEt
-                0x0000000000008210       0x23 release/main.o
-                0x0000000000008210                __ZN5utils5delay12milli_secondEt
+                0x000000000000821d       0x23 release/main.o
+                0x000000000000821d                __ZN5utils5delay12milli_secondEt
  .text._ZN5utils10def_chaoutclEc
-                0x0000000000008233       0x4d release/main.o
-                0x0000000000008233                __ZN5utils10def_chaoutclEc
+                0x0000000000008240       0x4d release/main.o
+                0x0000000000008240                __ZN5utils10def_chaoutclEc
  .text._ZNK6device6adc_ioIN5utils9null_taskEE4syncEv
-                0x0000000000008280       0x27 release/main.o
-                0x0000000000008280                __ZNK6device6adc_ioIN5utils9null_taskEE4syncEv
+                0x000000000000828d       0x27 release/main.o
+                0x000000000000828d                __ZNK6device6adc_ioIN5utils9null_taskEE4syncEv
  .text._ZN5utils12basic_formatINS_10def_chaoutEE5next_Ev
-                0x00000000000082a7      0x1c1 release/main.o
-                0x00000000000082a7                __ZN5utils12basic_formatINS_10def_chaoutEE5next_Ev
+                0x00000000000082b4      0x1c1 release/main.o
+                0x00000000000082b4                __ZN5utils12basic_formatINS_10def_chaoutEE5next_Ev
  .text._ZN5utils12basic_formatINS_10def_chaoutEEC2EPKcPct
-                0x0000000000008468       0x32 release/main.o
-                0x0000000000008468                __ZN5utils12basic_formatINS_10def_chaoutEEC1EPKcPct
-                0x0000000000008468                __ZN5utils12basic_formatINS_10def_chaoutEEC2EPKcPct
+                0x0000000000008475       0x32 release/main.o
+                0x0000000000008475                __ZN5utils12basic_formatINS_10def_chaoutEEC1EPKcPct
+                0x0000000000008475                __ZN5utils12basic_formatINS_10def_chaoutEEC2EPKcPct
  .text._ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE9point_setEss
-                0x000000000000849a       0x31 release/main.o
-                0x000000000000849a                __ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE9point_setEss
+                0x00000000000084a7       0x31 release/main.o
+                0x00000000000084a7                __ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE9point_setEss
  .text._ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE4lineEssssb
-                0x00000000000084cb      0x172 release/main.o
-                0x00000000000084cb                __ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE4lineEssssb
+                0x00000000000084d8      0x172 release/main.o
+                0x00000000000084d8                __ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE4lineEssssb
  .text._ZN3app7checker5graphEhh
-                0x000000000000863d      0x156 release/main.o
-                0x000000000000863d                __ZN3app7checker5graphEhh
+                0x000000000000864a      0x156 release/main.o
+                0x000000000000864a                __ZN3app7checker5graphEhh
  .text._ZN6device8bit_rw_tINS_5rw8_tILt177EEELNS_6bitposE7EE3setEb
-                0x0000000000008793       0x11 release/main.o
-                0x0000000000008793                __ZN6device8bit_rw_tINS_5rw8_tILt177EEELNS_6bitposE7EE3setEb
+                0x00000000000087a0       0x11 release/main.o
+                0x00000000000087a0                __ZN6device8bit_rw_tINS_5rw8_tILt177EEELNS_6bitposE7EE3setEb
  .text._ZN6device6spi_ioINS_4PORTINS_7port4_tELNS_6bitposE2EEENS1_IS2_LS3_5EEENS_9NULL_PORTEE6clock_Ev
-                0x00000000000087a4       0x27 release/main.o
-                0x00000000000087a4                __ZN6device6spi_ioINS_4PORTINS_7port4_tELNS_6bitposE2EEENS1_IS2_LS3_5EEENS_9NULL_PORTEE6clock_Ev
+                0x00000000000087b1       0x27 release/main.o
+                0x00000000000087b1                __ZN6device6spi_ioINS_4PORTINS_7port4_tELNS_6bitposE2EEENS1_IS2_LS3_5EEENS_9NULL_PORTEE6clock_Ev
  .text._ZN5utils12basic_formatINS_10def_chaoutEE8out_str_EPKcch
-                0x00000000000087cb       0xc5 release/main.o
-                0x00000000000087cb                __ZN5utils12basic_formatINS_10def_chaoutEE8out_str_EPKcch
+                0x00000000000087d8       0xc5 release/main.o
+                0x00000000000087d8                __ZN5utils12basic_formatINS_10def_chaoutEE8out_str_EPKcch
  .text._ZN5utils12basic_formatINS_10def_chaoutEE9out_udec_Emc
-                0x0000000000008890       0x91 release/main.o
-                0x0000000000008890                __ZN5utils12basic_formatINS_10def_chaoutEE9out_udec_Emc
+                0x000000000000889d       0x91 release/main.o
+                0x000000000000889d                __ZN5utils12basic_formatINS_10def_chaoutEE9out_udec_Emc
  .text._ZN5utils12basic_formatINS_10def_chaoutEE8out_dec_El
-                0x0000000000008921       0x3d release/main.o
-                0x0000000000008921                __ZN5utils12basic_formatINS_10def_chaoutEE8out_dec_El
+                0x000000000000892e       0x3d release/main.o
+                0x000000000000892e                __ZN5utils12basic_formatINS_10def_chaoutEE8out_dec_El
  .text._ZN5utils12basic_formatINS_10def_chaoutEE16out_fixed_point_IyEEvT_hb
-                0x000000000000895e      0x499 release/main.o
-                0x000000000000895e                __ZN5utils12basic_formatINS_10def_chaoutEE16out_fixed_point_IyEEvT_hb
+                0x000000000000896b      0x499 release/main.o
+                0x000000000000896b                __ZN5utils12basic_formatINS_10def_chaoutEE16out_fixed_point_IyEEvT_hb
  .text._ZN5utils12basic_formatINS_10def_chaoutEE9out_real_Efc
-                0x0000000000008df7      0x36f release/main.o
-                0x0000000000008df7                __ZN5utils12basic_formatINS_10def_chaoutEE9out_real_Efc
+                0x0000000000008e04      0x36f release/main.o
+                0x0000000000008e04                __ZN5utils12basic_formatINS_10def_chaoutEE9out_real_Efc
  .text._ZN5utils12basic_formatINS_10def_chaoutEErmIfEERS2_T_
-                0x0000000000009166       0xad release/main.o
-                0x0000000000009166                __ZN5utils12basic_formatINS_10def_chaoutEErmIfEERS2_T_
+                0x0000000000009173       0xad release/main.o
+                0x0000000000009173                __ZN5utils12basic_formatINS_10def_chaoutEErmIfEERS2_T_
  .text._ZN5utils12basic_formatINS_10def_chaoutEE8out_hex_Emc
-                0x0000000000009213       0x68 release/main.o
-                0x0000000000009213                __ZN5utils12basic_formatINS_10def_chaoutEE8out_hex_Emc
+                0x0000000000009220       0x68 release/main.o
+                0x0000000000009220                __ZN5utils12basic_formatINS_10def_chaoutEE8out_hex_Emc
  .text._ZN5utils12basic_formatINS_10def_chaoutEE8decimal_Elb
-                0x000000000000927b      0x17f release/main.o
-                0x000000000000927b                __ZN5utils12basic_formatINS_10def_chaoutEE8decimal_Elb
+                0x0000000000009288      0x17f release/main.o
+                0x0000000000009288                __ZN5utils12basic_formatINS_10def_chaoutEE8decimal_Elb
  .text._ZN5utils12basic_formatINS_10def_chaoutEErmImEERS2_T_
-                0x00000000000093fa       0x4f release/main.o
-                0x00000000000093fa                __ZN5utils12basic_formatINS_10def_chaoutEErmImEERS2_T_
+                0x0000000000009407       0x4f release/main.o
+                0x0000000000009407                __ZN5utils12basic_formatINS_10def_chaoutEErmImEERS2_T_
  .text._ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE10draw_imageEssPKvhh
-                0x0000000000009449       0x84 release/main.o
-                0x0000000000009449                __ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE10draw_imageEssPKvhh
+                0x0000000000009456       0x84 release/main.o
+                0x0000000000009456                __ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE10draw_imageEssPKvhh
  .text._ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE15draw_font_utf16Esst
-                0x00000000000094cd      0x150 release/main.o
-                0x00000000000094cd                __ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE15draw_font_utf16Esst
+                0x00000000000094da      0x150 release/main.o
+                0x00000000000094da                __ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE15draw_font_utf16Esst
  .text._ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE9draw_textEssPKcb
-                0x000000000000961d      0x17c release/main.o
-                0x000000000000961d                __ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE9draw_textEssPKcb
+                0x000000000000962a      0x17c release/main.o
+                0x000000000000962a                __ZN8graphics9monographILt128ELt24ENS_8font6x12ENS_10kfont_nullEE9draw_textEssPKcb
  .text._ZN3app7checker2vcEv
-                0x0000000000009799       0x95 release/main.o
-                0x0000000000009799                __ZN3app7checker2vcEv
+                0x00000000000097a6       0x95 release/main.o
+                0x00000000000097a6                __ZN3app7checker2vcEv
  .text._ZN3app7checker4wattEPKcf
-                0x000000000000982e      0x189 release/main.o
-                0x000000000000982e                __ZN3app7checker4wattEPKcf
+                0x000000000000983b      0x189 release/main.o
+                0x000000000000983b                __ZN3app7checker4wattEPKcf
  .text._ZN3app7checker7usb_refEv
-                0x00000000000099b7       0x95 release/main.o
-                0x00000000000099b7                __ZN3app7checker7usb_refEv
+                0x00000000000099c4       0x95 release/main.o
+                0x00000000000099c4                __ZN3app7checker7usb_refEv
  .text._ZN6device8bit_rw_tINS_5rw8_tILt178EEELNS_6bitposE5EE3setEb
-                0x0000000000009a4c       0x11 release/main.o
-                0x0000000000009a4c                __ZN6device8bit_rw_tINS_5rw8_tILt178EEELNS_6bitposE5EE3setEb
+                0x0000000000009a59       0x11 release/main.o
+                0x0000000000009a59                __ZN6device8bit_rw_tINS_5rw8_tILt178EEELNS_6bitposE5EE3setEb
  .text._ZN6device6spi_ioINS_4PORTINS_7port4_tELNS_6bitposE2EEENS1_IS2_LS3_5EEENS_9NULL_PORTEE4xchgEh
-                0x0000000000009a5d       0xef release/main.o
-                0x0000000000009a5d                __ZN6device6spi_ioINS_4PORTINS_7port4_tELNS_6bitposE2EEENS1_IS2_LS3_5EEENS_9NULL_PORTEE4xchgEh
+                0x0000000000009a6a       0xef release/main.o
+                0x0000000000009a6a                __ZN6device6spi_ioINS_4PORTINS_7port4_tELNS_6bitposE2EEENS1_IS2_LS3_5EEENS_9NULL_PORTEE4xchgEh
  .text._ZN4chip6ST7565IN6device6spi_ioINS1_4PORTINS1_7port4_tELNS1_6bitposE2EEENS3_IS4_LS5_5EEENS1_9NULL_PORTEEENS3_INS1_7port3_tELS5_7EEENS3_ISA_LS5_3EEENS3_IS4_LS5_7EEEE6write_ENSE_3CMDE
-                0x0000000000009b4c       0x12 release/main.o
-                0x0000000000009b4c                __ZN4chip6ST7565IN6device6spi_ioINS1_4PORTINS1_7port4_tELNS1_6bitposE2EEENS3_IS4_LS5_5EEENS1_9NULL_PORTEEENS3_INS1_7port3_tELS5_7EEENS3_ISA_LS5_3EEENS3_IS4_LS5_7EEEE6write_ENSE_3CMDE
+                0x0000000000009b59       0x12 release/main.o
+                0x0000000000009b59                __ZN4chip6ST7565IN6device6spi_ioINS1_4PORTINS1_7port4_tELNS1_6bitposE2EEENS3_IS4_LS5_5EEENS1_9NULL_PORTEEENS3_INS1_7port3_tELS5_7EEENS3_ISA_LS5_3EEENS3_IS4_LS5_7EEEE6write_ENSE_3CMDE
  .text._ZN4chip6ST7565IN6device6spi_ioINS1_4PORTINS1_7port4_tELNS1_6bitposE2EEENS3_IS4_LS5_5EEENS1_9NULL_PORTEEENS3_INS1_7port3_tELS5_7EEENS3_ISA_LS5_3EEENS3_IS4_LS5_7EEEE5init_Ebbh
-                0x0000000000009b5e       0xb1 release/main.o
-                0x0000000000009b5e                __ZN4chip6ST7565IN6device6spi_ioINS1_4PORTINS1_7port4_tELNS1_6bitposE2EEENS3_IS4_LS5_5EEENS1_9NULL_PORTEEENS3_INS1_7port3_tELS5_7EEENS3_ISA_LS5_3EEENS3_IS4_LS5_7EEEE5init_Ebbh
+                0x0000000000009b6b       0xb1 release/main.o
+                0x0000000000009b6b                __ZN4chip6ST7565IN6device6spi_ioINS1_4PORTINS1_7port4_tELNS1_6bitposE2EEENS3_IS4_LS5_5EEENS1_9NULL_PORTEEENS3_INS1_7port3_tELS5_7EEENS3_ISA_LS5_3EEENS3_IS4_LS5_7EEEE5init_Ebbh
  .text._ZN3app7checker4initEv
-                0x0000000000009c0f      0x16f release/main.o
-                0x0000000000009c0f                __ZN3app7checker4initEv
+                0x0000000000009c1c      0x16f release/main.o
+                0x0000000000009c1c                __ZN3app7checker4initEv
  .text._ZN6device6spi_ioINS_4PORTINS_7port4_tELNS_6bitposE2EEENS1_IS2_LS3_5EEENS_9NULL_PORTEE5send_Eh
-                0x0000000000009d7e       0xee release/main.o
-                0x0000000000009d7e                __ZN6device6spi_ioINS_4PORTINS_7port4_tELNS_6bitposE2EEENS1_IS2_LS3_5EEENS_9NULL_PORTEE5send_Eh
+                0x0000000000009d8b       0xee release/main.o
+                0x0000000000009d8b                __ZN6device6spi_ioINS_4PORTINS_7port4_tELNS_6bitposE2EEENS1_IS2_LS3_5EEENS_9NULL_PORTEE5send_Eh
  .text._ZN3app7checker7serviceEv
-                0x0000000000009e6c      0x602 release/main.o
-                0x0000000000009e6c                __ZN3app7checker7serviceEv
- .text.startup  0x000000000000a46e       0xaa release/main.o
-                0x000000000000a46e                _main
- .text          0x000000000000a518        0x0 release/common/font6x12.o
- .text          0x000000000000a518        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_memregs.o)
- .text          0x000000000000a518       0x2d /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_mulsi3.o)
-                0x000000000000a518                ___mulsi3
- .text          0x000000000000a545       0x1b /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_jsri16.o)
-                0x000000000000a545                m32c_jsri16
- .text          0x000000000000a560      0x179 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_lshrdi3.o)
-                0x000000000000a560                ___lshrdi3
- .text          0x000000000000a6d9      0x1a7 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_ashldi3.o)
-                0x000000000000a6d9                ___ashldi3
- .text          0x000000000000a880     0x15ef /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_udivdi3.o)
-                0x000000000000a880                ___udivdi3
- .text          0x000000000000be6f      0x46d /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_addsub_sf.o)
-                0x000000000000c225                ___addsf3
-                0x000000000000c27e                ___subsf3
- .text          0x000000000000c2dc      0x252 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_mul_sf.o)
-                0x000000000000c2dc                ___mulsf3
- .text          0x000000000000c52e      0x1c1 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_div_sf.o)
-                0x000000000000c52e                ___divsf3
- .text          0x000000000000c6ef        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_thenan_sf.o)
- .text          0x000000000000c6ef      0x101 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_usi_to_sf.o)
-                0x000000000000c6ef                ___floatunsisf
- .text          0x000000000000c7f0      0x404 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(lib2funcs.o)
-                0x000000000000c7f0                _udivmodsi4
-                0x000000000000c8c9                ___divsi3
-                0x000000000000c94c                ___modsi3
-                0x000000000000ca0e                ___ffshi2
-                0x000000000000ca8b                ___clzhi2
-                0x000000000000caf7                ___ctzhi2
-                0x000000000000cb5f                ___popcounthi2
-                0x000000000000cb7c                ___parityhi2
-                0x000000000000cb9f                ___udivsi3
-                0x000000000000cbbc                ___umodsi3
-                0x000000000000cbd9                ___clrsbhi2
- .text          0x000000000000cbf4      0x211 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_muldi3.o)
-                0x000000000000cbf4                ___muldi3
- .text          0x000000000000ce05        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_clz.o)
- .text          0x000000000000ce05       0x99 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_clzsi2.o)
-                0x000000000000ce05                ___clzsi2
- .text          0x000000000000ce9e        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_popcount_tab.o)
- .text          0x000000000000ce9e      0x2d9 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_pack_sf.o)
-                0x000000000000ce9e                ___pack_f
- .text          0x000000000000d177       0xd6 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_unpack_sf.o)
-                0x000000000000d177                ___unpack_f
- .text          0x000000000000d24d        0x5 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-errno.o)
-                0x000000000000d24d                ___errno
- .text          0x000000000000d252        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-impure.o)
- .text          0x000000000000d252       0x22 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-memcpy.o)
-                0x000000000000d252                _memcpy
+                0x0000000000009e79      0x604 release/main.o
+                0x0000000000009e79                __ZN3app7checker7serviceEv
+ .text.startup  0x000000000000a47d       0xae release/main.o
+                0x000000000000a47d                _main
+ .text          0x000000000000a52b        0x0 release/common/font6x12.o
+ .text          0x000000000000a52b        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_memregs.o)
+ .text          0x000000000000a52b       0x2d /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_mulsi3.o)
+                0x000000000000a52b                ___mulsi3
+ .text          0x000000000000a558       0x1b /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_jsri16.o)
+                0x000000000000a558                m32c_jsri16
+ .text          0x000000000000a573      0x179 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_lshrdi3.o)
+                0x000000000000a573                ___lshrdi3
+ .text          0x000000000000a6ec      0x1a7 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_ashldi3.o)
+                0x000000000000a6ec                ___ashldi3
+ .text          0x000000000000a893     0x15ef /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_udivdi3.o)
+                0x000000000000a893                ___udivdi3
+ .text          0x000000000000be82      0x46d /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_addsub_sf.o)
+                0x000000000000c238                ___addsf3
+                0x000000000000c291                ___subsf3
+ .text          0x000000000000c2ef      0x252 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_mul_sf.o)
+                0x000000000000c2ef                ___mulsf3
+ .text          0x000000000000c541      0x1c1 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_div_sf.o)
+                0x000000000000c541                ___divsf3
+ .text          0x000000000000c702        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_thenan_sf.o)
+ .text          0x000000000000c702      0x101 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_usi_to_sf.o)
+                0x000000000000c702                ___floatunsisf
+ .text          0x000000000000c803      0x404 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(lib2funcs.o)
+                0x000000000000c803                _udivmodsi4
+                0x000000000000c8dc                ___divsi3
+                0x000000000000c95f                ___modsi3
+                0x000000000000ca21                ___ffshi2
+                0x000000000000ca9e                ___clzhi2
+                0x000000000000cb0a                ___ctzhi2
+                0x000000000000cb72                ___popcounthi2
+                0x000000000000cb8f                ___parityhi2
+                0x000000000000cbb2                ___udivsi3
+                0x000000000000cbcf                ___umodsi3
+                0x000000000000cbec                ___clrsbhi2
+ .text          0x000000000000cc07      0x211 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_muldi3.o)
+                0x000000000000cc07                ___muldi3
+ .text          0x000000000000ce18        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_clz.o)
+ .text          0x000000000000ce18       0x99 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_clzsi2.o)
+                0x000000000000ce18                ___clzsi2
+ .text          0x000000000000ceb1        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_popcount_tab.o)
+ .text          0x000000000000ceb1      0x2d9 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_pack_sf.o)
+                0x000000000000ceb1                ___pack_f
+ .text          0x000000000000d18a       0xd6 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_unpack_sf.o)
+                0x000000000000d18a                ___unpack_f
+ .text          0x000000000000d260        0x5 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-errno.o)
+                0x000000000000d260                ___errno
+ .text          0x000000000000d265        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-impure.o)
+ .text          0x000000000000d265       0x22 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-memcpy.o)
+                0x000000000000d265                _memcpy
  *(.text.*personality*)
  *(.gnu.warning)
  *(.interp .hash .dynsym .dynstr .gnu.version*)
                 [!provide]                        PROVIDE (__etext, .)
                 [!provide]                        PROVIDE (_etext, .)
                 [!provide]                        PROVIDE (etext, .)
-                0x000000000000d274                . = ALIGN (0x2)
+                0x000000000000d288                . = ALIGN (0x2)
+ *fill*         0x000000000000d287        0x1 00000000
 
 .exttext
  *(.exttext .stub .exttext.* .gnu.linkonce.t.*)
@@ -312,46 +322,46 @@ LOAD /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libm32c
  *(.gnu.warning)
  *(.interp .hash .dynsym .dynstr .gnu.version*)
 
-.rodata         0x000000000000d274      0x76c
-                0x000000000000d274                . = ALIGN (0x2)
+.rodata         0x000000000000d288      0x76c
+                0x000000000000d288                . = ALIGN (0x2)
  *(.plt)
- .plt           0x000000000000d274        0x0 release/common/start.o
+ .plt           0x000000000000d288        0x0 release/common/start.o
  *(.init)
  *(.fini)
  *(.rodata .rodata.* .gnu.linkonce.r.*)
  .rodata.str1.1
-                0x000000000000d274       0x40 release/main.o
+                0x000000000000d288       0x40 release/main.o
                                          0x47 (size before relaxing)
  .rodata._ZZN3app7checker5graphEhhE8gain_tbl
-                0x000000000000d2b4        0x8 release/main.o
-                0x000000000000d2b4                __ZZN3app7checker5graphEhhE8gain_tbl
+                0x000000000000d2c8        0x8 release/main.o
+                0x000000000000d2c8                __ZZN3app7checker5graphEhhE8gain_tbl
  .rodata._ZZN6device6trb_ioIN3app8trb_taskEhE11start_timerEthE3tbl
-                0x000000000000d2bc        0x8 release/main.o
-                0x000000000000d2bc                __ZZN6device6trb_ioIN3app8trb_taskEhE11start_timerEthE3tbl
- .rodata        0x000000000000d2c4      0x4e0 release/common/font6x12.o
-                0x000000000000d2c4                __ZN8graphics8font6x1210width_tbl_E
-                0x000000000000d324                __ZN8graphics8font6x127bitmap_E
- .rodata        0x000000000000d7a4        0xa /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_thenan_sf.o)
-                0x000000000000d7a4                ___thenan_sf
- .rodata        0x000000000000d7ae      0x100 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_clz.o)
-                0x000000000000d7ae                ___clz_tab
- .rodata        0x000000000000d8ae      0x100 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_popcount_tab.o)
-                0x000000000000d8ae                ___popcount_tab
- .rodata        0x000000000000d9ae        0x2 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-impure.o)
-                0x000000000000d9ae                __global_impure_ptr
+                0x000000000000d2d0        0x8 release/main.o
+                0x000000000000d2d0                __ZZN6device6trb_ioIN3app8trb_taskEhE11start_timerEthE3tbl
+ .rodata        0x000000000000d2d8      0x4e0 release/common/font6x12.o
+                0x000000000000d2d8                __ZN8graphics8font6x1210width_tbl_E
+                0x000000000000d338                __ZN8graphics8font6x127bitmap_E
+ .rodata        0x000000000000d7b8        0xa /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_thenan_sf.o)
+                0x000000000000d7b8                ___thenan_sf
+ .rodata        0x000000000000d7c2      0x100 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_clz.o)
+                0x000000000000d7c2                ___clz_tab
+ .rodata        0x000000000000d8c2      0x100 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_popcount_tab.o)
+                0x000000000000d8c2                ___popcount_tab
+ .rodata        0x000000000000d9c2        0x2 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-impure.o)
+                0x000000000000d9c2                __global_impure_ptr
  .rodata.str1.1
-                0x000000000000d9b0        0x2 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-impure.o)
+                0x000000000000d9c4        0x2 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-impure.o)
  *(.rodata1)
  *(.eh_frame_hdr)
  *(.eh_frame)
- .eh_frame      0x000000000000d9b2       0x2e /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_udivdi3.o)
+ .eh_frame      0x000000000000d9c6       0x2e /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_udivdi3.o)
  *(.gcc_except_table)
  *(.gcc_except_table.*)
-                0x000000000000d9e0                . = ALIGN (0x2)
+                0x000000000000d9f4                . = ALIGN (0x2)
                 [!provide]                        PROVIDE (__romdatastart, .)
-                0x000000000000d9e0                PROVIDE (__datainternal, ABSOLUTE (LOADADDR (.data)))
+                0x000000000000d9f4                PROVIDE (__datainternal, ABSOLUTE (LOADADDR (.data)))
 
-.data           0x0000000000000300       0x7c load address 0x000000000000d9e0
+.data           0x0000000000000300       0x7c load address 0x000000000000d9f4
                 0x0000000000000300                . = ALIGN (0x4)
                 0x0000000000000300                PROVIDE (__datastart, .)
                 0x0000000000000300                PROVIDE (__preinit_array_start, .)
@@ -417,7 +427,7 @@ LOAD /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libm32c
                 0x000000000000037c                PROVIDE (__dataend, .)
                 [!provide]                        PROVIDE (__romdatacopysize, SIZEOF (.data))
 
-.bss            0x000000000000037c      0x26a load address 0x000000000000da5c
+.bss            0x000000000000037c      0x26c load address 0x000000000000da70
                 0x000000000000037c                . = ALIGN (0x2)
                 0x000000000000037c                PROVIDE (__bssstart, .)
  *(.dynbss)
@@ -426,67 +436,68 @@ LOAD /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libm32c
  .bss           0x000000000000037c        0x0 release/common/vect.o
  .bss           0x000000000000037c        0x0 release/common/init.o
  .bss           0x000000000000037c        0x0 release/common/syscalls.o
- .bss           0x000000000000037c      0x248 release/main.o
+ .bss           0x000000000000037c      0x249 release/main.o
  .bss._ZN6device6adc_ioIN5utils9null_taskEE11intr_count_E
-                0x00000000000005c4        0x1 release/main.o
-                0x00000000000005c4                __ZN6device6adc_ioIN5utils9null_taskEE11intr_count_E
- .bss._ZN6device6trb_ioIN3app8trb_taskEhE6count_E
                 0x00000000000005c5        0x1 release/main.o
-                0x00000000000005c5                __ZN6device6trb_ioIN3app8trb_taskEhE6count_E
+                0x00000000000005c5                __ZN6device6adc_ioIN5utils9null_taskEE11intr_count_E
+ .bss._ZN6device6trb_ioIN3app8trb_taskEhE6count_E
+                0x00000000000005c6        0x1 release/main.o
+                0x00000000000005c6                __ZN6device6trb_ioIN3app8trb_taskEhE6count_E
  .bss._ZGVN6device6trb_ioIN3app8trb_taskEhE5task_E
-                0x00000000000005c6        0x8 release/main.o
-                0x00000000000005c6                __ZGVN6device6trb_ioIN3app8trb_taskEhE5task_E
+                0x00000000000005c7        0x8 release/main.o
+                0x00000000000005c7                __ZGVN6device6trb_ioIN3app8trb_taskEhE5task_E
  .bss._ZN6device6trb_ioIN3app8trb_taskEhE5task_E
-                0x00000000000005ce        0x8 release/main.o
-                0x00000000000005ce                __ZN6device6trb_ioIN3app8trb_taskEhE5task_E
- .bss           0x00000000000005d6        0x0 release/common/font6x12.o
- .bss           0x00000000000005d6       0x10 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_memregs.o)
-                0x00000000000005d6                mem0
-                0x00000000000005d7                mem1
-                0x00000000000005d8                mem2
-                0x00000000000005d9                mem3
-                0x00000000000005da                mem4
-                0x00000000000005db                mem5
-                0x00000000000005dc                mem6
-                0x00000000000005dd                mem7
-                0x00000000000005de                mem8
-                0x00000000000005df                mem9
-                0x00000000000005e0                mem10
-                0x00000000000005e1                mem11
-                0x00000000000005e2                mem12
-                0x00000000000005e3                mem13
-                0x00000000000005e4                mem14
-                0x00000000000005e5                mem15
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_mulsi3.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_jsri16.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_lshrdi3.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_ashldi3.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_udivdi3.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_addsub_sf.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_mul_sf.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_div_sf.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_thenan_sf.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_usi_to_sf.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(lib2funcs.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_muldi3.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_clz.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_clzsi2.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_popcount_tab.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_pack_sf.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_unpack_sf.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-errno.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-impure.o)
- .bss           0x00000000000005e6        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-memcpy.o)
+                0x00000000000005cf        0x8 release/main.o
+                0x00000000000005cf                __ZN6device6trb_ioIN3app8trb_taskEhE5task_E
+ .bss           0x00000000000005d7        0x0 release/common/font6x12.o
+ .bss           0x00000000000005d7       0x10 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_memregs.o)
+                0x00000000000005d7                mem0
+                0x00000000000005d8                mem1
+                0x00000000000005d9                mem2
+                0x00000000000005da                mem3
+                0x00000000000005db                mem4
+                0x00000000000005dc                mem5
+                0x00000000000005dd                mem6
+                0x00000000000005de                mem7
+                0x00000000000005df                mem8
+                0x00000000000005e0                mem9
+                0x00000000000005e1                mem10
+                0x00000000000005e2                mem11
+                0x00000000000005e3                mem12
+                0x00000000000005e4                mem13
+                0x00000000000005e5                mem14
+                0x00000000000005e6                mem15
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_mulsi3.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(__m32c_jsri16.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_lshrdi3.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_ashldi3.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_udivdi3.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_addsub_sf.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_mul_sf.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_div_sf.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_thenan_sf.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_usi_to_sf.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(lib2funcs.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_muldi3.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_clz.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_clzsi2.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_popcount_tab.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_pack_sf.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/libgcc.a(_unpack_sf.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-errno.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-impure.o)
+ .bss           0x00000000000005e7        0x0 /usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/../../../../m32c-elf/lib/libc.a(lib_a-memcpy.o)
  *(COMMON)
-                0x00000000000005e6                . = ALIGN (0x2)
-                0x00000000000005e6                PROVIDE (__bssend, .)
-                0x00000000000005e6                _end = .
+                0x00000000000005e8                . = ALIGN (0x2)
+ *fill*         0x00000000000005e7        0x1 
+                0x00000000000005e8                PROVIDE (__bssend, .)
+                0x00000000000005e8                _end = .
                 [!provide]                        PROVIDE (end, .)
                 [!provide]                        PROVIDE (__bsssize, SIZEOF (.bss))
 
 .vvec           0x000000000000fed8       0x80
  *(.vvec)
- .vvec          0x000000000000fed8       0x80 release/main.o
+ .vvec          0x000000000000fed8       0x80 release/common/vect.o
                 0x000000000000fed8                _variable_vectors_
 
 .fvec           0x000000000000ffd8       0x28
