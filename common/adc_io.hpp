@@ -50,7 +50,7 @@ namespace device {
 		};
 
 
-		static INTERRUPT_FUNC void itask() __attribute__ ((section (".text"))) {
+		static inline void itask() {
 			++intr_count_;
 			task_();
 			// IR 関係フラグは必ず mov 命令で・・
