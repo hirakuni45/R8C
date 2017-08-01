@@ -226,10 +226,10 @@ namespace app {
 		{
 			// 400mV/A * 3
 			if(page_ == 0) {
-				utils::format("%3.2fV", str_, sizeof(str_)) % volt_;
+				utils::sformat("%3.2fV", str_, sizeof(str_)) % volt_;
 				bitmap_.draw_text(0, 0, str_);
 			} else {
-				utils::format("%3.2fA", str_, sizeof(str_)) % current_;
+				utils::sformat("%3.2fA", str_, sizeof(str_)) % current_;
 				bitmap_.draw_text(0, 0, str_);
 			}
 		}
@@ -248,10 +248,10 @@ namespace app {
 				auto s = timer_b::task_.get_time() / 50;
 				auto m = s / 60;
 				auto h = m / 60;
-				utils::format("%02d:%02d:%02d", str_, sizeof(str_)) % (h % 24) % (m % 60) % (s % 60);
+				utils::sformat("%02d:%02d:%02d", str_, sizeof(str_)) % (h % 24) % (m % 60) % (s % 60);
 				bitmap_.draw_text(0, 0, str_);
 			} else {
-				utils::format(form, str_, sizeof(str_)) % watt;
+				utils::sformat(form, str_, sizeof(str_)) % watt;
 				bitmap_.draw_text(0, 0, str_);
 			}
 		}
@@ -307,10 +307,10 @@ namespace app {
 		void usb_ref()
 		{
 			if(page_ == 0) {
-				utils::format("-D: %3.2fV", str_, sizeof(str_)) % usb_m_;
+				utils::sformat("-D: %3.2fV", str_, sizeof(str_)) % usb_m_;
 				bitmap_.draw_text(0, 0, str_);
 			} else {
-				utils::format("+D: %3.2fV", str_, sizeof(str_)) % usb_p_;
+				utils::sformat("+D: %3.2fV", str_, sizeof(str_)) % usb_p_;
 				bitmap_.draw_text(0, 0, str_);
 			}
 		}
