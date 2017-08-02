@@ -19,6 +19,7 @@ namespace device {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	struct port1_t {
 		static const uint16_t base_address_ = 0x00A9;
+		static const uint8_t  port_no_ = 1;
 	};
 	typedef port1_t PORT1;
 
@@ -30,6 +31,7 @@ namespace device {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	struct port3_t {
 		static const uint16_t base_address_ = 0x00AB;
+		static const uint8_t  port_no_ = 3;
 	};
 	typedef port3_t PORT3;
 
@@ -41,6 +43,7 @@ namespace device {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	struct port4_t {
 		static const uint16_t base_address_ = 0x00AC;
+		static const uint8_t  port_no_ = 4;
 	};
 	typedef port4_t PORT4;
 
@@ -52,6 +55,7 @@ namespace device {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	struct porta_t {
 		static const uint16_t base_address_ = 0x00AD;
+		static const uint8_t  port_no_ = 0xa;
 	};
 	typedef porta_t PORTA;
 
@@ -517,6 +521,9 @@ namespace device {
 	template <class PORTx, bitpos bpos>
 	struct PORT {
 
+		static const uint8_t port_no  = PORTx::port_no_;
+		static const uint8_t port_bit = static_cast<uint8_t>(bpos);
+
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  ポート方向レジスタ
@@ -557,6 +564,9 @@ namespace device {
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	struct NULL_PORT {
+
+		static const uint8_t port_no  = 0xff;
+		static const uint8_t port_bit = 0xff;
 
 		struct null_t {
 			void operator = (bool f) { }
