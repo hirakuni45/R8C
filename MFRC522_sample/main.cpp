@@ -34,16 +34,21 @@ namespace {
 	adc adc_;
 
 	// P1_0(20):
-	typedef device::PORT<device::PORT1, device::bitpos::B0> SPI_SCK;
+	typedef device::PORT<device::PORT1, device::bitpos::B0> MFRC_CS;
 	// P1_1(19):
-	typedef device::PORT<device::PORT1, device::bitpos::B1> MAX_CS;
+	typedef device::PORT<device::PORT1, device::bitpos::B1> SPI_SCK;
 	// P1_2(18):
-	typedef device::PORT<device::PORT1, device::bitpos::B2> SPI_SDI;
+	typedef device::PORT<device::PORT1, device::bitpos::B2> SPI_MOSI;
+	// P1_3(17):
+	typedef device::PORT<device::PORT1, device::bitpos::B3> SPI_MISO;
+	// P1_4(16):
+	typedef device::PORT<device::PORT1, device::bitpos::B4> MFRC_RES;
 
-	typedef device::spi_io<SPI_SCK, device::NULL_PORT, SPI_SDI> SPI;
+
+	typedef device::spi_io<SPI_SCK, SPI_MOSI, SPI_MISO> SPI;
 	SPI		spi_;
 
-	typedef chip::MFRC522<SPI, MAX_CS> MFRC522;
+	typedef chip::MFRC522<SPI, MFRC_CS, MFRC_RES> MFRC522;
 	MFRC522	mfrc522_(spi_);
 }
 
