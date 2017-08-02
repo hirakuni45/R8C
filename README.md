@@ -250,6 +250,39 @@ make install
    
 ---
    
+## R8C フラッシュプログラマーの構築
+
+ - ハードウェアーの接続は、「デバイスへのプログラム書き込み方法」を参照して下さい。
+ - r8c_prog のビルドには「boost_1_60_0」以降が必要です。
+ - boost はヘッダーのみ利用なので、ビルドの必要はありません、boost_1_60_0.zip を展開するだけです。
+ - 又は、mingw64 環境などに pacman を使い boost をインストールして、そのパスを設定しても良いでしょう。
+ - boost の展開は、MSYS2（Windows）の場合だけ必要ですが、他のシステムでパスが判らない場合は、展開   
+しても良いと思いますが、かなり大きな容量なので、空きスペースには注意が必要です。   
+``` 
+    cd /usr/local
+    unzip boost_1_60_0.zip
+```
+
+ - r8c_prog のビルド（MSYS2）
+ - ビルドした実行ファイルは、~/bin 又は、/usr/local/bin に配置します。
+
+```
+    cd r8cprog
+    make
+    mkdir ~/bin
+    cp r8c_prog.exe ~/bin/.
+    cp r8c_prog.conf ~/bin/.
+　　※「.bashrc」などを編集して、~/bin にパスを通しておく。
+```
+ - r8c_prog.conf を編集して、接続する COM ポート、ボーレートの設定をする。
+ - /dev/ttyS10 -> COM11 に相当します。（数字に＋１する）
+ - OS-X では、/dev/tty.usbserial-xxxxxxxxxx などのデバイス名になります。
+ - Linux では、/dev/ttyUSB[0 to 9] などのデバイス名になります。
+ - Linux では、シリアルデバイスのパーミッションが、標準では設定されていないので、変更します。   
+ - r8cprog/KiCAD/ に、R8C プログラマー（書き込み機）の参考回路などが含まれます。
+  
+---
+   
 ## R8C プロジェクトのソースコードを取得
 
 ```
@@ -259,6 +292,11 @@ make install
  - プロジェクトを全てコンパイル
 ```
    sh all_project_build.sh
+```
+   
+ - プロジェクトを全てコンパイル（クリーン）
+```
+   sh all_project_build.sh clean
 ```
    
 --- 
@@ -284,38 +322,8 @@ make install
  - もちろん、ルネサスエレクトロニクス販売のＥ１、又は、Ｅ２、エミュレーターでも書き込む事が出来ます。
  - シリアル通信は、開発過程では良く利用するので、スイッチで切り替えられるようにしておくと便利です。   
 ※切り替えの参考回路が、「r8cprog/KiCAD」にあります。   
+ - 「リセット」は制御していませんので、手動で行う必要があります。   
 
----
-   
-## R8C フラッシュプログラマーの構築
-
- - r8c_prog のビルドには「boost_1_60_0」が必要です。
- - boost はヘッダーのみ利用なので、ビルドの必要はありません、boost_1_60_0.zip を展開するだけです。
- - 又は、mingw64 環境などに pacman を使い boost をインストールして、そのパスを設定しても良いでしょう。
- - boost の展開は、MSYS2（Windows）の場合だけ必要です。
-``` 
-    cd /usr/local
-    unzip boost_1_60_0.zip
-```
-
- - r8c_prog のビルド（MSYS2）
- - ビルドした実行ファイルは、~/bin 又は、/usr/local/bin に配置します。
-
-```
-    cd r8cprog
-    make
-    mkdir ~/bin
-    cp r8c_prog.exe ~/bin/.
-    cp r8c_prog.conf ~/bin/.
-　　※~/bin にパスを通しておく。
-```
- - r8c_prog.conf を編集して、接続する COM ポート、ボーレートの設定をする。
- - /dev/ttyS10 -> COM11 に相当します。（数字に＋１する）
- - OS-X では、/dev/tty.usbserial-xxxxxxxxxx などのデバイス名になります。
- - Linux では、/dev/ttyUSB[0 to 9] などのデバイス名になります。
- - Linux では、シリアルデバイスのパーミッションが、標準では設定されていないので、変更します。   
- - r8cprog/KiCAD/ に、R8C プログラマー（書き込み機）の参考回路などが含まれます。
-  
 ---
    
 ## 各プロジェクトの動作
@@ -327,7 +335,7 @@ make install
     make
 ```
 
- - プログラムの書き込み（r8c_prog が必要）
+ - プログラムの書き込み（r8c_prog のビルドと、ハードウェアー接続が必要）
 ```
     make run
 ```
