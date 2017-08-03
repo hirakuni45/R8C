@@ -1,6 +1,17 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C MFRC522・メイン
+	@brief	R8C MFRC522・メイン @n
+																@n
+			＊＊＊＊＊　電源は必ず３．３Ｖで使う事！ ＊＊＊＊＊ @n
+																@n
+			MFRC522(SDA)  ---> MFRC_CS (P0_0) @n
+			MFRC522(SCK)  ---> SPI_SCK (P0_1) @n
+			MFRC522(MOSI) ---> SPI_MOSI(P0_2) @n
+			MFRC522(MISO) ---> SPI_MISO(P0_3) @n
+			MFRC522(IRQ)       N.C @n
+			MFRC522(GND)  ---> GND @n
+			MFRC522(RES)  ---> MFRC_RES(P4_2) @n
+			MFRC522(3.3V) ---> 3.3V
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -33,6 +44,7 @@ namespace {
 	typedef device::adc_io<utils::null_task> adc;
 	adc adc_;
 
+	// ポートの定義と接続
 	// P1_0(20):
 	typedef device::PORT<device::PORT1, device::bitpos::B0> MFRC_CS;
 	// P1_1(19):
@@ -41,8 +53,8 @@ namespace {
 	typedef device::PORT<device::PORT1, device::bitpos::B2> SPI_MOSI;
 	// P1_3(17):
 	typedef device::PORT<device::PORT1, device::bitpos::B3> SPI_MISO;
-	// P1_4(16):
-	typedef device::PORT<device::PORT1, device::bitpos::B4> MFRC_RES;
+	// P4_2(1):
+	typedef device::PORT<device::PORT4, device::bitpos::B2> MFRC_RES;
 
 
 	typedef device::spi_io<SPI_SCK, SPI_MOSI, SPI_MISO> SPI;
@@ -96,11 +108,11 @@ int main(int argc, char *argv[])
 {
 	using namespace device;
 
-// クロック関係レジスタ・プロテクト解除
+	// クロック関係レジスタ・プロテクト解除
 	PRCR.PRC0 = 1;
 
-// 高速オンチップオシレーターへ切り替え(20MHz)
-// ※ F_CLK を設定する事（Makefile内）
+	// 高速オンチップオシレーターへ切り替え(20MHz)
+	// ※ F_CLK を設定する事（Makefile内）
 	OCOCR.HOCOE = 1;
 	utils::delay::micro_second(1);  // >=30us(125KHz)
 	SCKCR.HSCKSEL = 1;
@@ -124,17 +136,46 @@ int main(int argc, char *argv[])
 	uart_.puts("Start R8C MFRC522 sample\n");
 
 	// SPI 開始
-	spi_.start();
+	{
+		uint8_t speed = 10;
+		spi_.start(speed);
+	}
 
 	// MFRC522 開始
 	mfrc522_.start();
+
+	// バージョンの表示
+	char tmp[64];
+	mfrc522_.list_version(tmp, sizeof(tmp));
+	utils::format("%s") % tmp;
+
+#if 0
+	// セルフ・テスト
+	if(mfrc522_.self_test()) {
+		utils::format("MFRC522 Self test: OK\n");
+	} else {
+		utils::format("MFRC522 Self test: NG\n");
+	}
+#endif
 
 	using namespace utils;
 
 	while(1) {
 		timer_b_.sync();
 
+		// Look for new cards
+		if(mfrc522_.detect_card()) {
+			utils::format("Card Detect !\n");
+#if 0
+	// Select one of the cards
+	if ( ! mfrc522.PICC_ReadCardSerial()) {
+		return;
+	}
 
+	// Dump debug info about the card; PICC_HaltA() is automatically called
+	mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
+#endif
+		}
 
 		if(uart_.length()) {  // UART のレシーブデータがあるか？
 			auto ch = uart_.getch();
