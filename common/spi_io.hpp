@@ -191,12 +191,13 @@ namespace device {
 			@param[in]	size	送信サイズ
 		*/
 		//-----------------------------------------------------------------//
-		void send(const uint8_t* src, uint16_t size)
+		void send(const void* src, uint16_t size)
 		{
-			auto end = src + size;
-			while(src < end) {
-				send_(*src);
-				++src;
+			const uint8_t* p = static_cast<const uint8_t*>(src);
+			auto end = p + size;
+			while(p < end) {
+				send_(*p);
+				++p;
 			}
 		}
 
@@ -208,12 +209,13 @@ namespace device {
 			@param[in]	cnt	受信サイズ
 		*/
 		//-----------------------------------------------------------------//
-		void recv(uint8_t* dst, uint16_t size)
+		void recv(void* dst, uint16_t size)
 		{
-			auto end = dst + size;
-			while(dst < end) {
-				*dst = recv_();
-				++dst;
+			uint8_t* p = static_cast<uint8_t*>(dst);
+			auto end = p + size;
+			while(p < end) {
+				*p = recv_();
+				++p;
 			}
 		}
 
