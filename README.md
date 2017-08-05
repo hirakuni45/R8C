@@ -283,22 +283,38 @@ make install
     http://developer.wonderpla.net/entry/blog/engineer/CPlusPlus_RaspberryPi/
 ```
    
-
+ - MSYS2 での構築
 ```
     cd r8cprog
     make
     mkdir ~/bin
-    cp r8c_prog.exe ~/bin/.   MSYS2
-    cp r8c_prog ~/bin/.       Linux, OS-X
+    cp r8c_prog.exe ~/bin/.
     cp r8c_prog.conf ~/bin/.
-　　※「.bashrc」などを編集して、~/bin にパスを通しておく。
 ```
+ - Linux、OS-X での構築
+``` cd r8cprog
+    make
+    mkdir ~/bin
+    cp r8c_prog ~/bin/.
+    cp r8c_prog.conf ~/bin/.
+```
+ - ※「.bashrc」などを編集して、~/bin にパスを通しておく。
+   
  - r8c_prog.conf を編集して、接続する COM ポート、ボーレートの設定をする。
+```port_win   = COM11
+   port_osx   = /dev/tty.usbserial-DA00X2QP
+   port_linux = /dev/ttyUSB0
+```
+ - Windown、OS-X、Linux と、システム毎に異なる「ポート名」に対応している。
  - /dev/ttyS10 -> COM11 に相当します。（数字に＋１する）
  - OS-X では、/dev/tty.usbserial-xxxxxxxxxx などのデバイス名になります。
  - Linux では、/dev/ttyUSB[0 to 9] などのデバイス名になります。
  - Linux では、シリアルデバイスのパーミッションが、標準では設定されていないので、変更します。   
- - r8cprog/KiCAD/ に、R8C プログラマー（書き込み機）の参考回路などが含まれます。
+ - r8cprog/KiCAD/ に、R8C シリアル・プログラマーの参考回路などが含まれます。
+ - 6P（２回路） スイッチで、書き込み／通常（RUN）を切り替える。
+![R8C/SerialWriter](R8CWriter.png)
+ - FT231X を使った、シリアルモジュールの参考回路
+![R8C/SerialModule](SerialModule.png)
   
 ---
    
