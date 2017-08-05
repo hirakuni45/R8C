@@ -312,7 +312,7 @@ make install
  - Linux では、シリアルデバイスのパーミッションが、標準では設定されていないので、変更します。   
  - r8cprog/KiCAD/ に、R8C シリアル・プログラマーの参考回路などが含まれます。
  - 6P（２回路） スイッチで、書き込み／通常（RUN）を切り替える。
-![R8C/SerialWriter](R8CWriter.png)
+![R8C/SerialWriter](R8C_Writer.png)
  - FT231X を使った、シリアルモジュールの参考回路
 ![R8C/SerialModule](SerialModule.png)
   
