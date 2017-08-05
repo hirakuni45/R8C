@@ -265,12 +265,31 @@ make install
 
  - r8c_prog のビルド（MSYS2）
  - ビルドした実行ファイルは、~/bin 又は、/usr/local/bin に配置します。
+   
+ - Raspberry Pi では、カレントの gcc が 4.6 であるので、コンパイルに失敗します。   
+ -   (0) gcc のバージョンを確認するには「gcc --version」と打ち込みます。
+ -   (1) 4.8 系の gcc をインストールする。   
+ -   (2) 4.8 gcc の優先順位を上げる。   
+ -   (3) 標準の Makefile では、clang でコンパイルする設定なので、それを gcc に変更する。
+ -   (4) 標準の Makefile では、C++14 でコンパイルする設定なので、それを C++11 に変更する。
+```
+    [53]  CP    =  clang++             --->   CP    =  g++
+    [54]  CC    =  clang               --->   CC    =  gcc
+    [55]  LK    =  clang++             --->   LK    =  g++
+    [59]  POPT  =  -O2 -std=gnu++14    --->   POPT  =  -O2 -std=gnu++11   
+```
+ - ※Raspberry Pi、C++ コンパイラ関係の参考リンク
+```
+    http://developer.wonderpla.net/entry/blog/engineer/CPlusPlus_RaspberryPi/
+```
+   
 
 ```
     cd r8cprog
     make
     mkdir ~/bin
-    cp r8c_prog.exe ~/bin/.
+    cp r8c_prog.exe ~/bin/.   MSYS2
+    cp r8c_prog ~/bin/.       Linux, OS-X
     cp r8c_prog.conf ~/bin/.
 　　※「.bashrc」などを編集して、~/bin にパスを通しておく。
 ```
