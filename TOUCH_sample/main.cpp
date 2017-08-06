@@ -26,6 +26,24 @@ namespace {
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
+
+	// P1_0(20):
+	typedef device::PORT<device::PORT1, device::bitpos::B0> INPUT;
+
+	static const uint16_t ref_level_ = 16;
+
+	uint16_t count_input_()
+	{
+		uint16_t n = 0;
+		INPUT::DIR = 0;  // 入力
+		do {
+			++n;
+		} while(INPUT::P() == 0) ;
+		INPUT::DIR = 1;  // 出力
+		INPUT::P = 0;    // 仮想コンデンサをショートしてリセット
+		return n;
+	}
+
 }
 
 extern "C" {
@@ -102,13 +120,29 @@ int main(int argc, char *argv[])
 	using namespace utils;
 
 	uint8_t cnt = 0;
+	bool level = false;
 	while(1) {
 		timer_b_.sync();
+
+		auto n = count_input_();
+
+		bool lvl = false;
+		if(n > ref_level_) {
+			lvl = true;
+		}
+
+		if(!level && lvl) {  // 押した瞬間を判定
+			utils::format("ON\n");
+		}
+		if(level && !lvl) {  // 離した瞬間を判定
+			utils::format("OFF\n");
+		}
+		level = lvl;
 
 		++cnt;
 		if(cnt >= 30) {
 			cnt = 0;
-
+//			utils::format("Touch count: %d\n") % n;
 		}
 	}
 }
