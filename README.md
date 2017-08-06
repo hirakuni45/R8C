@@ -299,14 +299,23 @@ make install
 ```
  - ※「.bashrc」などを編集して、~/bin にパスを通しておく。
    
- - r8c_prog.conf を編集して、接続する COM ポート、ボーレートの設定をする。
+ - r8c_prog.conf を編集して、接続する COM ポートを設定する。
 ```
     port_win   = COM11
     port_osx   = /dev/tty.usbserial-DA00X2QP
     port_linux = /dev/ttyUSB0
 ```
  - Windown、OS-X、Linux と、システム毎に異なる「ポート名」に対応している。
- - /dev/ttyS10 -> COM11 に相当します。（数字に＋１する）
+ - /dev/ttyS10 -> COM11 に相当します。（数字に＋１する）※MSYS2 では、どちらの名称でも OK。
+   
+ - r8c_prog.conf を編集して、ボーレートの設定をする。（最大は、115200）
+```
+    speed = 115200
+    #speed = 57600
+    #speed = 38400
+    #speed = 19200
+```
+   
  - OS-X では、/dev/tty.usbserial-xxxxxxxxxx などのデバイス名になります。
  - Linux では、/dev/ttyUSB[0 to 9] などのデバイス名になります。
  - Linux では、シリアルデバイスのパーミッションが、標準では設定されていないので、変更します。   
