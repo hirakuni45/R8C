@@ -300,7 +300,8 @@ make install
  - ※「.bashrc」などを編集して、~/bin にパスを通しておく。
    
  - r8c_prog.conf を編集して、接続する COM ポート、ボーレートの設定をする。
-``` port_win   = COM11
+```
+    port_win   = COM11
     port_osx   = /dev/tty.usbserial-DA00X2QP
     port_linux = /dev/ttyUSB0
 ```
