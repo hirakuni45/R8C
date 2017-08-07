@@ -1,8 +1,19 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C タッチ。スイッチ・メイン
+	@brief	R8C タッチ。スイッチ・メイン @n
+			このサンプルは、ポート入力が高インピーダンスである事を利用 @n
+			して、タッチスイッチに等価的に含まれる微小な静電容量を計測 @n
+			する事で、タッチされている事を判断するものです。@n
+			・プルアップ抵抗は１Ｍオーム @n
+			・タッチパッドは銅版で１０ｍｍ四方 @n
+			・タッチパッドは、ポリイミドテープなどで絶縁する @n
+			「ref_level_」は、実験的に求めている値で、平常時の値から決定 @n
+			します。@n
+			※この値を表示したい場合は、「DISP_REF」を有効にします。@n
+			・ON/OFF の判定は簡易的なものなので、実用的にするには、積分 @n
+			するなど、工夫が必要です。
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2015, 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -17,6 +28,8 @@
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
 #include "common/trb_io.hpp"
+
+// #define DISP_REF
 
 namespace {
 
@@ -35,7 +48,7 @@ namespace {
 	uint16_t count_input_()
 	{
 		uint16_t n = 0;
-		INPUT::DIR = 0;  // 入力
+		INPUT::DIR = 0;  // 検出する場合だけ、「入力」にする。
 		do {
 			++n;
 		} while(INPUT::P() == 0) ;
@@ -117,14 +130,22 @@ int main(int argc, char *argv[])
 
 	uart_.puts("Start R8C Touch switch sample\n");
 
-	using namespace utils;
-
+#ifdef DISP_REF
 	uint8_t cnt = 0;
+#endif
 	bool level = false;
 	while(1) {
 		timer_b_.sync();
 
 		auto n = count_input_();
+
+#ifdef DISP_REF
+		++cnt;
+		if(cnt >= 30) {
+			cnt = 0;
+			utils::format("Touch count: %d\n") % n;
+		}
+#endif
 
 		bool lvl = false;
 		if(n > ref_level_) {
@@ -138,11 +159,5 @@ int main(int argc, char *argv[])
 			utils::format("OFF\n");
 		}
 		level = lvl;
-
-		++cnt;
-		if(cnt >= 30) {
-			cnt = 0;
-//			utils::format("Touch count: %d\n") % n;
-		}
 	}
 }
