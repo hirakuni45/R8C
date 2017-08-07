@@ -44,6 +44,7 @@ R8C sources
  - /DS3231_sample      --->   I2C RTC デバイスのサンプル（DS3231）
  - /EEPROM_sample      --->   I2C EEPROM デバイスのテスト
  - /SWITCH_sample      --->   スイッチ入力テスト（チャタリング除去とトリガー判定）
+ - /TOUCH_sample       --->   タッチスイッチのテスト
  - /ENCODER_sample     --->   エンコーダー入力テスト
  - /PLUSE_OUT_sample   --->   タイマーＲＪを使ったパルス出力テスト
  - /PLUSE_INP_sample   --->   タイマーＲＪを使った周波数計測テスト
