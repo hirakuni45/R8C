@@ -1,7 +1,12 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C タイマーJ、パルス出力サンプル
-	@author	平松邦仁 (hira@rvf-rc45.net)
+	@brief	R8C タイマーJ、パルス出力サンプル @n
+			P17(13) からパルス出力。@n
+			コンソールから、任意の周波数を設定（有限な設定範囲）
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/RX/blob/master/LICENSE
 */
 //=====================================================================//
 #include "system.hpp"
