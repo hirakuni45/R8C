@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 		++cnt;
 
 		++itv;
-		if(itv >= 100) {
+		if(itv >= 50) {
 			auto len = vlx_.read_range_single_millimeters();
 			utils::format("Length: %d\n") % len;
 			itv = 0;
