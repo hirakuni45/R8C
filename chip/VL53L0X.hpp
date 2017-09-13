@@ -593,6 +593,22 @@ namespace chip {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	@n
+					Did a timeout occur in one of the read functions since the last call to @n
+					timeoutOccurred()?
+			@return timeout の状態
+		 */
+		//-----------------------------------------------------------------//
+		bool timeout_occurred()
+		{
+			bool tmp = did_timeout_;
+			did_timeout_ = false;
+			return tmp;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	@n
 					Set the VCSEL (vertical cavity surface emitting laser) pulse period for the
 					given period type (pre-range or final range) to the given value in PCLKs.
 					Longer periods seem to increase the potential range of the sensor.
