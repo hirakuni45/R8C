@@ -138,18 +138,23 @@ namespace chip {
 
 		uint32_t	measurement_timing_budget_us_;
 
-		bool	last_status_;
-		bool	stop_variable_;
+		volatile uint16_t	timeout_start_ms_;
+		uint16_t	io_timeout_;
+
+		// read by init and used when starting measurement; is StopVariable field of VL53L0X_
+		uint8_t		stop_variable_;
+
+		bool		last_status_;
+		bool		did_timeout_;
 
 
 		void start_timeout_() {
-//			timeout_start_ms = millis();
+			timeout_start_ms_ = 0;
 		}
 
 
 		bool check_timeout_expired_() {
-///			(io_timeout > 0 && ((uint16_t)millis() - timeout_start_ms) > io_timeout)
-return false;
+			return (io_timeout_ > 0 && timeout_start_ms_ > io_timeout_);
 		}
 
 
@@ -304,17 +309,17 @@ return false;
 
 
 		static uint8_t decode_vcsel_period_(uint8_t reg_val) {
-			return ((reg_val) + 1) << 1;
+			return (reg_val + 1) << 1;
 		}
 
 
 		static uint32_t encode_vcsel_period_(uint32_t period_pclks) {
-			return ((period_pclks) >> 1) - 1;
+			return (period_pclks >> 1) - 1;
 		}
 
 
 		static uint32_t calc_macro_period_(uint32_t vcsel_period_pclks) {
-			return ((2304 * (vcsel_period_pclks) * 1655) + 500) / 1000;
+			return ((2304 * vcsel_period_pclks * 1655) + 500) / 1000;
 		}
 
 
@@ -326,8 +331,39 @@ return false;
 		 */
 		//-----------------------------------------------------------------//
 		VL53L0X(I2C_IO& i2c) : i2c_io_(i2c),
-			measurement_timing_budget_us_(0),
-			last_status_(true), stop_variable_(true) { }
+			measurement_timing_budget_us_(0), timeout_start_ms_(0), io_timeout_(500), 
+			stop_variable_(0),
+			last_status_(true), did_timeout_(false) { }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	タイムアウト時間の追加
+			@param[in]	dms	追加時間（ミリ秒）
+		 */
+		//-----------------------------------------------------------------//
+		void add_millis(uint16_t dms)
+		{
+			timeout_start_ms_ += dms;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	タイムアウトの設定（ミリ秒）
+			@param[in]	timeout	タイムアウト
+		 */
+		//-----------------------------------------------------------------//
+		void set_timeout(uint16_t timeout) { io_timeout_ = timeout; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	タイムアウトの取得（ミリ秒）
+			@return	タイムアウト
+		 */
+		//-----------------------------------------------------------------//
+		uint16_t get_timeout() const { return io_timeout_; }
 
 
 		//-----------------------------------------------------------------//
@@ -630,6 +666,19 @@ return false;
 		}
 
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	@n
+					Set the measurement timing budget in microseconds, which is the time allowed @n
+					for one measurement; the ST API and this library take care of splitting the @n
+					timing budget among the sub-steps in the ranging sequence. A longer timing @n
+					budget allows for more accurate measurements. Increasing the budget by a @n
+					factor of N decreases the range measurement standard deviation by a factor of @n
+					sqrt(N). Defaults to about 33 milliseconds; the minimum is 20 ms. @n
+					based on VL53L0X_set_measurement_timing_budget_micro_seconds()
+			@param[in]	budget_us	マイクロ秒
+		 */
+		//-----------------------------------------------------------------//
 		bool set_measurement_timing_budget(uint32_t budget_us)
 		{
 			uint16_t const StartOverhead      = 1320; // note that this is different than the value in get_
@@ -709,12 +758,18 @@ return false;
 		}
 
 
-		// Start continuous ranging measurements. If period_ms (optional) is 0 or not
-		// given, continuous back-to-back mode is used (the sensor takes measurements as
-		// often as possible); otherwise, continuous timed mode is used, with the given
-		// inter-measurement period in milliseconds determining how often the sensor
-		// takes a measurement.
-		// based on VL53L0X_StartMeasurement()
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	連続モードでの計測 @n
+					Start continuous ranging measurements. If period_ms (optional) is 0 or not @n
+					given, continuous back-to-back mode is used (the sensor takes measurements as @n
+					often as possible); otherwise, continuous timed mode is used, with the given @n
+					inter-measurement period in milliseconds determining how often the sensor @n
+					takes a measurement. @n
+					based on VL53L0X_StartMeasurement()
+			@param[in]	period_ms	ミリ秒
+		 */
+		//-----------------------------------------------------------------//
 		void start_continuous(uint32_t period_ms)
 		{
 			write_(static_cast<reg_addr>(0x80), 0x01);
@@ -748,8 +803,14 @@ return false;
 		}
 
 
-		// Stop continuous measurements
-		// based on VL53L0X_StopMeasurement()
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	計測の停止 @n
+					Stop continuous measurements @n
+					based on VL53L0X_StopMeasurement()
+			@param[in]	period_ms	ミリ秒
+		 */
+		//-----------------------------------------------------------------//
 		void stop_continuous()
 		{
 			write_(reg_addr::SYSRANGE_START, 0x01); // VL53L0X_REG_SYSRANGE_MODE_SINGLESHOT
@@ -762,10 +823,81 @@ return false;
 		}
 
 
-		// Decode sequence step timeout in MCLKs from register value
-		// based on VL53L0X_decode_timeout()
-		// Note: the original function returned a uint32_t, but the return value is
-		// always stored in a uint16_t.
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	連続モードでの距離の取得（ミリメートル）@n
+					Returns a range reading in millimeters when continuous mode is active @n
+					(readRangeSingleMillimeters() also calls this function after starting a @n
+					single-shot range measurement)
+			@return 距離（ミリメートル）
+		 */
+		//-----------------------------------------------------------------//
+		uint16_t read_range_continuous_millimeters()
+		{
+			start_timeout_();
+			while((read_(reg_addr::RESULT_INTERRUPT_STATUS) & 0x07) == 0) {
+				if(check_timeout_expired_()) {
+					did_timeout_ = true;
+					return 65535;
+				}
+  			}
+
+			// assumptions: Linearity Corrective Gain is 1000 (default);
+			// fractional ranging is not enabled
+			uint16_t range = read16_(static_cast<reg_addr>(
+				static_cast<uint8_t>(reg_addr::RESULT_RANGE_STATUS) + 10));
+
+			write_(reg_addr::SYSTEM_INTERRUPT_CLEAR, 0x01);
+
+			return range;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	単発モードでの距離の取得（ミリメートル）@n
+					Performs a single-shot range measurement and returns the reading in @n
+					millimeters @n
+					based on VL53L0X_PerformSingleRangingMeasurement()
+			@return 距離（ミリメートル）
+		 */
+		//-----------------------------------------------------------------//
+		uint16_t read_range_single_millimeters()
+		{
+			write_(static_cast<reg_addr>(0x80), 0x01);
+			write_(static_cast<reg_addr>(0xFF), 0x01);
+			write_(static_cast<reg_addr>(0x00), 0x00);
+			write_(static_cast<reg_addr>(0x91), stop_variable_);
+			write_(static_cast<reg_addr>(0x00), 0x01);
+			write_(static_cast<reg_addr>(0xFF), 0x00);
+			write_(static_cast<reg_addr>(0x80), 0x00);
+
+			write_(reg_addr::SYSRANGE_START, 0x01);
+
+			// "Wait until start bit has been cleared"
+			start_timeout_();
+			while(read_(reg_addr::SYSRANGE_START) & 0x01) {
+				if(check_timeout_expired_()) {
+					did_timeout_ = true;
+					return 65535;
+				}
+			}
+
+			return read_range_continuous_millimeters();
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	タイムアウトのデコード @n
+					Decode sequence step timeout in MCLKs from register value @n
+					based on VL53L0X_decode_timeout() @n
+					Note: the original function returned a uint32_t, but the return value is @n
+					always stored in a uint16_t.
+			@param[in]	reg_val	レジスターの値
+			@return 時間
+		 */
+		//-----------------------------------------------------------------//
 		uint16_t decode_timeout(uint16_t reg_val)
 		{
 			// format: "(LSByte * 2^MSByte) + 1"
