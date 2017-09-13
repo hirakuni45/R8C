@@ -601,7 +601,7 @@ namespace chip {
 			@brief	@n
 					Did a timeout occur in one of the read functions since the last call to @n
 					timeoutOccurred()?
-			@return timeout の状態
+			@return タイムアウトなら「true」
 		 */
 		//-----------------------------------------------------------------//
 		bool timeout_occurred()
