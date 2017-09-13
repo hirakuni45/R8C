@@ -589,6 +589,187 @@ namespace chip {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	@n
+					Set the VCSEL (vertical cavity surface emitting laser) pulse period for the
+					given period type (pre-range or final range) to the given value in PCLKs.
+					Longer periods seem to increase the potential range of the sensor.
+					Valid values are (even numbers only):
+					pre:  12 to 18 (initialized default: 14)
+					final: 8 to 14 (initialized default: 10)
+					based on VL53L0X_set_vcsel_pulse_period()
+			@param[in]	type	vcselPeriodType 型
+			@param[in]	period_pclks	
+		 */
+		//-----------------------------------------------------------------//
+		bool set_vcsel_pulse_period(vcselPeriodType type, uint8_t period_pclks)
+		{
+			uint8_t vcsel_period_reg = encode_vcsel_period_(period_pclks);
+
+			SequenceStepEnables enables;
+			SequenceStepTimeouts timeouts;
+
+			get_sequence_step_enables_(enables);
+			get_sequence_step_timeouts_(enables, timeouts);
+
+			// "Apply specific settings for the requested clock period"
+			// "Re-calculate and apply timeouts, in macro periods"
+
+			// "When the VCSEL period for the pre or final range is changed,
+			// the corresponding timeout must be read from the device using
+			// the current VCSEL period, then the new VCSEL period can be
+			// applied. The timeout then must be written back to the device
+			// using the new VCSEL period.
+			//
+			// For the MSRC timeout, the same applies - this timeout being
+			// dependant on the pre-range vcsel period."
+
+			if(type == vcselPeriodType::VcselPeriodPreRange) {
+				// "Set phase check limits"
+				switch(period_pclks) {
+				case 12:
+					write_(reg_addr::PRE_RANGE_CONFIG_VALID_PHASE_HIGH, 0x18);
+					break;
+
+				case 14:
+					write_(reg_addr::PRE_RANGE_CONFIG_VALID_PHASE_HIGH, 0x30);
+					break;
+
+				case 16:
+					write_(reg_addr::PRE_RANGE_CONFIG_VALID_PHASE_HIGH, 0x40);
+					break;
+
+				case 18:
+					write_(reg_addr::PRE_RANGE_CONFIG_VALID_PHASE_HIGH, 0x50);
+					break;
+
+				default:
+					// invalid period
+					return false;
+				}
+				write_(reg_addr::PRE_RANGE_CONFIG_VALID_PHASE_LOW, 0x08);
+
+				// apply new VCSEL period
+				write_(reg_addr::PRE_RANGE_CONFIG_VCSEL_PERIOD, vcsel_period_reg);
+
+				// update timeouts
+
+				// set_sequence_step_timeout() begin
+				// (SequenceStepId == VL53L0X_SEQUENCESTEP_PRE_RANGE)
+
+				uint16_t new_pre_range_timeout_mclks =
+					timeout_microseconds_to_mclks(timeouts.pre_range_us, period_pclks);
+
+				write16_(reg_addr::PRE_RANGE_CONFIG_TIMEOUT_MACROP_HI,
+						 encode_timeout(new_pre_range_timeout_mclks));
+
+				// set_sequence_step_timeout() end
+
+				// set_sequence_step_timeout() begin
+				// (SequenceStepId == VL53L0X_SEQUENCESTEP_MSRC)
+
+				uint16_t new_msrc_timeout_mclks =
+					timeout_microseconds_to_mclks(timeouts.msrc_dss_tcc_us, period_pclks);
+
+				write_(reg_addr::MSRC_CONFIG_TIMEOUT_MACROP,
+					   (new_msrc_timeout_mclks > 256) ? 255 : (new_msrc_timeout_mclks - 1));
+
+				// set_sequence_step_timeout() end
+			} else if(type == vcselPeriodType::VcselPeriodFinalRange) {
+
+				switch(period_pclks) {
+				case 8:
+					write_(reg_addr::FINAL_RANGE_CONFIG_VALID_PHASE_HIGH, 0x10);
+					write_(reg_addr::FINAL_RANGE_CONFIG_VALID_PHASE_LOW,  0x08);
+					write_(reg_addr::GLOBAL_CONFIG_VCSEL_WIDTH, 0x02);
+					write_(reg_addr::ALGO_PHASECAL_CONFIG_TIMEOUT, 0x0C);
+					write_(static_cast<reg_addr>(0xFF), 0x01);
+					write_(reg_addr::ALGO_PHASECAL_LIM, 0x30);
+					write_(static_cast<reg_addr>(0xFF), 0x00);
+					break;
+
+				case 10:
+					write_(reg_addr::FINAL_RANGE_CONFIG_VALID_PHASE_HIGH, 0x28);
+					write_(reg_addr::FINAL_RANGE_CONFIG_VALID_PHASE_LOW,  0x08);
+					write_(reg_addr::GLOBAL_CONFIG_VCSEL_WIDTH, 0x03);
+					write_(reg_addr::ALGO_PHASECAL_CONFIG_TIMEOUT, 0x09);
+					write_(static_cast<reg_addr>(0xFF), 0x01);
+					write_(reg_addr::ALGO_PHASECAL_LIM, 0x20);
+					write_(static_cast<reg_addr>(0xFF), 0x00);
+					break;
+
+				case 12:
+					write_(reg_addr::FINAL_RANGE_CONFIG_VALID_PHASE_HIGH, 0x38);
+					write_(reg_addr::FINAL_RANGE_CONFIG_VALID_PHASE_LOW,  0x08);
+					write_(reg_addr::GLOBAL_CONFIG_VCSEL_WIDTH, 0x03);
+					write_(reg_addr::ALGO_PHASECAL_CONFIG_TIMEOUT, 0x08);
+					write_(static_cast<reg_addr>(0xFF), 0x01);
+					write_(reg_addr::ALGO_PHASECAL_LIM, 0x20);
+					write_(static_cast<reg_addr>(0xFF), 0x00);
+					break;
+
+				case 14:
+					write_(reg_addr::FINAL_RANGE_CONFIG_VALID_PHASE_HIGH, 0x48);
+					write_(reg_addr::FINAL_RANGE_CONFIG_VALID_PHASE_LOW,  0x08);
+					write_(reg_addr::GLOBAL_CONFIG_VCSEL_WIDTH, 0x03);
+					write_(reg_addr::ALGO_PHASECAL_CONFIG_TIMEOUT, 0x07);
+					write_(static_cast<reg_addr>(0xFF), 0x01);
+					write_(reg_addr::ALGO_PHASECAL_LIM, 0x20);
+					write_(static_cast<reg_addr>(0xFF), 0x00);
+					break;
+
+				default:
+					// invalid period
+					return false;
+				}
+
+				// apply new VCSEL period
+				write_(reg_addr::FINAL_RANGE_CONFIG_VCSEL_PERIOD, vcsel_period_reg);
+
+				// update timeouts
+
+				// set_sequence_step_timeout() begin
+				// (SequenceStepId == VL53L0X_SEQUENCESTEP_FINAL_RANGE)
+
+				// "For the final range timeout, the pre-range timeout
+				//  must be added. To do this both final and pre-range
+				//  timeouts must be expressed in macro periods MClks
+				//  because they have different vcsel periods."
+
+				uint16_t new_final_range_timeout_mclks =
+					timeout_microseconds_to_mclks(timeouts.final_range_us, period_pclks);
+
+				if(enables.pre_range) {
+					new_final_range_timeout_mclks += timeouts.pre_range_mclks;
+				}
+
+				write16_(reg_addr::FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI,
+						 encode_timeout(new_final_range_timeout_mclks));
+
+				// set_sequence_step_timeout end
+			} else {
+				// invalid type
+				return false;
+			}
+
+			// "Finally, the timing budget must be re-applied"
+
+			set_measurement_timing_budget(measurement_timing_budget_us_);
+
+			// "Perform the phase calibration. This is needed after changing on vcsel period."
+			// VL53L0X_perform_phase_calibration() begin
+
+			uint8_t sequence_config = read_(reg_addr::SYSTEM_SEQUENCE_CONFIG);
+			write_(reg_addr::SYSTEM_SEQUENCE_CONFIG, 0x02);
+			perform_single_ref_calibration_(0x0);
+			write_(reg_addr::SYSTEM_SEQUENCE_CONFIG, sequence_config);
+
+			// VL53L0X_perform_phase_calibration() end
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	@n
 				Get the VCSEL pulse period in PCLKs for the given period type. @n
 				based on VL53L0X_get_vcsel_pulse_period()
 			@param[in]	type	vcselPeriodType 型
