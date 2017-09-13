@@ -18,6 +18,7 @@
 #include "common/uart_io.hpp"
 #include "common/fifo.hpp"
 #include "common/trb_io.hpp"
+#include "common/iica_io.hpp"
 #include "chip/VL53L0X.hpp"
 
 namespace {
