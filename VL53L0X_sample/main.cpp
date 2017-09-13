@@ -154,10 +154,15 @@ int main(int argc, char *argv[])
 		++itv;
 		if(itv >= 50) {
 			auto len = vlx_.read_range_single_millimeters();
-			utils::format("Length: %d\n") % len;
+			if(vlx_.timeout_occurred()) {
+				utils::format("Length: timeout\n");
+			} else {
+				utils::format("Length: %d [mm]\n") % (len - 50);
+			}
 			itv = 0;
 		}
 
+#if 0
 		// コマンド入力と、コマンド解析
 		if(command_.service()) {
 			uint8_t cmdn = command_.get_words();
@@ -179,5 +184,6 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
+#endif
 	}
 }
