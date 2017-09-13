@@ -30,14 +30,15 @@ namespace {
 	uart uart_;
 
 	// I2C ポートの定義クラス
-	// P4_B5: SDA
+	// P4_B5 (12): SDA
 	typedef device::PORT<device::PORT4, device::bitpos::B5> sda_port;
-	// P1_B7: SCL
+	// P1_B7 (13): SCL
 	typedef device::PORT<device::PORT1, device::bitpos::B7> scl_port;
 
 	typedef device::iica_io<sda_port, scl_port> iica;
-	iica i2c_;
-	chip::VL53L0X<iica> vlx_(i2c_);
+	iica	i2c_;
+	typedef chip::VL53L0X<iica> VLX;
+	VLX		vlx_(i2c_);
 
 	utils::command<64> command_;
 }
@@ -66,6 +67,7 @@ extern "C" {
 
 	void TIMER_RB_intr(void) {
 		timer_b_.itask();
+		vlx_.add_millis(10);
 	}
 
 
@@ -105,7 +107,7 @@ int main(int argc, char *argv[])
 	// タイマーＢ初期化
 	{
 		uint8_t ir_level = 2;
-		timer_b_.start_timer(60, ir_level);
+		timer_b_.start_timer(100, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
@@ -123,8 +125,11 @@ int main(int argc, char *argv[])
 	}
 
 	// VL53L0X を開始
-	{
-		vlx_.start();
+	if(!vlx_.start()) {
+		utils::format("VL53L0X start fail\n");
+	} else {
+		// 20ms
+		vlx_.set_measurement_timing_budget(200000);
 	}
 
 	sci_puts("Start R8C VL53L0X monitor\n");
@@ -134,6 +139,7 @@ int main(int argc, char *argv[])
 	PD1.B0 = 1;
 
 	uint8_t cnt = 0;
+	uint8_t itv = 0;
 	while(1) {
 		timer_b_.sync();
 
@@ -144,33 +150,33 @@ int main(int argc, char *argv[])
 		else P1.B0 = 0;
 		++cnt;
 
-#if 0
+		++itv;
+		if(itv >= 100) {
+			auto len = vlx_.read_range_single_millimeters();
+			utils::format("Length: %d\n") % len;
+			itv = 0;
+		}
+
 		// コマンド入力と、コマンド解析
 		if(command_.service()) {
 			uint8_t cmdn = command_.get_words();
 			if(cmdn >= 1) {
 				if(command_.cmp_word(0, "date")) {
 					if(cmdn == 1) {
-						time_t t = get_time_();
-						if(t != 0) {
-							disp_time_(t);
-						}
+
 					} else {
-						set_time_date_();
+
 					}
 				} else if(command_.cmp_word(0, "help")) {
-					sci_puts("date\n");
-					sci_puts("date yyyy/mm/dd hh:mm[:ss]\n");
+//					sci_puts("date\n");
+//					sci_puts("date yyyy/mm/dd hh:mm[:ss]\n");
 				} else {
 					char buff[12];
 					if(command_.get_word(0, sizeof(buff), buff)) {
-						sci_puts("Command error: ");
-						sci_puts(buff);
-						sci_putch('\n');
+						utils::format("Command error: %s\n") % buff;
 					}
 				}
 			}
 		}
-#endif
 	}
 }
