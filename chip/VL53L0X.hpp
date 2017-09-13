@@ -10,8 +10,6 @@
 //=====================================================================//
 #include <cstdint>
 #include <cstring>
-#include "common/iica_io.hpp"
-#include "common/time.h"
 
 namespace chip {
 
