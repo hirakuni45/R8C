@@ -108,12 +108,15 @@ namespace chip {
 
 			ALGO_PHASECAL_LIM                           = 0x30,
 			ALGO_PHASECAL_CONFIG_TIMEOUT                = 0x30,
+
+			CONST_00 = 0x00,
+			CONST_FF = 0xFF, 
 		};
 
 
-		enum class vcselPeriodType {
-			VcselPeriodPreRange,
-			VcselPeriodFinalRange
+		enum class vcselPeriod {
+			PreRange,
+			FinalRange
 		};
 
 
@@ -439,7 +442,6 @@ namespace chip {
 
 			// -- VL53L0X_load_tuning_settings() begin
 			// DefaultTuningSettings from vl53l0x_tuning.h
-
 			write_(static_cast<reg_addr>(0xFF), 0x01);
 			write_(static_cast<reg_addr>(0x00), 0x00);
 
@@ -596,11 +598,11 @@ namespace chip {
 					pre:  12 to 18 (initialized default: 14)
 					final: 8 to 14 (initialized default: 10)
 					based on VL53L0X_set_vcsel_pulse_period()
-			@param[in]	type	vcselPeriodType 型
+			@param[in]	type	vcselPeriod 型
 			@param[in]	period_pclks	
 		 */
 		//-----------------------------------------------------------------//
-		bool set_vcsel_pulse_period(vcselPeriodType type, uint8_t period_pclks)
+		bool set_vcsel_pulse_period(vcselPeriod type, uint8_t period_pclks)
 		{
 			uint8_t vcsel_period_reg = encode_vcsel_period_(period_pclks);
 
@@ -622,7 +624,7 @@ namespace chip {
 			// For the MSRC timeout, the same applies - this timeout being
 			// dependant on the pre-range vcsel period."
 
-			if(type == vcselPeriodType::VcselPeriodPreRange) {
+			if(type == vcselPeriod::PreRange) {
 				// "Set phase check limits"
 				switch(period_pclks) {
 				case 12:
@@ -673,7 +675,7 @@ namespace chip {
 					   (new_msrc_timeout_mclks > 256) ? 255 : (new_msrc_timeout_mclks - 1));
 
 				// set_sequence_step_timeout() end
-			} else if(type == vcselPeriodType::VcselPeriodFinalRange) {
+			} else if(type == vcselPeriod::FinalRange) {
 
 				switch(period_pclks) {
 				case 8:
@@ -772,14 +774,14 @@ namespace chip {
 			@brief	@n
 				Get the VCSEL pulse period in PCLKs for the given period type. @n
 				based on VL53L0X_get_vcsel_pulse_period()
-			@param[in]	type	vcselPeriodType 型
+			@param[in]	type	vcselPeriod 型
 		 */
 		//-----------------------------------------------------------------//
-		uint8_t get_vcsel_pulse_period(vcselPeriodType type)
+		uint8_t get_vcsel_pulse_period(vcselPeriod type)
 		{
-			if(type == vcselPeriodType::VcselPeriodPreRange) {
+			if(type == vcselPeriod::PreRange) {
 				return decode_vcsel_period_(read_(reg_addr::PRE_RANGE_CONFIG_VCSEL_PERIOD));
-			} else if(type == vcselPeriodType::VcselPeriodFinalRange) {
+			} else if(type == vcselPeriod::FinalRange) {
 				return decode_vcsel_period_(read_(reg_addr::FINAL_RANGE_CONFIG_VCSEL_PERIOD));
 			} else {
 				return 255;
@@ -821,7 +823,7 @@ namespace chip {
 		void get_sequence_step_timeouts(const SequenceStepEnables& enables, SequenceStepTimeouts& timeouts)
 		{
 			timeouts.pre_range_vcsel_period_pclks =
-				get_vcsel_pulse_period(vcselPeriodType::VcselPeriodPreRange);
+				get_vcsel_pulse_period(vcselPeriod::PreRange);
 
 			timeouts.msrc_dss_tcc_mclks = read_(reg_addr::MSRC_CONFIG_TIMEOUT_MACROP) + 1;
 			timeouts.msrc_dss_tcc_us = timeout_mclks_to_microseconds(timeouts.msrc_dss_tcc_mclks,
@@ -832,7 +834,7 @@ namespace chip {
 																  timeouts.pre_range_vcsel_period_pclks);
 
 			timeouts.final_range_vcsel_period_pclks =
-				get_vcsel_pulse_period(vcselPeriodType::VcselPeriodFinalRange);
+				get_vcsel_pulse_period(vcselPeriod::FinalRange);
 
 			timeouts.final_range_mclks = decode_timeout(
 				read16_(reg_addr::FINAL_RANGE_CONFIG_TIMEOUT_MACROP_HI)
