@@ -43,6 +43,7 @@ R8C sources
  - /DS1371_sample      --->   I2C RTC デバイスのサンプル（DS1371）
  - /DS3231_sample      --->   I2C RTC デバイスのサンプル（DS3231）
  - /EEPROM_sample      --->   I2C EEPROM デバイスのテスト
+ - /VL53L0X_sample     --->   I2C VL53K0X レーザー距離センサのサンプル
  - /SWITCH_sample      --->   スイッチ入力テスト（チャタリング除去とトリガー判定）
  - /TOUCH_sample       --->   タッチスイッチのテスト
  - /ENCODER_sample     --->   エンコーダー入力テスト
