@@ -32,13 +32,13 @@ namespace {
 
 	// I2C ポートの定義クラス
 	// P4_B5 (12): SDA
-	typedef device::PORT<device::PORT4, device::bitpos::B5> sda_port;
+	typedef device::PORT<device::PORT4, device::bitpos::B5> SDA;
 	// P1_B7 (13): SCL
-	typedef device::PORT<device::PORT1, device::bitpos::B7> scl_port;
+	typedef device::PORT<device::PORT1, device::bitpos::B7> SCL;
 
-	typedef device::iica_io<sda_port, scl_port> iica;
-	iica	i2c_;
-	typedef chip::VL53L0X<iica> VLX;
+	typedef device::iica_io<SDA, SCL> I2C;
+	I2C		i2c_;
+	typedef chip::VL53L0X<I2C> VLX;
 	VLX		vlx_(i2c_);
 
 	utils::command<64> command_;
@@ -68,7 +68,6 @@ extern "C" {
 
 	void TIMER_RB_intr(void) {
 		timer_b_.itask();
-		vlx_.add_millis(10);
 	}
 
 
@@ -122,7 +121,7 @@ int main(int argc, char *argv[])
 
 	// I2C クラスの初期化
 	{
-		i2c_.start(iica::speed::fast);
+		i2c_.start(I2C::speed::fast);
 	}
 
 	// VL53L0X を開始
