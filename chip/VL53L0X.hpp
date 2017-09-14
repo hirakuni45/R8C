@@ -10,6 +10,7 @@
 //=====================================================================//
 #include <cstdint>
 #include <cstring>
+#include "common/delay.hpp"
 
 namespace chip {
 
@@ -163,7 +164,7 @@ namespace chip {
 
 		uint32_t	measurement_timing_budget_us_;
 
-		volatile uint16_t	timeout_start_ms_;
+		uint16_t	timeout_start_ms_;
 		uint16_t	io_timeout_;
 
 		// read by init and used when starting measurement; is StopVariable field of VL53L0X_
@@ -179,6 +180,8 @@ namespace chip {
 
 
 		bool check_timeout_expired_() {
+			++timeout_start_ms_;
+			utils::delay::micro_second(1000 - 100);  // 1ms から、他の処理を大雑把に100uS引く
 			return (io_timeout_ > 0 && timeout_start_ms_ > io_timeout_);
 		}
 
@@ -359,18 +362,6 @@ namespace chip {
 			measurement_timing_budget_us_(0), timeout_start_ms_(0), io_timeout_(500), 
 			stop_variable_(0),
 			last_status_(true), did_timeout_(false) { }
-
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief	タイムアウト時間の追加
-			@param[in]	dms	追加時間（ミリ秒）
-		 */
-		//-----------------------------------------------------------------//
-		void add_millis(uint16_t dms)
-		{
-			timeout_start_ms_ += dms;
-		}
 
 
 		//-----------------------------------------------------------------//
