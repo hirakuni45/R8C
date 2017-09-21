@@ -1,7 +1,9 @@
 //=====================================================================//
 /*!	@file
 	@brief	R8C RF433 メイン @n
-			433MHz TX/RX @n
+			433MHz TX/RX Module @n
+			RF_TX (out)  ---> (P1_0:20) @n
+			RF_RX (inp)  ---> (P1_1:19)
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -29,7 +31,13 @@ namespace {
 	// P1_1(19):
 	typedef device::PORT<device::PORT1, device::bitpos::B1> RF_RX;
 
+	typedef chip::TX_MOD<RF_TX> TX;
+	typedef chip::RX_MOD<RF_RX> RX;
+
 	class rf_task {
+
+		TX		tx_;
+		RX		rx_;
 
 		bool	flag_;
 
@@ -120,9 +128,10 @@ int main(int argc, char *argv[])
 	CKSTPR.SCKSEL = 1;
 
 	// タイマーＢ初期化
+	// ※無線データ変調で利用するので、優先順位は最大にする。
 	{
 		uint8_t ir_level = 2;
-		trb_.start_timer(1000, ir_level);
+		trb_.start_timer(2000, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
