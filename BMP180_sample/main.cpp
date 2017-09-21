@@ -1,7 +1,10 @@
 //=====================================================================//
 /*!	@file
 	@brief	R8C BMP180/BMP280 サンプル
-	@author	平松邦仁 (hira@rvf-rc45.net)
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include "system.hpp"
