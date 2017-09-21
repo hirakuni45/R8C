@@ -3,7 +3,10 @@
 	@brief	R8C タイマー・メイン @n
 			P1_0: LED @n
 			P1_1: LED
-	@author	平松邦仁 (hira@rvf-rc45.net)
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include "common/vect.h"
