@@ -4,13 +4,13 @@
 																@n
 			＊＊＊＊＊　電源は必ず３．３Ｖで使う事！ ＊＊＊＊＊ @n
 																@n
-			MFRC522(SDA)  ---> MFRC_CS (P0_0) @n
-			MFRC522(SCK)  ---> SPI_SCK (P0_1) @n
-			MFRC522(MOSI) ---> SPI_MOSI(P0_2) @n
-			MFRC522(MISO) ---> SPI_MISO(P0_3) @n
+			MFRC522(SDA)  ---> MFRC_CS (P1_0:20) @n
+			MFRC522(SCK)  ---> SPI_SCK (P1_1:19) @n
+			MFRC522(MOSI) ---> SPI_MOSI(P1_2:18) @n
+			MFRC522(MISO) ---> SPI_MISO(P1_3:17) @n
 			MFRC522(IRQ)       N.C @n
 			MFRC522(GND)  ---> GND @n
-			MFRC522(RES)  ---> MFRC_RES(P4_2) @n
+			MFRC522(RES)  ---> MFRC_RES(P4_2: 1) @n
 			MFRC522(3.3V) ---> 3.3V
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
@@ -57,7 +57,7 @@ namespace {
 	typedef device::PORT<device::PORT4, device::bitpos::B2> MFRC_RES;
 
 
-	typedef device::spi_io<SPI_SCK, SPI_MOSI, SPI_MISO> SPI;
+	typedef device::spi_io<SPI_MISO, SPI_MOSI, SPI_SCK, device::soft_spi_mode::CK01_> SPI;
 	SPI		spi_;
 
 	typedef chip::MFRC522<SPI, MFRC_CS, MFRC_RES> MFRC522;
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
 	// SPI 開始
 	{
-		uint8_t speed = 10;
+		uint32_t speed = 1000000;  // 1M bps
 		spi_.start(speed);
 	}
 
@@ -177,9 +177,11 @@ int main(int argc, char *argv[])
 #endif
 		}
 
+#if 0
 		if(uart_.length()) {  // UART のレシーブデータがあるか？
 			auto ch = uart_.getch();
 			uart_.putch(ch);
 		}
+#endif
 	}
 }
