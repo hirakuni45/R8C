@@ -62,17 +62,17 @@ namespace chip {
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		enum class RxGain {
-			v_18dB		= 0x00 << 4,	// 000b - 18 dB, minimum
-			v_23dB		= 0x01 << 4,	// 001b - 23 dB
-			v_18dB_2	= 0x02 << 4,	// 010b - 18 dB, it seems 010b is a duplicate for 000b
-			v_23dB_2	= 0x03 << 4,	// 011b - 23 dB, it seems 011b is a duplicate for 001b
-			v_33dB		= 0x04 << 4,	// 100b - 33 dB, average, and typical default
-			v_38dB		= 0x05 << 4,	// 101b - 38 dB
-			v_43dB		= 0x06 << 4,	// 110b - 43 dB
-			v_48dB		= 0x07 << 4,	// 111b - 48 dB, maximum
-			min			= 0x00 << 4,	// 000b - 18 dB, minimum, convenience for RxGain_18dB
-			avg			= 0x04 << 4,	// 100b - 33 dB, average, convenience for RxGain_33dB
-			max			= 0x07 << 4		// 111b - 48 dB, maximum, convenience for RxGain_48dB
+			v_18dB		= 0x00,	// 000b - 18 dB, minimum
+			v_23dB		= 0x01,	// 001b - 23 dB
+			v_18dB_2	= 0x02,	// 010b - 18 dB, it seems 010b is a duplicate for 000b
+			v_23dB_2	= 0x03,	// 011b - 23 dB, it seems 011b is a duplicate for 001b
+			v_33dB		= 0x04,	// 100b - 33 dB, average, and typical default
+			v_38dB		= 0x05,	// 101b - 38 dB
+			v_43dB		= 0x06,	// 110b - 43 dB
+			v_48dB		= 0x07,	// 111b - 48 dB, maximum
+			min			= 0x00,	// 000b - 18 dB, minimum, convenience for RxGain_18dB
+			avg			= 0x04,	// 100b - 33 dB, average, convenience for RxGain_33dB
+			max			= 0x07	// 111b - 48 dB, maximum, convenience for RxGain_48dB
 		};
 
 
@@ -369,7 +369,7 @@ namespace chip {
 			@param[in]	ena	無効にする場合「false」
 		 */
 		//-----------------------------------------------------------------//
-		void antenna_enable(bool ena = true) noexcept
+		void enable_antenna(bool ena = true) noexcept
 		{
 			if(ena) {
 				auto value = read_reg_(reg_adr::TxControl);
@@ -422,8 +422,8 @@ namespace chip {
 			// the CalcCRC command to 0x6363 (ISO 14443-3 part 6.2.4)
 			write_reg_(reg_adr::Mode, 0x3D);
 			// Enable the antenna driver pins TX1 and TX2 (they were disabled by the reset)
-			antenna_enable();
-///			set_antenna_gain(RxGain::avg);
+			enable_antenna();
+///			set_antenna_gain(RxGain::min);
 		}
 
 
@@ -595,6 +595,8 @@ namespace chip {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	communicate_with
+			@param[in]	cmd		コマンド
+			@param[in]	waitIRq	
 			@return ステータス
 		 */
 		//-----------------------------------------------------------------//
@@ -620,18 +622,22 @@ namespace chip {
 			// Wait for the command to complete.
 			// In PCD_Init() we set the TAuto flag in TModeReg.
 			// This means the timer automatically starts when the PCD stops transmitting.
-			// Each iteration of the do-while-loop takes 17.86μs.
 			// TODO check/modify for other architectures than Arduino Uno 16bit
 			uint16_t i = 2000;
+//uint8_t nnn = 0;
 			while(1) {
 				// ComIrqReg[7..0] bits are: Set1 TxIRq RxIRq IdleIRq HiAlertIRq LoAlertIRq ErrIRq TimerIRq
 				auto n = read_reg_(reg_adr::ComIrq);
+//if(n != nnn) {
+//	nnn = n;
+//	debug_format("State: %02X\n") % static_cast<uint16_t>(n);
+//}
 				if(n & waitIRq) {	// One of the interrupts that signal success has been set.
 					debug_format("Card detect !\n");
 					break;
 				}
 				if(n & 0x01) {		// Timer interrupt - nothing received in 25ms
-/// utils::format("timeout step 0\n");
+///					debug_format("timeout step: %d\n") % i;
 					return status::TIMEOUT;
 				}
 				--i;
@@ -733,9 +739,9 @@ namespace chip {
 			// For REQA and WUPA we need the short frame format - transmit
 			// only 7 bits of the last (and only) byte. TxLastBits = BitFramingReg[2..0]
 			uint8_t validBits = 7;
-			uint8_t tmp[1];
-			tmp[0] = static_cast<uint8_t>(cmd);
-			auto st = transceive_data(tmp, sizeof(tmp), atqa, size, &validBits);
+			uint8_t tmp;
+			tmp = static_cast<uint8_t>(cmd);
+			auto st = transceive_data(&tmp, 1, atqa, size, &validBits);
 			if(st != status::OK) {
 				return st;
 			}
@@ -1038,6 +1044,12 @@ namespace chip {
 		//-----------------------------------------------------------------//
 		bool detect_card()
 		{
+			// Reset baud rates
+			write_reg_(reg_adr::TxMode, 0x00);
+			write_reg_(reg_adr::RxMode, 0x00);
+			// Reset ModWidthReg
+			write_reg_(reg_adr::ModWidth, 0x26);
+
 			uint8_t tmp[2];
 			uint8_t size = sizeof(tmp);
 			auto result = request(tmp, size);
