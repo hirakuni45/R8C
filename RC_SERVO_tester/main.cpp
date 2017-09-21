@@ -5,7 +5,10 @@
 			・アナログ入力： P1_1(14) @n
 			・PWM 出力： P1_3(12) @n
 			・インジケーター： P3_7(1) active-low
-	@author	平松邦仁 (hira@rvf-rc45.net)
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include "system.hpp"
