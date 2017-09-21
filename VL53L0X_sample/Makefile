@@ -5,9 +5,7 @@
 #	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
 #				Released under the MIT license @n
 #				https://github.com/hirakuni45/R8C/blob/master/LICENSE
-#
 #=======================================================================
-
 TARGET		=	vl53l0x_sample
 
 BUILD		=	release
