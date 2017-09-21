@@ -3,7 +3,10 @@
 	@brief	R8C LED 点滅 @n
 			LED は、P1_0、P1_1に接続（吸い込み点灯）@n
 			※M120AN(20)
-	@author	平松邦仁 (hira@rvf-rc45.net)
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include "system.hpp"
