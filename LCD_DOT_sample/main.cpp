@@ -3,7 +3,10 @@
 	@brief	R8C LCD メイン @n
 			for ST7567 SPI (128 x 32) @n
 			LCD: Aitendo M-G0812P7567
-	@author	平松邦仁 (hira@rvf-rc45.net)
+    @author 平松邦仁 (hira@rvf-rc45.net)
+	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+				Released under the MIT license @n
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include <cstring>
