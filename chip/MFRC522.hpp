@@ -7,7 +7,7 @@
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
 				Released under the MIT license @n
-				https://github.com/hirakuni45/RX/blob/master/LICENSE
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include "common/delay.hpp"
@@ -20,11 +20,11 @@ namespace chip {
 	/*!
 		@brief  MFRC522 テンプレートクラス
 		@param[in]	SPI	spi クラス
-		@param[in]	CS	チップ・セレクト
+		@param[in]	SEL	デバイス・セレクト
 		@param[in]	RES	リセット信号
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class SPI, class CS, class RES>
+	template <class SPI, class SEL, class RES>
 	class MFRC522 {
 
 #ifdef DEBUG_MFRC522
@@ -212,11 +212,11 @@ namespace chip {
 
 		void write_reg_(reg_adr reg, uint8_t value) noexcept
 		{
-			CS::P = 0;  // enable device
+			SEL::P = 0;  // enable device
 			// MSB == 0 is for writing. LSB is not used in address.
 			spi_.xchg(static_cast<uint8_t>(reg) & 0x7E);
 			spi_.xchg(value);
-			CS::P = 1;  // disable device
+			SEL::P = 1;  // disable device
 		}
 
 
@@ -228,21 +228,21 @@ namespace chip {
 
 		void write_reg_(reg_adr reg, const void* data, uint8_t size) noexcept
 		{
-			CS::P = 0;  // enable device
+			SEL::P = 0;  // enable device
 			// MSB == 0 is for writing. LSB is not used in address.
 			spi_.xchg(static_cast<uint8_t>(reg) & 0x7E);
 			spi_.send(data, size);
-			CS::P = 1;  // disable device
+			SEL::P = 1;  // disable device
 		}
 
 
 		uint8_t read_reg_(reg_adr reg) noexcept
 		{
-			CS::P = 0;  // enable device
+			SEL::P = 0;  // enable device
 			// MSB == 0 is for writing. LSB is not used in address.
 			spi_.xchg(0x80 | (static_cast<uint8_t>(reg) & 0x7E));
 			auto data = spi_.xchg(0);
-			CS::P = 1;  // disable device
+			SEL::P = 1;  // disable device
 			return data;
 		}
 
@@ -255,7 +255,7 @@ namespace chip {
 
 			// MSB == 1 is for reading. LSB is not used in address.
 			uint8_t adr = 0x80 | (static_cast<uint8_t>(reg) & 0x7E);
-			CS::P = 0;  // enable device
+			SEL::P = 0;  // enable device
 			spi_.xchg(adr);
 
 			uint8_t mask = 0;
@@ -282,7 +282,7 @@ namespace chip {
 			}
 			p[idx] = spi_.xchg(0);  // Read the final byte. Send 0 to stop reading.
 
-			CS::P = 1;  // disable device
+			SEL::P = 1;  // disable device
 		}
 
 
@@ -389,8 +389,8 @@ namespace chip {
 		//-----------------------------------------------------------------//
 		void start() noexcept
 		{
-			CS::DIR = 1;
-			CS::P = 1;  // disable device
+			SEL::DIR = 1;
+			SEL::P = 1;  // disable device
 			RES::DIR = 1;
 			RES::P = 0;  // low-power mode
 

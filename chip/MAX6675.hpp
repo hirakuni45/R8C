@@ -8,7 +8,7 @@
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
 				Released under the MIT license @n
-				https://github.com/hirakuni45/RX/blob/master/LICENSE
+				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include <cmath>
@@ -19,10 +19,10 @@ namespace chip {
 	/*!
 		@brief  MAX6675 テンプレートクラス
 		@param[in]	SPI	spi クラス
-		@param[in]	CS	チップ・セレクト
+		@param[in]	SEL	デバイス・セレクト
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class SPI, class CS>
+	template <class SPI, class SEL>
 	class MAX6675 {
 
 		SPI&	spi_;
@@ -43,8 +43,8 @@ namespace chip {
 		//-----------------------------------------------------------------//
 		void start() noexcept
 		{
-			CS::DIR = 1;
-			CS::P = 1;
+			SEL::DIR = 1;
+			SEL::P = 1;
 		}
 
 
@@ -56,13 +56,13 @@ namespace chip {
 		//-----------------------------------------------------------------//
 		uint16_t get() noexcept
 		{
-			CS::P = 0;
+			SEL::P = 0;
 			// delay 100ns
 			utils::delay::nano_second(100);
 			uint8_t tmp[2];
 			spi_.recv(tmp, 2);
 			uint16_t v = (static_cast<uint16_t>(tmp[0]) << 5) | (static_cast<uint16_t>(tmp[1]) >> 3);
-			CS::P = 1;
+			SEL::P = 1;
 			return v;
 		}
 
