@@ -42,6 +42,8 @@ namespace {
 	typedef device::PORT<device::PORT1, device::bitpos::B2> SPI_MOSI;
 	// P1_3(17):
 	typedef device::PORT<device::PORT1, device::bitpos::B3> SPI_MISO;
+	// P1_4(16)
+	typedef device::PORT<device::PORT1, device::bitpos::B4> MCP_INT;
 
 	typedef device::spi_io<SPI_MISO, SPI_MOSI, SPI_SCK, device::soft_spi_mode::CK01_> SPI;
 	SPI		spi_;
@@ -134,6 +136,8 @@ int main(int argc, char *argv[])
 			utils::format("MCP2515 Start NG\n");
 		}
 		mcp_.set_mode(MCP::MODE::NORMAL);
+		MCP_INT::DIR = 0;  // input
+		MCP_INT::PU = 1;
 	}
 
 	using namespace utils;
@@ -141,62 +145,32 @@ int main(int argc, char *argv[])
 	while(1) {
 		timer_b_.sync();
 
-#if 0
-		if(uart_.length()) {  // UART のレシーブデータがあるか？
-			auto ch = uart_.getch();
-			uart_.putch(ch);
+		const uint8_t data[8] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+		// send data:  ID = 0x100, Standard CAN Frame, Data length = 8
+		// bytes, 'data' = array of data bytes to send
+		if(!mcp_.send(0x100, 0, data, 8)) {
+			utils::format("Send: NG\n");
 		}
-#endif
+
+		if(!MCP_INT::P()) {
+			uint32_t id;
+			uint8_t ext;
+			uint8_t len;
+			uint8_t tmp[8];
+			if(mcp_.recv(id, ext, tmp, len)) {
+				utils::format("ID: %8X\n") % id;
+			} else {
+				utils::format("Recv fail\n");
+			}
+		}
 	}
 }
 
-// send
+
+
+
 #if 0
-byte data[8] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
-
-void loop()
-{
-  // send data:  ID = 0x100, Standard CAN Frame, Data length = 8 bytes, 'data' = array of data bytes to send
-  byte sndStat = CAN0.sendMsgBuf(0x100, 0, 8, data);
-  if(sndStat == CAN_OK){
-    Serial.println("Message Sent Successfully!");
-  } else {
-    Serial.println("Error Sending Message...");
-  }
-  delay(100);   // send data per 100ms
-}
-#endif
-
 // recv
-#if 0
-long unsigned int rxId;
-unsigned char len = 0;
-unsigned char rxBuf[8];
-char msgString[128];                        // Array to store serial string
-
-#define CAN0_INT 2                              // Set INT to pin 2
-MCP_CAN CAN0(10);                               // Set CS to pin 10
-
-
-void setup()
-{
-  Serial.begin(115200);
-  
-  // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
-  if(CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK)
-    Serial.println("MCP2515 Initialized Successfully!");
-  else
-    Serial.println("Error Initializing MCP2515...");
-  
-  CAN0.setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
-
-  pinMode(CAN0_INT, INPUT);                            // Configuring pin for /INT input
-  
-  Serial.println("MCP2515 Library Receive Example...");
-}
-
-void loop()
-{
   if(!digitalRead(CAN0_INT))                         // If CAN0_INT pin is low, read receive buffer
   {
     CAN0.readMsgBuf(&rxId, &len, rxBuf);      // Read data: len = data length, buf = data byte(s)
@@ -222,6 +196,7 @@ void loop()
   }
 }
 #endif
+
 
 // loopback
 #if 0
