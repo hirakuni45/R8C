@@ -11,27 +11,54 @@
 */
 //=====================================================================//
 #include <cstdint>
+#include <cstring>
 #include "common/delay.hpp"
 
 namespace chip {
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  MCP2515 発信周波数型
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	enum class MCP2515_OSC : uint8_t {
+		OSC_8MHZ,	///<  8MHz クリスタル
+		OSC_16MHZ,	///< 16MHz クリスタル
+		OSC_20MHZ,	///< 20MHz クリスタル
+	};
+
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief  MCP2515 テンプレートクラス
 		@param[in]	SPI	SPI クラス
 		@param[in]	SEL	選択クラス
+		@param[in]	OSC	発信周波数型
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class SPI, class SEL>
+	template <class SPI, class SEL, MCP2515_OSC OSC = MCP2515_OSC::OSC_8MHZ>
 	class MCP2515 {
 	public:
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  動作モード
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class MODE : uint8_t {
+			NORMAL     = 0x00,
+			SLEEP      = 0x20,
+			LOOPBACK   = 0x40,
+			LISTENONLY = 0x60,
+			CONFIG     = 0x80,
+			POWERUP    = 0xE0,
+			MASK       = 0xE0,
+		};
+
 #if 0
 /*
  *   CANCTRL Register Values
  */
-#define MCP_SLEEP      0x20
-#define MCP_LOOPBACK   0x40
-#define MCP_LISTENONLY 0x60
 #define ABORT_TX        0x10
 #define MODE_ONESHOT    0x08
 #define CLKOUT_ENABLE   0x04
@@ -44,14 +71,37 @@ namespace chip {
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
-			@brief  MCP2515 モード
+			@brief  ＩＤモード
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		enum class MODE : uint8_t {
-			NORMAL   = 0x00,
-			CONFIG   = 0x80,
-			POWERUP  = 0xE0,
-			MASK     = 0xE0
+		enum class ID_MODE : uint8_t {
+			ANY,	///<  
+			STD,	///<
+			EXT,	///<
+			STDEXT,	///<
+		};
+
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  速度
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class SPEED : uint8_t {
+			BPS_5K,		///< 5K
+			BPS_10K,	///< 10K
+			BPS_20K,	///< 20K
+			BPS_31K25,	///< 31.25K
+			BPS_33K33,	///< 33.33K
+			BPS_40K,	///< 40K
+			BPS_50K,	///< 50K
+			BPS_80K,	///< 80K
+			BPS_100K,	///< 100K
+			BPS_125K,	///< 125K
+			BPS_200K,	///< 200K
+			BPS_250K,	///< 250K
+			BPS_500K,	///< 500K
+			BPS_1000K,	///< 1000K (1M)
 		};
 
 
@@ -110,10 +160,62 @@ namespace chip {
 			RXB1SIDH  = 0x71,
 		};
 
-		static const uint8_t SPI_READ    = 0x02;
-		static const uint8_t SPI_WRITE   = 0x03;
-		static const uint8_t SPI_BITMOD  = 0x05;
-		static const uint8_t SPI_RESET   = 0xC0;
+		static const uint8_t MCP_READ    = 0x02;
+		static const uint8_t MCP_WRITE   = 0x03;
+		static const uint8_t MCP_BITMOD  = 0x05;
+		static const uint8_t MCP_RESET   = 0xC0;
+
+		static const uint8_t MCP_RX0IF   = 0x01;
+		static const uint8_t MCP_RX1IF   = 0x02;
+		static const uint8_t MCP_TX0IF   = 0x04;
+		static const uint8_t MCP_TX1IF   = 0x08;
+		static const uint8_t MCP_TX2IF   = 0x10;
+		static const uint8_t MCP_ERRIF   = 0x20;
+		static const uint8_t MCP_WAKIF   = 0x40;
+		static const uint8_t MCP_MERRF   = 0x80;
+
+
+#define MCP_BxBFS_MASK    0x30
+#define MCP_BxBFE_MASK    0x0C
+#define MCP_BxBFM_MASK    0x03
+
+#define MCP_BxRTS_MASK    0x38
+#define MCP_BxRTSM_MASK   0x07
+
+#define MCP_RXB_RX_ANY      0x60
+#define MCP_RXB_RX_EXT      0x40
+#define MCP_RXB_RX_STD      0x20
+#define MCP_RXB_RX_STDEXT   0x00
+#define MCP_RXB_RX_MASK     0x60
+#define MCP_RXB_BUKT_MASK   (1<<2)
+
+
+/*
+** Bits in the TXBnCTRL registers.
+*/
+#define MCP_TXB_TXBUFE_M    0x80
+#define MCP_TXB_ABTF_M      0x40
+#define MCP_TXB_MLOA_M      0x20
+#define MCP_TXB_TXERR_M     0x10
+#define MCP_TXB_TXREQ_M     0x08
+#define MCP_TXB_TXIE_M      0x04
+#define MCP_TXB_TXP10_M     0x03
+
+
+/*
+ *   Begin mt
+ */
+#if 0
+#define TIMEOUTVALUE    50
+#define MCP_SIDH        0
+#define MCP_SIDL        1
+#define MCP_EID8        2
+#define MCP_EID0        3
+#endif
+
+
+#define MCP_DLC_MASK        0x0F                                        /* 4 LSBits                     */
+
 
 #if 0
 /*
@@ -140,11 +242,17 @@ namespace chip {
 
 		MODE		mode_;
 
+		uint32_t	id_;
+		uint8_t		rtr_;
+		uint8_t		ext_;
+		uint8_t		msg_[8];
+		uint8_t		len_;
+
 		uint8_t read_(REGA adrs) noexcept
 		{
 			// SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
 			SEL::P = 0;
-			spi_.xchg(SPI_READ);
+			spi_.xchg(MCP_READ);
 			spi_.xchg(static_cast<uint8_t>(adrs));
 			uint8_t ret = spi_.xchg();
 			SEL::P = 1;
@@ -152,22 +260,33 @@ namespace chip {
 		}
 
 
-		void write_(REGA adrs, uint8_t data)
+		void write_(REGA adrs, uint8_t data) noexcept
 		{
 			// SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
 			SEL::P = 0;
-			spi_.xchg(SPI_WRITE);
+			spi_.xchg(MCP_WRITE);
 			spi_.xchg(static_cast<uint8_t>(adrs));
 			spi_.xchg(data);
 			SEL::P = 1;
 		}
 
 
-		void modify_(REGA adrs, uint8_t mask, uint8_t data)
+		void write_(REGA adrs, const void* src, uint8_t len) noexcept
 		{
 			// SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
 			SEL::P = 0;
-			spi_.xchg(SPI_BITMOD);
+			spi_.xchg(MCP_WRITE);
+			spi_.xchg(static_cast<uint8_t>(adrs));
+			spi_.send(src, len);
+			SEL::P = 1;
+		}
+
+
+		void modify_(REGA adrs, uint8_t mask, uint8_t data) noexcept
+		{
+			// SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+			SEL::P = 0;
+			spi_.xchg(MCP_BITMOD);
    			spi_.xchg(static_cast<uint8_t>(adrs));
 			spi_.xchg(mask);
 			spi_.xchg(data);
@@ -175,12 +294,190 @@ namespace chip {
 		}
 
 
-		bool set_ctrl_mode_(MODE mode)
+		void write_mf_(REGA adrs, bool ext, uint32_t id) noexcept
+		{
+			uint16_t canid = id & 0x0FFFF;
+			uint8_t tmp[4];
+
+				static const uint8_t MCP_SIDH = 0;
+				static const uint8_t MCP_SIDL = 1;
+				static const uint8_t MCP_EID8 = 2;
+				static const uint8_t MCP_EID0 = 3;
+
+				static const uint8_t MCP_TXB_EXIDE_M = 0x08;  // In TXBnSIDL
+
+			if(ext) {
+				tmp[MCP_EID0] = canid & 0xFF;
+				tmp[MCP_EID8] = canid >> 8;
+				canid = id >> 16;
+				tmp[MCP_SIDL] = canid & 0x03;
+				tmp[MCP_SIDL] += (canid & 0x1C) << 3;
+				tmp[MCP_SIDL] |= MCP_TXB_EXIDE_M;
+				tmp[MCP_SIDH] = canid >> 5;
+			} else {
+				tmp[MCP_EID0] = canid & 0xFF;
+				tmp[MCP_EID8] = canid >> 8;
+				canid = id >> 16;
+				tmp[MCP_SIDL] = (canid & 0x07) << 5;
+				tmp[MCP_SIDH] = canid >> 3;
+			}
+			write_(adrs, tmp, 4);
+		}
+
+
+		void reset_() noexcept
+		{
+			// SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+			SEL::P = 0;
+			spi_.xchg(MCP_RESET);
+			SEL::P = 1;
+			utils::delay::micro_second(10);
+		}
+
+
+		bool set_ctrl_mode_(MODE mode) noexcept
 		{
 			modify_(REGA::CANCTRL, static_cast<uint8_t>(MODE::MASK), static_cast<uint8_t>(mode));
 			auto ret = read_(REGA::CANCTRL);
 			ret &= static_cast<uint8_t>(MODE::MASK);
 			return ret == static_cast<uint8_t>(mode);
+		}
+
+
+		void init_buffers_(uint32_t mask = 0, uint32_t filt = 0) noexcept
+		{
+			bool ext = true;
+			write_mf_(REGA::RXM0SIDH, ext, mask);  // Set both masks to 0
+			write_mf_(REGA::RXM1SIDH, ext, mask);  // Mask register ignores ext bit
+
+			bool std = false;
+			// Set all filters to 0
+			write_mf_(REGA::RXF0SIDH, ext, filt);  // RXB0: extended
+			write_mf_(REGA::RXF1SIDH, std, filt);  // RXB1: standard
+			write_mf_(REGA::RXF2SIDH, ext, filt);  // RXB2: extended
+			write_mf_(REGA::RXF3SIDH, std, filt);  // RXB3: standard
+			write_mf_(REGA::RXF4SIDH, ext, filt);
+			write_mf_(REGA::RXF5SIDH, std, filt);
+
+			// Clear, deactivate the three
+			// transmit buffers
+			// TXBnCTRL -> TXBnD7
+			REGA a1 = REGA::TXB0CTRL;
+			REGA a2 = REGA::TXB1CTRL;
+			REGA a3 = REGA::TXB2CTRL;
+			for(uint8_t i = 0; i < 14; ++i) {
+				write_(a1, 0);
+				write_(a2, 0);
+				write_(a3, 0);
+				a1 = static_cast<REGA>(static_cast<uint8_t>(a1) + 1);
+				a2 = static_cast<REGA>(static_cast<uint8_t>(a2) + 1);
+				a3 = static_cast<REGA>(static_cast<uint8_t>(a3) + 1);
+			}
+			write_(REGA::RXB0CTRL, 0);
+			write_(REGA::RXB1CTRL, 0);
+		}
+
+
+		bool config_rate_(SPEED speed) noexcept
+		{
+			static const uint8_t cfg123[] = {
+				/*    5K    at  8MHz */	0x1F, 0xBF, 0x87,
+				/*    5K    at 16MHz */	0x3F, 0xFF, 0x87,
+				/*    5K    at 20MHz */	0x00, 0x00, 0x00,  // fail
+				/*   10K    at  8MHz */	0x0F, 0xBF, 0x87,
+				/*   10K    at 16MHz */	0x1F, 0xFF, 0x87,
+				/*   10K    at 20MHz */	0x00, 0x00, 0x00,  // fail
+				/*   20K    at  8MHz */	0x07, 0xBF, 0x87,
+				/*   20K    at 16MHz */	0x0F, 0xFF, 0x87,
+				/*   20K    at 20MHz */	0x00, 0x00, 0x00,  // fail
+				/*   31.25K at  8MHz */	0x07, 0xA4, 0x84,
+				/*   31.25K at 16MHz */	0x00, 0x00, 0x00,  // fail
+				/*   31.25K at 20MHz */	0x00, 0x00, 0x00,  // fail
+				/*   33.33K at  8MHz */	0x47, 0xE2, 0x85,
+				/*   33.33K at 16MHz */	0x4E, 0xF1, 0x85,
+				/*   33.33K at 20MHz */	0x00, 0x00, 0x00,  // fail
+				/*   40K    at  8MHz */	0x03, 0xBF, 0x87,
+				/*   40K    at 16MHz */	0x07, 0xFF, 0x87,
+				/*   40K    at 20MHz */	0x09, 0xFF, 0x87,
+				/*   50K    at  8MHz */	0x03, 0xB4, 0x86,
+				/*   50K    at 16MHz */	0x07, 0xFA, 0x87,
+				/*   50K    at 20MHz */	0x09, 0xFA, 0x87,
+				/*   80K    at  8MHz */	0x01, 0xBF, 0x87,
+				/*   80K    at 16MHz */	0x03, 0xFF, 0x87,
+				/*   80K    at 20MHz */	0x04, 0xFF, 0x87,
+				/*  100K    at  8MHz */	0x01, 0xB4, 0x86,
+				/*  100K    at 16MHz */	0x03, 0xFA, 0x87,
+				/*  100K    at 20MHz */	0x04, 0xFA, 0x87,
+				/*  125K    at  8MHz */	0x01, 0xB1, 0x85,
+				/*  125K    at 16MHz */	0x03, 0xF0, 0x86,
+				/*  125K    at 20MHz */	0x03, 0xFA, 0x87,
+				/*  200K    at  8MHz */	0x00, 0xB4, 0x86,
+				/*  200K    at 16MHz */	0x01, 0xFA, 0x87,
+				/*  200K    at 20MHz */	0x01, 0xFF, 0x87,
+				/*  250K    at  8MHz */	0x00, 0xB1, 0x85,
+				/*  250K    at 16MHz */	0x41, 0xF1, 0x85,
+				/*  250K    at 20MHz */	0x41, 0xFB, 0x86,
+				/*  500K    at  8MHz */	0x00, 0x90, 0x82,
+				/*  500K    at 16MHz */	0x00, 0xF0, 0x86,
+				/*  500K    at 20MHz */	0x00, 0xFA, 0x87,
+				/* 1000K    at  8MHz */	0x00, 0x80, 0x80,
+				/* 1000K    at 16MHz */	0x00, 0xD0, 0x82,
+				/* 1000K    at 20MHz */	0x00, 0xD9, 0x82,
+			};
+
+			uint8_t idx = static_cast<uint8_t>(speed) * 3 * static_cast<uint8_t>(OSC);
+			auto cfg1 = cfg123[idx + 0];
+			auto cfg2 = cfg123[idx + 1];
+			auto cfg3 = cfg123[idx + 2];
+
+			if(cfg1 == 0 && cfg2 == 0 && cfg3 == 0) {
+				return false;
+			}
+
+			write_(REGA::CNF1, cfg1);
+			write_(REGA::CNF2, cfg2);
+			write_(REGA::CNF3, cfg3);
+
+			return true;
+		}
+
+
+		bool get_next_free_tx_(uint8_t& ans)
+		{
+			static const REGA ctrlregs[] = {
+				REGA::TXB0CTRL, REGA::TXB1CTRL, REGA::TXB2CTRL
+			};
+
+			ans = 0x00;
+			// check all 3 TX-Buffers
+			for(uint8_t i = 0; i < sizeof(ctrlregs); ++i) {
+				auto ctrlval = read_(ctrlregs[i]);
+				if((ctrlval & MCP_TXB_TXREQ_M) == 0) {
+					// return SIDH-address of Buffer
+					ans = static_cast<uint8_t>(ctrlregs[i]) + 1;
+					return true;
+				}
+			}
+			return false;
+		}
+
+
+		void write_can_msg_(uint8_t adrs)
+		{
+			uint8_t mcp_addr;
+			mcp_addr = adrs;
+			// write data bytes
+			write_(static_cast<REGA>(mcp_addr + 5), msg_, len_);
+
+		    if(rtr_ == 1) {                                                   /* if RTR set bit in byte       */
+				static const uint8_t MCP_RTR_MASK = 0x40;  // (1<<6) Bit 6
+				len_ |= MCP_RTR_MASK;  
+			}
+
+			// write the RTR and DLC
+			write_(static_cast<REGA>(mcp_addr+4), len_);
+            // write CAN id
+			write_id_(static_cast<REGA>(mcp_addr), ext_, id_);
 		}
 
 
@@ -195,91 +492,40 @@ namespace chip {
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief	開始
-			@return 成功なら「true」
+			@brief	初期化
 		 */
 		//-----------------------------------------------------------------//
-		bool start() noexcept
+		bool init(ID_MODE id_mode, SPEED speed)
 		{
-			SEL::DIR = 1;  // output
-			SEL::P = 0;    // device disable
-			// SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
-			spi_.xchg(SPI_RESET);
-			SEL::P = 1;
-			utils::delay::micro_second(10);
-			return true;
-		}
+			reset_();
 
+			if(!set_ctrl_mode_(MODE::CONFIG)) {
+				return false;
+			}
 
-		//-----------------------------------------------------------------//
-		/*!
-			@brief	モード設定
-			@return 成功なら「true」
-		 */
-		//-----------------------------------------------------------------//
-		bool set_mode(MODE mode) noexcept
-		{
-			mode_ = mode;
-			return set_ctrl_mode_(mode);
-		}
+			// Set Baudrate
+			if(!config_rate_(speed)) {
+				return false;
+			}
 
+			init_buffers_();
 
-#if 0
-INT8U MCP_CAN::mcp2515_init(const INT8U canIDMode, const INT8U canSpeed, const INT8U canClock)
-{
+			// interrupt mode
+		
+	        write_(REGA::CANINTE, MCP_RX0IF | MCP_RX1IF);
 
-  INT8U res;
+			// Sets BF pins as GPO
+			write_(REGA::BFPCTRL, MCP_BxBFS_MASK | MCP_BxBFE_MASK);
+			// Sets RTS pins as GPI
+			write_(REGA::TXRTSCTRL, 0x00);
 
-    mcp2515_reset();
-    
-    mcpMode = MCP_LOOPBACK;
-
-    res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
-    if(res > 0)
-    {
-#if DEBUG_MODE
-      Serial.print("Entering Configuration Mode Failure...\r\n"); 
-#endif
-      return res;
-    }
-#if DEBUG_MODE
-    Serial.print("Entering Configuration Mode Successful!\r\n");
-#endif
-
-    // Set Baudrate
-    if(mcp2515_configRate(canSpeed, canClock))
-    {
-#if DEBUG_MODE
-      Serial.print("Setting Baudrate Failure...\r\n");
-#endif
-      return res;
-    }
-#if DEBUG_MODE
-    Serial.print("Setting Baudrate Successful!\r\n");
-#endif
-
-    if ( res == MCP2515_OK ) {
-
-                                                                        /* init canbuffers              */
-        mcp2515_initCANBuffers();
-
-                                                                        /* interrupt mode               */
-        mcp2515_setRegister(MCP_CANINTE, MCP_RX0IF | MCP_RX1IF);
-
-	//Sets BF pins as GPO
-	mcp2515_setRegister(MCP_BFPCTRL,MCP_BxBFS_MASK | MCP_BxBFE_MASK);
-	//Sets RTS pins as GPI
-	mcp2515_setRegister(MCP_TXRTSCTRL,0x00);
-
-        switch(canIDMode)
-        {
-            case (MCP_ANY):
-            mcp2515_modifyRegister(MCP_RXB0CTRL,
-            MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
-            MCP_RXB_RX_ANY | MCP_RXB_BUKT_MASK);
-            mcp2515_modifyRegister(MCP_RXB1CTRL, MCP_RXB_RX_MASK,
-            MCP_RXB_RX_ANY);
-            break;
+			switch(id_mode) {
+			case ID_MODE::ANY:
+				modify_(REGA::RXB0CTRL,
+					MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
+					MCP_RXB_RX_ANY | MCP_RXB_BUKT_MASK);
+				modify_(REGA::RXB1CTRL, MCP_RXB_RX_MASK, MCP_RXB_RX_ANY);
+				break;
 /*          The followingn two functions of the MCP2515 do not work, there is a bug in the silicon.
             case (MCP_STD): 
             mcp2515_modifyRegister(MCP_RXB0CTRL,
@@ -297,36 +543,37 @@ INT8U MCP_CAN::mcp2515_init(const INT8U canIDMode, const INT8U canSpeed, const I
             MCP_RXB_RX_EXT);
             break;
 */
-            case (MCP_STDEXT): 
-            mcp2515_modifyRegister(MCP_RXB0CTRL,
-            MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
-            MCP_RXB_RX_STDEXT | MCP_RXB_BUKT_MASK );
-            mcp2515_modifyRegister(MCP_RXB1CTRL, MCP_RXB_RX_MASK,
-            MCP_RXB_RX_STDEXT);
-            break;
+			case ID_MODE::STDEXT: 
+				modify_(REGA::RXB0CTRL,
+					MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
+					MCP_RXB_RX_STDEXT | MCP_RXB_BUKT_MASK );
+				modify_(REGA::RXB1CTRL, MCP_RXB_RX_MASK, MCP_RXB_RX_STDEXT);
+				break;
     
             default:
-#if DEBUG_MODE        
-            Serial.print("`Setting ID Mode Failure...\r\n");
-#endif           
-            return MCP2515_FAIL;
-            break;
-}    
+				return false;
+			}
+
+        	return set_ctrl_mode_(MODE::LOOPBACK);
+		}
 
 
-        res = mcp2515_setCANCTRL_Mode(mcpMode);                                                                
-        if(res)
-        {
-#if DEBUG_MODE        
-          Serial.print("Returning to Previous Mode Failure...\r\n");
-#endif           
-          return res;
-        }
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	開始
+			@param[in]	id_mode	ID モード
+			@param[in]	speed	CAN 速度
+			@return 成功なら「true」
+		 */
+		//-----------------------------------------------------------------//
+		bool start(ID_MODE id_mode, SPEED speed) noexcept
+		{
+			SEL::DIR = 1;  // output
+			SEL::P = 1;    // device disable
 
-    }
-    return res;
+			return init(id_mode, speed);
+		}
 
-}
 
 		//-----------------------------------------------------------------//
 		/*!
@@ -334,11 +581,96 @@ INT8U MCP_CAN::mcp2515_init(const INT8U canIDMode, const INT8U canSpeed, const I
 			@return 成功なら「true」
 		 */
 		//-----------------------------------------------------------------//
-		bool begin(uint8_t idmodeset, uint8_t speedset, uint8_t clockset)
+		bool set_mode(MODE mode) noexcept
 		{
-			return init_(idmodeset, speedset, clockset);
+			mode_ = mode;
+			return set_ctrl_mode_(mode);
 		}
-#endif
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	メッセージ設定
+			@param[in]	id	ID
+			@param[in]	rtr	RTR 値
+			@param[in]	ext	拡張フラグ
+			@param[in]	src	ソース
+			@param[in]	len	送信バイト数
+			@return 成功なら「true」
+		 */
+		//-----------------------------------------------------------------//
+		bool set_msg(uint32_t id, uint8_t rtr, uint8_t ext, void* src, uint8_t len)
+		{
+			id_  = id;
+			rtr_ = rtr;
+			ext_ = ext;
+			len_ = len;
+			uint8_t l = len;
+			if(l > sizeof(msg_)) l = sizeof(msg_);
+			std::memcpy(msg_, src, l);
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	メッセージ送信
+			@return 成功なら「true」
+		 */
+		//-----------------------------------------------------------------//
+		bool send_msg()
+		{
+			static const uint16_t timeoutloop = 50;
+			uint16_t loop = 0;
+			uint8_t txbuf_n;
+			bool ret;
+			do {
+				ret = get_next_free_tx_(txbuf_n);
+				++loop;
+			} while(!ret && (loop < timeoutloop)) ;
+
+			if(loop >= timeoutloop) {  // get tx buff time out
+        		return false;
+			}
+
+			write_can_msg_(txbuf_n);
+			modify_(static_cast<REGA>(txbuf_n - 1), MCP_TXB_TXREQ_M, MCP_TXB_TXREQ_M);
+
+			loop = 0;
+			uint8_t res;
+			do {
+				++loop;
+				// read send buff ctrl reg
+				res = read_(static_cast<REGA>(txbuf_n - 1));
+				res &= 0x08;
+			} while (res && (loop < timeoutloop)) ;   
+
+			// send msg timeout
+			if(loop == timeoutloop) {
+				return false;
+    		}
+
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	送信
+			@param[in]	id	ID
+			@param[in]	ext	拡張フラグ
+			@param[in]	src	ソース
+			@param[in]	len	送信バイト数
+			@return 成功なら「true」
+		 */
+		//-----------------------------------------------------------------//
+		bool send(uint32_t id, uint8_t ext, const void* src, uint8_t len)
+		{
+			set_msg(id, 0, ext, src, len);
+			return send_msg();
+    	}
+
+
 
 	};
 }
