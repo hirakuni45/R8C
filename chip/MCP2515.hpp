@@ -163,6 +163,7 @@ namespace chip {
 		static const uint8_t MCP_READ    = 0x02;
 		static const uint8_t MCP_WRITE   = 0x03;
 		static const uint8_t MCP_BITMOD  = 0x05;
+		static const uint8_t MCP_STATUS  = 0xA0;
 		static const uint8_t MCP_RESET   = 0xC0;
 
 		static const uint8_t MCP_RX0IF   = 0x01;
@@ -201,6 +202,10 @@ namespace chip {
 #define MCP_TXB_TXIE_M      0x04
 #define MCP_TXB_TXP10_M     0x03
 
+#define MCP_STAT_RXIF_MASK   (0x03)
+#define MCP_STAT_RX0IF       (1<<0)
+#define MCP_STAT_RX1IF       (1<<1)
+
 
 /*
  *   Begin mt
@@ -233,20 +238,33 @@ namespace chip {
 #define MCP_READ_RX0        0x90
 #define MCP_READ_RX1        0x94
 
-#define MCP_READ_STATUS     0xA0
-
 #define MCP_RX_STATUS       0xB0
 #endif
+
+		static const uint8_t MCP_SIDH = 0;
+		static const uint8_t MCP_SIDL = 1;
+		static const uint8_t MCP_EID8 = 2;
+		static const uint8_t MCP_EID0 = 3;
+
+		static const uint8_t MCP_TXB_EXIDE_M = 0x08;  // In TXBnSIDL
+
 
 		SPI&		spi_;
 
 		MODE		mode_;
 
-		uint32_t	id_;
-		uint8_t		rtr_;
-		uint8_t		ext_;
-		uint8_t		msg_[8];
-		uint8_t		len_;
+		uint32_t	send_id_;
+		uint8_t		send_msg_[8];
+		uint8_t		send_rtr_;
+		uint8_t		send_ext_;
+		uint8_t		send_len_;
+
+		uint32_t	recv_id_;
+		uint8_t		recv_msg_[8];
+		uint8_t		recv_rtr_;
+		uint8_t		recv_ext_;
+		uint8_t		recv_len_;
+
 
 		uint8_t read_(REGA adrs) noexcept
 		{
@@ -257,6 +275,17 @@ namespace chip {
 			uint8_t ret = spi_.xchg();
 			SEL::P = 1;
 			return ret;
+		}
+
+
+		void read_(REGA adrs, void* dst, uint8_t len) noexcept
+		{
+			// SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+			SEL::P = 0;
+			spi_.xchg(MCP_READ);
+			spi_.xchg(static_cast<uint8_t>(adrs));
+			spi_.recv(dst, len);
+			SEL::P = 1;
 		}
 
 
@@ -294,17 +323,21 @@ namespace chip {
 		}
 
 
+		uint8_t status_() noexcept
+		{
+			// SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+			SEL::P = 0;
+			spi_.xchg(MCP_STATUS);
+    		auto sts = spi_.xchg();
+			SEL::P = 1;
+			return sts;
+		}
+
+
 		void write_mf_(REGA adrs, bool ext, uint32_t id) noexcept
 		{
 			uint16_t canid = id & 0x0FFFF;
 			uint8_t tmp[4];
-
-				static const uint8_t MCP_SIDH = 0;
-				static const uint8_t MCP_SIDL = 1;
-				static const uint8_t MCP_EID8 = 2;
-				static const uint8_t MCP_EID0 = 3;
-
-				static const uint8_t MCP_TXB_EXIDE_M = 0x08;  // In TXBnSIDL
 
 			if(ext) {
 				tmp[MCP_EID0] = canid & 0xFF;
@@ -322,6 +355,47 @@ namespace chip {
 				tmp[MCP_SIDH] = canid >> 3;
 			}
 			write_(adrs, tmp, 4);
+		}
+
+
+		void write_id_(REGA mcp_addr, bool ext, uint32_t id)
+		{
+			uint8_t tmp[4];
+			uint16_t canid = id & 0x0FFFF;
+
+			if(ext) {
+				tmp[MCP_EID0] = canid & 0xFF;
+				tmp[MCP_EID8] = canid >> 8;
+				canid = id >> 16;
+				tmp[MCP_SIDL] = canid & 0x03;
+				tmp[MCP_SIDL] += (canid & 0x1C) << 3;
+				tmp[MCP_SIDL] |= MCP_TXB_EXIDE_M;
+				tmp[MCP_SIDH] = canid >> 5;
+			} else {
+				tmp[MCP_SIDH] = canid >> 3;
+				tmp[MCP_SIDL] = (canid & 0x07 ) << 5;
+				tmp[MCP_EID0] = 0;
+				tmp[MCP_EID8] = 0;
+			}
+    		write_(mcp_addr, tmp, 4);
+		}
+
+
+		void read_id_(REGA mcp_addr, uint8_t& ext, uint32_t& id)
+		{
+			uint8_t tmp[4];
+			ext = 0;
+			id = 0;
+			read_(mcp_addr, tmp, 4);
+
+			id = (static_cast<uint32_t>(tmp[MCP_SIDH]) << 3) | (static_cast<uint32_t>(tmp[MCP_SIDL]) >> 5);
+
+			if((tmp[MCP_SIDL] & MCP_TXB_EXIDE_M) ==  MCP_TXB_EXIDE_M) {  // extended id
+				id = (id << 2) | static_cast<uint32_t>(tmp[MCP_SIDL] & 0x03);
+				id = (id << 8) | static_cast<uint32_t>(tmp[MCP_EID8]);
+				id = (id << 8) + tmp[MCP_EID0];
+				ext = 1;
+			}
 		}
 
 
@@ -467,17 +541,35 @@ namespace chip {
 			uint8_t mcp_addr;
 			mcp_addr = adrs;
 			// write data bytes
-			write_(static_cast<REGA>(mcp_addr + 5), msg_, len_);
+			write_(static_cast<REGA>(mcp_addr + 5), send_msg_, send_len_);
 
-		    if(rtr_ == 1) {                                                   /* if RTR set bit in byte       */
+		    if(send_rtr_ == 1) {  // if RTR set bit in byte
 				static const uint8_t MCP_RTR_MASK = 0x40;  // (1<<6) Bit 6
-				len_ |= MCP_RTR_MASK;  
+				send_len_ |= MCP_RTR_MASK;
 			}
 
 			// write the RTR and DLC
-			write_(static_cast<REGA>(mcp_addr+4), len_);
+			write_(static_cast<REGA>(mcp_addr+4), send_len_);
             // write CAN id
-			write_id_(static_cast<REGA>(mcp_addr), ext_, id_);
+			write_id_(static_cast<REGA>(mcp_addr), send_ext_, send_id_);
+		}
+
+
+		void read_can_msg_(uint8_t adrs)
+		{
+			auto mcp_addr = adrs;
+			read_id_(static_cast<REGA>(mcp_addr), recv_ext_, recv_id_);
+
+			auto ctrl = read_(static_cast<REGA>(mcp_addr - 1));
+			recv_len_ = read_(static_cast<REGA>(mcp_addr + 4));
+
+			if(ctrl & 0x08) {
+				recv_rtr_ = 1;
+			} else {
+				recv_rtr_ = 0;
+			}
+			recv_len_ &= MCP_DLC_MASK;
+			read_(static_cast<REGA>(mcp_addr + 5), recv_msg_, recv_len_);
 		}
 
 
@@ -595,19 +687,22 @@ namespace chip {
 			@param[in]	rtr	RTR 値
 			@param[in]	ext	拡張フラグ
 			@param[in]	src	ソース
-			@param[in]	len	送信バイト数
+			@param[in]	len	送信バイト数（最大８バイト）
 			@return 成功なら「true」
 		 */
 		//-----------------------------------------------------------------//
-		bool set_msg(uint32_t id, uint8_t rtr, uint8_t ext, void* src, uint8_t len)
+		bool set_msg(uint32_t id, uint8_t rtr, uint8_t ext, const void* src, uint8_t len)
 		{
-			id_  = id;
-			rtr_ = rtr;
-			ext_ = ext;
-			len_ = len;
+			if(len >= sizeof(send_msg_)) {
+				return false;
+			}
+			send_id_  = id;
+			send_rtr_ = rtr;
+			send_ext_ = ext;
+			send_len_ = len;
 			uint8_t l = len;
-			if(l > sizeof(msg_)) l = sizeof(msg_);
-			std::memcpy(msg_, src, l);
+			if(l > sizeof(send_msg_)) l = sizeof(send_msg_);
+			std::memcpy(send_msg_, src, l);
 			return true;
 		}
 
@@ -656,6 +751,29 @@ namespace chip {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief	メッセージ受信
+			@return 成功なら「true」
+		 */
+		//-----------------------------------------------------------------//
+		bool recv_msg()
+		{
+			auto stat = status_();
+
+			if(stat & MCP_STAT_RX0IF) {  // Msg in Buffer 0
+				read_can_msg_(static_cast<uint8_t>(REGA::RXB0SIDH));
+				modify_(REGA::CANINTF, MCP_RX0IF, 0);
+			} else if(stat & MCP_STAT_RX1IF) {  // Msg in Buffer 1
+				read_can_msg_(static_cast<uint8_t>(REGA::RXB1SIDH));
+				modify_(REGA::CANINTF, MCP_RX1IF, 0);
+			} else { 
+				return false;
+			}
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief	送信
 			@param[in]	id	ID
 			@param[in]	ext	拡張フラグ
@@ -671,6 +789,27 @@ namespace chip {
     	}
 
 
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	受信
+			@param[out]	id	ID
+			@param[out]	ext	拡張フラグ
+			@param[out]	dst	ソース
+			@param[out]	len	受信バイト数
+			@return 成功なら「true」
+		 */
+		//-----------------------------------------------------------------//
+		bool recv(uint32_t& id, uint8_t& ext, void* dst, uint8_t& len)
+		{
+			if(recv_msg()) {
+				return false;
+			}
 
+			id  = recv_id_;
+			len = recv_len_;
+			ext = recv_ext_;
+			std::memcpy(dst, recv_msg_, recv_len_);
+			return true;
+		}
 	};
 }
