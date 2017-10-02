@@ -60,7 +60,6 @@ namespace chip {
  *   CANCTRL Register Values
  */
 #define ABORT_TX        0x10
-#define MODE_ONESHOT    0x08
 #define CLKOUT_ENABLE   0x04
 #define CLKOUT_DISABLE  0x00
 #define CLKOUT_PS1      0x00
@@ -68,6 +67,7 @@ namespace chip {
 #define CLKOUT_PS4      0x02
 #define CLKOUT_PS8      0x03
 #endif
+
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
@@ -104,6 +104,21 @@ namespace chip {
 			BPS_1000K,	///< 1000K (1M)
 		};
 
+
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  エラー定義
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		static const uint8_t MCP_EFLG_RX1OVR    = 1 << 7;
+		static const uint8_t MCP_EFLG_RX0OVR    = 1 << 6;
+		static const uint8_t MCP_EFLG_TXBO      = 1 << 5;
+		static const uint8_t MCP_EFLG_TXEP      = 1 << 4;
+		static const uint8_t MCP_EFLG_RXEP      = 1 << 3;
+		static const uint8_t MCP_EFLG_TXWAR     = 1 << 2;
+		static const uint8_t MCP_EFLG_RXWAR     = 1 << 1;
+		static const uint8_t MCP_EFLG_EWARN     = 1 << 0;
+		static const uint8_t MCP_EFLG_ERRORMASK = 0xF8;
 
 	private:
 		enum class REGA : uint8_t {
@@ -175,71 +190,33 @@ namespace chip {
 		static const uint8_t MCP_WAKIF   = 0x40;
 		static const uint8_t MCP_MERRF   = 0x80;
 
+		static const uint8_t MCP_BxBFS_MASK   = 0x30;
+		static const uint8_t MCP_BxBFE_MASK   = 0x0C;
+		static const uint8_t MCP_BxBFM_MASK   = 0x03;
 
-#define MCP_BxBFS_MASK    0x30
-#define MCP_BxBFE_MASK    0x0C
-#define MCP_BxBFM_MASK    0x03
+		static const uint8_t MCP_BxRTS_MASK   = 0x38;
+		static const uint8_t MCP_BxRTSM_MASK  = 0x07;
 
-#define MCP_BxRTS_MASK    0x38
-#define MCP_BxRTSM_MASK   0x07
+		static const uint8_t MCP_RXB_RX_ANY    = 0x60;
+		static const uint8_t MCP_RXB_RX_EXT    = 0x40;
+		static const uint8_t MCP_RXB_RX_STD    = 0x20;
+		static const uint8_t MCP_RXB_RX_STDEXT = 0x00;
+		static const uint8_t MCP_RXB_RX_MASK   = 0x60;
+		static const uint8_t MCP_RXB_BUKT_MASK = 1 << 2;
 
-#define MCP_RXB_RX_ANY      0x60
-#define MCP_RXB_RX_EXT      0x40
-#define MCP_RXB_RX_STD      0x20
-#define MCP_RXB_RX_STDEXT   0x00
-#define MCP_RXB_RX_MASK     0x60
-#define MCP_RXB_BUKT_MASK   (1<<2)
+		static const uint8_t MCP_TXB_TXBUFE_M = 0x80;
+		static const uint8_t MCP_TXB_ABTF_M   = 0x40;
+		static const uint8_t MCP_TXB_MLOA_M   = 0x20;
+		static const uint8_t MCP_TXB_TXERR_M  = 0x10;
+		static const uint8_t MCP_TXB_TXREQ_M  = 0x08;
+		static const uint8_t MCP_TXB_TXIE_M   = 0x04;
+		static const uint8_t MCP_TXB_TXP10_M  = 0x03;
 
+		static const uint8_t MCP_STAT_RXIF_MASK = 0x03;
+		static const uint8_t MCP_STAT_RX0IF = 1 << 0;
+		static const uint8_t MCP_STAT_RX1IF = 1 << 1;
 
-/*
-** Bits in the TXBnCTRL registers.
-*/
-#define MCP_TXB_TXBUFE_M    0x80
-#define MCP_TXB_ABTF_M      0x40
-#define MCP_TXB_MLOA_M      0x20
-#define MCP_TXB_TXERR_M     0x10
-#define MCP_TXB_TXREQ_M     0x08
-#define MCP_TXB_TXIE_M      0x04
-#define MCP_TXB_TXP10_M     0x03
-
-#define MCP_STAT_RXIF_MASK   (0x03)
-#define MCP_STAT_RX0IF       (1<<0)
-#define MCP_STAT_RX1IF       (1<<1)
-
-
-/*
- *   Begin mt
- */
-#if 0
-#define TIMEOUTVALUE    50
-#define MCP_SIDH        0
-#define MCP_SIDL        1
-#define MCP_EID8        2
-#define MCP_EID0        3
-#endif
-
-
-#define MCP_DLC_MASK        0x0F                                        /* 4 LSBits                     */
-
-
-#if 0
-/*
- *   Define SPI Instruction Set
- */
-#define MCP_LOAD_TX0        0x40
-#define MCP_LOAD_TX1        0x42
-#define MCP_LOAD_TX2        0x44
-
-#define MCP_RTS_TX0         0x81
-#define MCP_RTS_TX1         0x82
-#define MCP_RTS_TX2         0x84
-#define MCP_RTS_ALL         0x87
-
-#define MCP_READ_RX0        0x90
-#define MCP_READ_RX1        0x94
-
-#define MCP_RX_STATUS       0xB0
-#endif
+		static const uint8_t MCP_DLC_MASK = 0x0F;  // 4 LSBits
 
 		static const uint8_t MCP_SIDH = 0;
 		static const uint8_t MCP_SIDL = 1;
@@ -618,23 +595,23 @@ namespace chip {
 					MCP_RXB_RX_ANY | MCP_RXB_BUKT_MASK);
 				modify_(REGA::RXB1CTRL, MCP_RXB_RX_MASK, MCP_RXB_RX_ANY);
 				break;
-/*          The followingn two functions of the MCP2515 do not work, there is a bug in the silicon.
-            case (MCP_STD): 
-            mcp2515_modifyRegister(MCP_RXB0CTRL,
-            MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
-            MCP_RXB_RX_STD | MCP_RXB_BUKT_MASK );
-            mcp2515_modifyRegister(MCP_RXB1CTRL, MCP_RXB_RX_MASK,
-            MCP_RXB_RX_STD);
+#if 0
+			// The followingn two functions of the MCP2515 do not work, there is a bug in the silicon.
+            case ID_MODE::STD: 
+				modify_(REGA::RXB0CTRL,
+					MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
+					MCP_RXB_RX_STD | MCP_RXB_BUKT_MASK );
+				modify_(REGA::RXB1CTRL, MCP_RXB_RX_MASK, MCP_RXB_RX_STD);
             break;
 
-            case (MCP_EXT): 
-            mcp2515_modifyRegister(MCP_RXB0CTRL,
-            MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
-            MCP_RXB_RX_EXT | MCP_RXB_BUKT_MASK );
-            mcp2515_modifyRegister(MCP_RXB1CTRL, MCP_RXB_RX_MASK,
-            MCP_RXB_RX_EXT);
+            case ID_MODE::EXT: 
+				modify_(REGA::RXB0CTRL,
+					MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
+					MCP_RXB_RX_EXT | MCP_RXB_BUKT_MASK );
+				modify_(REGA::RXB1CTRL, MCP_RXB_RX_MASK, MCP_RXB_RX_EXT);
             break;
-*/
+#endif
+
 			case ID_MODE::STDEXT: 
 				modify_(REGA::RXB0CTRL,
 					MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
@@ -682,6 +659,95 @@ namespace chip {
 
 		//-----------------------------------------------------------------//
 		/*!
+			@brief	マスクの初期化
+			@param[in]	num		種別
+			@param[in]	ext		拡張
+			@param[in]	data	データ
+			@return 成功なら「true」
+		 */
+		//-----------------------------------------------------------------//
+		bool init_mask(uint8_t num, uint8_t ext, uint32_t data) noexcept
+		{
+			if(!set_ctrl_mode_(MODE::CONFIG)) {
+				return false;
+			}
+    
+			bool ret = true;
+			if(num == 0) {
+				write_mf_(REGA::RXM0SIDH, ext, data);
+			} else if(num == 1) {
+				write_mf_(REGA::RXM1SIDH, ext, data);
+			} else {
+				ret = false;
+			}
+    
+			if(!set_ctrl_mode(mode_)) {
+				return false;
+			}
+
+			return ret;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	フィルターの初期化
+			@param[in]	num		種別
+			@param[in]	ext		拡張
+			@param[in]	data	データ
+			@return 成功なら「true」
+		 */
+		//-----------------------------------------------------------------//
+		bool init_filt(uint8_t num, uint8_t ext, uint32_t data) noexcept
+		{
+			if(!set_ctrl_mode_(MODE::CONFIG)) {
+				return false;
+			}
+    
+//			uint8_t ext = 0;
+//			if((data & 0x80000000) == 0x80000000) ext = 1;
+
+			bool ret = true;
+			switch( num ) {
+
+			case 0:
+				write_mf_(REGA::RXF0SIDH, ext, data);
+				break;
+
+			case 1:
+				write_mf_(REGA::RXF1SIDH, ext, data);
+				break;
+
+			case 2:
+				write_mf_(REGA::RXF2SIDH, ext, data);
+				break;
+
+			case 3:
+				write_mf_(REGA::RXF3SIDH, ext, data);
+				break;
+
+			case 4:
+				write_mf_(REGA::RXF4SIDH, ext, data);
+				break;
+
+			case 5:
+				write_mf_(REGA::RXF5SIDH, ext, data);
+				break;
+
+			default:
+				ret = false;
+			}
+
+			if(!set_ctrl_mode(mode_)) {
+				return false;
+			}
+    
+			return ret;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
 			@brief	メッセージ設定
 			@param[in]	id	ID
 			@param[in]	rtr	RTR 値
@@ -691,7 +757,7 @@ namespace chip {
 			@return 成功なら「true」
 		 */
 		//-----------------------------------------------------------------//
-		bool set_msg(uint32_t id, uint8_t rtr, uint8_t ext, const void* src, uint8_t len)
+		bool set_msg(uint32_t id, uint8_t rtr, uint8_t ext, const void* src, uint8_t len) noexcept
 		{
 			if(len >= sizeof(send_msg_)) {
 				return false;
@@ -713,7 +779,7 @@ namespace chip {
 			@return 成功なら「true」
 		 */
 		//-----------------------------------------------------------------//
-		bool send_msg()
+		bool send_msg() noexcept
 		{
 			static const uint16_t timeoutloop = 50;
 			uint16_t loop = 0;
@@ -755,7 +821,7 @@ namespace chip {
 			@return 成功なら「true」
 		 */
 		//-----------------------------------------------------------------//
-		bool recv_msg()
+		bool recv_msg() noexcept
 		{
 			auto stat = status_();
 
@@ -782,7 +848,7 @@ namespace chip {
 			@return 成功なら「true」
 		 */
 		//-----------------------------------------------------------------//
-		bool send(uint32_t id, uint8_t ext, const void* src, uint8_t len)
+		bool send(uint32_t id, uint8_t ext, const void* src, uint8_t len) noexcept
 		{
 			set_msg(id, 0, ext, src, len);
 			return send_msg();
@@ -799,7 +865,7 @@ namespace chip {
 			@return 成功なら「true」
 		 */
 		//-----------------------------------------------------------------//
-		bool recv(uint32_t& id, uint8_t& ext, void* dst, uint8_t& len)
+		bool recv(uint32_t& id, uint8_t& ext, void* dst, uint8_t& len) noexcept
 		{
 			if(recv_msg()) {
 				return false;
@@ -809,6 +875,112 @@ namespace chip {
 			len = recv_len_;
 			ext = recv_ext_;
 			std::memcpy(dst, recv_msg_, recv_len_);
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	レシーブ・チェック
+			@return レシーブなら「true」
+		 */
+		//-----------------------------------------------------------------//
+		bool check_recv() noexcept
+		{
+			auto res = status_();  // RXnIF in Bit 1 and 0
+			return (res & MCP_STAT_RXIF_MASK) != 0;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	エラーの取得（警告を含む）
+			@return エラー
+		 */
+		//-----------------------------------------------------------------//
+		uint8_t get_error() noexcept
+		{
+			return read_(REGA::EFLG);
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	エラーの取得
+			@return エラー
+		 */
+		//-----------------------------------------------------------------//
+		uint8_t get_only_error() noexcept
+		{
+			return get_error() & MCP_EFLG_ERRORMASK;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	受信エラーカウントの取得
+			@return カウント
+		 */
+		//-----------------------------------------------------------------//
+		uint8_t get_error_count_recv() noexcept
+		{
+			return read_(REGA::REC);
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	送信エラーカウントの取得
+			@return カウント
+		 */
+		//-----------------------------------------------------------------//
+		uint8_t get_error_count_send() noexcept
+		{
+			return read_(REGA::TEC);
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	ONE SHOT の設定
+			@param[in]	ena	不許可なら「false」
+			@return 成功なら「true」
+		 */
+		//-----------------------------------------------------------------//
+		bool enable_one_shot_send(bool ena = true) noexcept
+		{
+			static const uint8_t MODE_ONESHOT = 0x08;
+			modify_(REGA::CANCTRL, MODE_ONESHOT, ena ? MODE_ONESHOT : 0);
+			bool f = (read_(REGA::CANCTRL) & MODE_ONESHOT) != MODE_ONESHOT;
+			return f == ena;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	GPO 出力
+			@param[in]	data	データ
+			@return 成功なら「true」
+		 */
+		//-----------------------------------------------------------------//
+		bool set_gpo(uint8_t data) noexcept
+		{
+			modify_(REGA::BFPCTRL, MCP_BxBFS_MASK, (data << 4));
+			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	GPI 入力
+			@param[out]	data	データ
+			@return 成功なら「true」
+		 */
+		//-----------------------------------------------------------------//
+		uint8_t get_gpi(uint8_t& data) noexcept
+		{
+			auto res = read_(REGA::TXRTSCTRL) & MCP_BxRTS_MASK;
+			data = res >> 3;
 			return true;
 		}
 	};
