@@ -17,9 +17,12 @@
 #include "common/trb_io.hpp"
 #include "common/command.hpp"
 #include "common/format.hpp"
+#include "common/spi_io.hpp"
 #include "chip/AD9833.hpp"
 
 namespace {
+
+//	typedef device::PORT<device::PORT1, device::bitpos::B3> LED;
 
 	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
 	timer_b timer_b_;
@@ -28,7 +31,18 @@ namespace {
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
 	uart uart_;
 
+	// P1_0(20):
+	typedef device::PORT<device::PORT1, device::bitpos::B0> SPI_SDO;
+	// P1_1(19):
+	typedef device::PORT<device::PORT1, device::bitpos::B1> SPI_SCK;
+	// P1_2(18):
+	typedef device::PORT<device::PORT1, device::bitpos::B2> FSYNC;  // select
 
+	typedef device::spi_io<device::NULL_PORT, SPI_SDO, SPI_SCK, device::soft_spi_mode::CK10> SPI;
+	SPI		spi_;
+
+	typedef chip::AD9833<SPI, FSYNC> AD9833;
+	AD9833	ad9833_(spi_);
 
 	utils::command<64> command_;
 }
@@ -101,13 +115,24 @@ int main(int argc, char *argv[])
 		uart_.start(57600, ir_level);
 	}
 
+	{  // SPI 開始
+		spi_.start(1000000);
+	}
+
+	{  // AD9833 開始
+		ad9833_.start();
+		ad9833_.setup(AD9833::WAVE_FORM::SINE,
+///		ad9833_.setup(AD9833::WAVE_FORM::TRIANGLE,
+///		ad9833_.setup(AD9833::WAVE_FORM::SQUARE,
+			AD9833::REGISTERS::REG0, 1000.0f, AD9833::REGISTERS::REG1, 0.0f);
+		ad9833_.enable_output();
+	}
+
 	utils::format("Start R8C AD9833 sample\n");
 	command_.set_prompt("# ");
 
-	// LED シグナル用ポートを出力
-	PD1.B0 = 1;
+///	LED::DIR = 1;
 
-	uint8_t n = 0;
 	uint8_t cnt = 0;
 	while(1) {
 		timer_b_.sync();
@@ -115,8 +140,8 @@ int main(int argc, char *argv[])
 		if(cnt >= 20) {
 			cnt = 0;
 		}
-		if(cnt < 10) P1.B0 = 1;
-		else P1.B0 = 0;
+///		if(cnt < 10) LED::P = 1;
+///		else LED::P = 0;
 		++cnt;
 
 		// コマンド入力と、コマンド解析
