@@ -17,12 +17,18 @@
 #include "common/trb_io.hpp"
 #include "common/command.hpp"
 #include "common/format.hpp"
+#include "common/input.hpp"
 #include "common/spi_io.hpp"
 #include "chip/AD9833.hpp"
 
+// インジケーターＬＥＤ点滅を行う場合
+// #define INDICATOR_LED
+
 namespace {
 
-//	typedef device::PORT<device::PORT1, device::bitpos::B3> LED;
+#ifdef INDICATOR_LED
+	typedef device::PORT<device::PORT1, device::bitpos::B3> LED;
+#endif
 
 	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
 	timer_b timer_b_;
@@ -44,7 +50,15 @@ namespace {
 	typedef chip::AD9833<SPI, FSYNC> AD9833;
 	AD9833	ad9833_(spi_);
 
+	AD9833::WAVE_FORM	form_;
+	float				freq_;
+
 	utils::command<64> command_;
+
+	void setup_()
+	{
+		ad9833_.setup(form_, AD9833::REGISTERS::REG0, freq_, AD9833::REGISTERS::REG1, 0.0f);
+	}
 }
 
 extern "C" {
@@ -121,45 +135,90 @@ int main(int argc, char *argv[])
 
 	{  // AD9833 開始
 		ad9833_.start();
-		ad9833_.setup(AD9833::WAVE_FORM::SINE,
-///		ad9833_.setup(AD9833::WAVE_FORM::TRIANGLE,
-///		ad9833_.setup(AD9833::WAVE_FORM::SQUARE,
-			AD9833::REGISTERS::REG0, 1000.0f, AD9833::REGISTERS::REG1, 0.0f);
+		form_ = AD9833::WAVE_FORM::SINE;
+		freq_ = 1000.0f;
+		setup_();
 		ad9833_.enable_output();
 	}
 
 	utils::format("Start R8C AD9833 sample\n");
 	command_.set_prompt("# ");
 
-///	LED::DIR = 1;
-
+#ifdef INDICATOR_LED
+	LED::DIR = 1;
 	uint8_t cnt = 0;
+#endif
+
 	while(1) {
 		timer_b_.sync();
 
-		if(cnt >= 20) {
+#ifdef INDICATOR_LED
+		++cnt;
+		if(cnt >= 30) {
 			cnt = 0;
 		}
-///		if(cnt < 10) LED::P = 1;
-///		else LED::P = 0;
-		++cnt;
+		if(cnt < 10) LED::P = 1;
+		else LED::P = 0;
+#endif
 
 		// コマンド入力と、コマンド解析
 		if(command_.service()) {
+			bool error = false;
+			char emsg[16];
+			emsg[0] = 0;
 			uint8_t cmdn = command_.get_words();
 			if(cmdn >= 1) {
-//				if(command_.cmp_word(0, "date")) {
-//				} else if(command_.cmp_word(0, "help")) {
-//					sci_puts("date\n");
-//					sci_puts("date yyyy/mm/dd hh:mm[:ss]\n");
-//				} else {
-//					char buff[12];
-//					if(command_.get_word(0, sizeof(buff), buff)) {
-//						sci_puts("Command error: ");
-//						sci_puts(buff);
-//						sci_putch('\n');
-//					}
-//				}
+				if(command_.cmp_word(0, "form")) {
+					if(cmdn == 1) {
+						utils::format("form: ");
+						switch(form_) {
+						case AD9833::WAVE_FORM::SINE:
+							utils::format("sin (SIN)\n");
+							break;
+						case AD9833::WAVE_FORM::TRIANGLE:
+							utils::format("tri (TRIANGLE)\n");
+							break;
+						case AD9833::WAVE_FORM::SQUARE:
+							utils::format("sqr (SQUARE)\n");
+							break;
+						default:
+							break;
+						}
+					} else {
+						if(command_.cmp_word(1, "sin")) form_ = AD9833::WAVE_FORM::SINE;
+						else if(command_.cmp_word(1, "tri")) form_ = AD9833::WAVE_FORM::TRIANGLE;
+						else if(command_.cmp_word(1, "sqr")) form_ = AD9833::WAVE_FORM::SQUARE;
+						else {
+							command_.get_word(1, sizeof(emsg), emsg);
+							error = true;
+						}
+						if(!error) {
+							setup_();
+						}
+					}
+				} else if(command_.cmp_word(0, "freq")) {
+					if(cmdn == 1) {
+						utils::format("freq: %1.3f\n") % freq_;
+					} else {
+						float a = 0.0f;
+						command_.get_word(1, sizeof(emsg), emsg);
+						if((utils::input("%f", emsg) % a).status()) {
+							freq_ = a;
+							setup_();
+						} else {
+							error = true;							
+						}
+					}
+				} else if(command_.cmp_word(0, "help")) {
+					utils::format("form [sin,tri,sqr]\n");
+					utils::format("freq [xxxx(Hz)]\n");
+				} else {
+					command_.get_word(0, sizeof(emsg), emsg);
+					error = true;
+				}
+				if(error) {					
+					utils::format("Command error: '%s'\n") % emsg;
+				}
 			}
 		}
 	}
