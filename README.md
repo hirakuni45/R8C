@@ -62,6 +62,7 @@ R8C sources
  - /SD_WAV_play        --->   SD カード上の WAV 形式ファイルの PWM 再生
  - /RC_SERVO_tester    --->   ラジコン用サーボのテスター（ＪＲ、又はフタバＰＷＭ出力、１チャネル用）
  - /USB_CHECKER        --->   USB 電流、電圧チェッカー
+ - /AD9833_sample      --->   DDS デバイスのサンプル（AD9833）
    
 ---
 
