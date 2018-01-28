@@ -57,7 +57,7 @@ namespace {
 	typedef device::PORT<device::PORT4, device::bitpos::B2> MFRC_RES;
 
 
-	typedef device::spi_io<SPI_MISO, SPI_MOSI, SPI_SCK, device::soft_spi_mode::CK01_> SPI;
+	typedef device::spi_io<SPI_MISO, SPI_MOSI, SPI_SCK, device::soft_spi_mode::CK01> SPI;
 	SPI		spi_;
 
 	typedef chip::MFRC522<SPI, MFRC_CS, MFRC_RES> MFRC522;
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 	mfrc522_.list_version(tmp, sizeof(tmp));
 	utils::format("%s") % tmp;
 
-#if 0
+#if 1
 	// セルフ・テスト
 	if(mfrc522_.self_test()) {
 		utils::format("MFRC522 Self test: OK\n");
