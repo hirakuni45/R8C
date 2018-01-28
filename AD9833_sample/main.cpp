@@ -1,6 +1,19 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C AD9833 サンプル
+	@brief	R8C AD9833 サンプル @n
+			GY-9833 モジュール結線情報(R8C/M120AN) @n
+			・VCC   <---> VCC(7) 3.3V @n
+			・DGND  <---> VSS(5) @n
+			・SDATA <---- P1_0(20) @n
+			・SCLK  <---- P1_1(19) @n
+			・FSYNC <---- P1_2(18) @n
+			---------------------- @n
+			※８ビット、１ストップビット、パリティ無し、５７６００ボー
+			・RXD   <---- P1_4(16):TXD0 @n
+			・TXD   ----> P1_5(15):RXD0 @n
+			※電源は３．３Ｖで動作確認しているが、OSC の正規電圧は５Ｖ @n
+			かもしれない。（情報が無いので不明）@n
+			※リセット、モード端子は、ハードウェアーマニュアルを参照の事
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2018 Kunihito Hiramatsu @n
 				Released under the MIT license @n
