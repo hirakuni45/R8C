@@ -31,6 +31,9 @@ namespace {
 
 	// P1_B0 (20)
 	typedef device::PORT<device::PORT1, device::bitpos::B0> OUT;
+
+	// P1_B1 (19)
+	typedef device::PORT<device::PORT1, device::bitpos::B1> SIG;
 }
 
 extern "C" {
@@ -111,31 +114,34 @@ int main(int argc, char *argv[])
 	OUT::DIR = 1;
 	OUT::P = 0;
 
-	uint8_t cnt = 5;
-	uint8_t delay = 0;
+	SIG::DIR = 1;
+	OUT::P = 0;
+
+	uint8_t cnt = 0;
 
 	while(1) {
-		OUT::P = 0;
 		timer_b_.sync();
-		OUT::P = 1;
-		timer_b_.sync();
-		OUT::P = 0;
-		timer_b_.sync();
-#if 0
-		if(cnt > 0) {
+		++cnt;
+		if(cnt >= 5) {
+			cnt = 0;
+		}
+		if(cnt < 2) {
 			OUT::P = 1;
-			--cnt;
-			if(cnt == 0) {
-				OUT::P = 0;
-				delay = 10;
-			}
+			utils::delay::micro_second(30);
+			SIG::P = 1;
+			utils::delay::micro_second(30);
+			SIG::P = 0;
+			utils::delay::micro_second(30);
+			SIG::P = 1;
+
+		} else {
+			OUT::P = 0;
+			utils::delay::micro_second(60);
+			SIG::P = 0;
+			utils::delay::micro_second(60);
+			SIG::P = 1;
+			utils::delay::micro_second(60);
+			SIG::P = 0;
 		}
-		if(delay > 0) {
-			--delay;
-			if(delay == 0) {
-	   			cnt = 5;
-			}
-		}
-#endif
 	}
 }
