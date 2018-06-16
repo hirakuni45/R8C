@@ -1,7 +1,7 @@
 //=====================================================================//
 /*!	@file
 	@brief	R8C ファミコン互換パッド入力、サンプル @n
-			Maybe (4021) Palallel to Serial Shift Register @n
+			Maybe (4021B) 8-Stage Static Shift Register @n
 			B0: DIR-Right @n
 			B1: DIR-Left @n
 			B2: DIR-Down @n
