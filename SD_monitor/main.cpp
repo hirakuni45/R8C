@@ -47,7 +47,9 @@ namespace {
 	typedef device::PORT<device::PORT4, device::bitpos::B5> SPI_SDO;
 	// P4_7(4):   SD_DO/DAT0(7) (port input)
 	typedef device::PORT<device::PORT4, device::bitpos::B7> SPI_SDI;
-	typedef device::spi_io<SPI_SCL, SPI_SDO, SPI_SDI> SPI;
+
+	// MISO, MOSI, SCK
+	typedef device::spi_io<SPI_SDI, SPI_SDO, SPI_SCL, device::soft_spi_mode::CK10> SPI;
 	SPI		spi_;
 
 	// P3_4(10): SD_/CS(1)
@@ -271,7 +273,7 @@ int main(int argc, char *argv[])
 
 	// SPI のスタート
 	{
-		spi_.start(10);
+		spi_.start(10000000);
 	}
 
 	sci_puts("Start R8C SD monitor\n");
