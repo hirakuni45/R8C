@@ -49,6 +49,14 @@ namespace pfatfs {
 
 		void forward_(BYTE d) { }
 
+		void skip_(uint16_t num)
+		{
+			while(num > 0) {
+				spi_.xchg();
+				--num;
+			}
+		}
+
 		//---------------------------------------------------------------//
 		//  Deselect the card and release SPI bus
 		//---------------------------------------------------------------//
@@ -201,7 +209,7 @@ namespace pfatfs {
 
 					// Skip leading bytes
 					if(offset) {
-						spi_.skip(offset);
+						skip_(offset);
 					}
 
 					// Receive a part of the sector
@@ -214,7 +222,7 @@ namespace pfatfs {
 						} while(--count) ;
 					}
 					// Skip trailing bytes and CRC
-					spi_.skip(bc);
+					skip_(bc);
 					res = RES_OK;
 				}
 			}
