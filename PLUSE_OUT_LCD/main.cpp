@@ -116,7 +116,8 @@ namespace {
 	// LCD SDA: P4_5(12)
 	typedef device::PORT<device::PORT4, device::bitpos::B5> SPI_SDA;
 
-	typedef device::spi_io<SPI_SCL, SPI_SDA, device::NULL_PORT> SPI;
+	// MISO, MOSI, SCK
+	typedef device::spi_io<device::NULL_PORT, SPI_SDA, SPI_SCL, device::soft_spi_mode::CK10> SPI;
 	SPI		spi_;
 
 	// LCD /CS: P3_7(2)
@@ -224,7 +225,7 @@ int main(int argc, char *argv[])
 
 	// SPI を開始
 	{
-		spi_.start(0);
+		spi_.start(10000000);
 	}
 
 	// LCD を開始

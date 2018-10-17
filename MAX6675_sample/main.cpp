@@ -40,7 +40,8 @@ namespace {
 	// P1_2(18):
 	typedef device::PORT<device::PORT1, device::bitpos::B2> SPI_SDI;
 
-	typedef device::spi_io<SPI_SCK, device::NULL_PORT, SPI_SDI> SPI;
+	// MISO, MOSI, SCK
+	typedef device::spi_io<SPI_SDI, device::NULL_PORT, SPI_SCK, device::soft_spi_mode::CK10> SPI;
 	SPI		spi_;
 
 	typedef chip::MAX6675<SPI, MAX_CS> MAX6675;
@@ -119,7 +120,7 @@ int main(int argc, char *argv[])
 	uart_.puts("Start R8C MAX6675 sample\n");
 
 	// SPI 開始
-	spi_.start();
+	spi_.start(10);
 
 	// MAX6675 開始
 	max6675_.start();
