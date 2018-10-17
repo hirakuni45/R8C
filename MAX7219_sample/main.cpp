@@ -10,7 +10,7 @@
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include <cstring>
+#include <cstdint>
 #include "common/vect.h"
 #include "system.hpp"
 #include "clock.hpp"
@@ -37,7 +37,7 @@ namespace {
 	typedef device::PORT<device::PORT1, device::bitpos::B0> SPI_SDA;
 	typedef device::PORT<device::PORT1, device::bitpos::B2> SPI_SCL;
 
-	typedef device::spi_io<SPI_SCL, SPI_SDA, device::NULL_PORT> SPI;
+	typedef device::spi_io<device::NULL_PORT, SPI_SDA, SPI_SCL, device::soft_spi_mode::CK10> SPI;
 	SPI spi_;
 
 	typedef device::PORT<device::PORT1, device::bitpos::B1> SELECT;
