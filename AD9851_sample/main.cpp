@@ -49,27 +49,18 @@ namespace {
 	uart uart_;
 
 	// P1_0(20):
-	typedef device::PORT<device::PORT1, device::bitpos::B0> SPI_SDO;
+	typedef device::PORT<device::PORT1, device::bitpos::B0> W_CLK;
 	// P1_1(19):
-	typedef device::PORT<device::PORT1, device::bitpos::B1> SPI_SCK;
+	typedef device::PORT<device::PORT1, device::bitpos::B1> FQ_UD;
 	// P1_2(18):
-	typedef device::PORT<device::PORT1, device::bitpos::B2> FSYNC;  // select
+	typedef device::PORT<device::PORT1, device::bitpos::B2> D7;
+	// P1_3(17):
+	typedef device::PORT<device::PORT1, device::bitpos::B3> RESET;
 
-	typedef device::spi_io<device::NULL_PORT, SPI_SDO, SPI_SCK, device::soft_spi_mode::CK10> SPI;
-	SPI		spi_;
-
-	typedef chip::AD9851<SPI, FSYNC> AD9851;
-	AD9851	ad9851_(spi_);
-
-	AD9851::WAVE_FORM	form_;
-	float				freq_;
+	typedef chip::AD9851<W_CLK, FQ_UD, D7, RESET> AD9851;
+	AD9851	ad9851_;
 
 	utils::command<64> command_;
-
-	void setup_()
-	{
-		ad9851_.setup(form_, AD9851::REGISTERS::REG0, freq_, AD9851::REGISTERS::REG1, 0.0f);
-	}
 }
 
 extern "C" {
@@ -140,16 +131,8 @@ int main(int argc, char *argv[])
 		uart_.start(57600, ir_level);
 	}
 
-	{  // SPI 開始
-		spi_.start(1000000);
-	}
-
 	{  // AD9851 開始
 		ad9851_.start();
-		form_ = AD9851::WAVE_FORM::SINE;
-		freq_ = 1000.0f;
-		setup_();
-		ad9851_.enable_output();
 	}
 
 	utils::format("Start R8C AD9851 sample\n");
@@ -179,49 +162,20 @@ int main(int argc, char *argv[])
 			emsg[0] = 0;
 			uint8_t cmdn = command_.get_words();
 			if(cmdn >= 1) {
-				if(command_.cmp_word(0, "form")) {
+				if(command_.cmp_word(0, "freq")) {
 					if(cmdn == 1) {
-						utils::format("form: ");
-						switch(form_) {
-						case AD9851::WAVE_FORM::SINE:
-							utils::format("sin (SIN)\n");
-							break;
-						case AD9851::WAVE_FORM::TRIANGLE:
-							utils::format("tri (TRIANGLE)\n");
-							break;
-						case AD9851::WAVE_FORM::SQUARE:
-							utils::format("sqr (SQUARE)\n");
-							break;
-						default:
-							break;
-						}
-					} else {
-						if(command_.cmp_word(1, "sin")) form_ = AD9851::WAVE_FORM::SINE;
-						else if(command_.cmp_word(1, "tri")) form_ = AD9851::WAVE_FORM::TRIANGLE;
-						else if(command_.cmp_word(1, "sqr")) form_ = AD9851::WAVE_FORM::SQUARE;
-						else {
-							command_.get_word(1, sizeof(emsg), emsg);
-							error = true;
-						}
-						if(!error) {
-							setup_();
-						}
-					}
-				} else if(command_.cmp_word(0, "freq")) {
-					if(cmdn == 1) {
-						utils::format("freq: %1.3f\n") % freq_;
+//						utils::format("freq: %1.3f\n") % freq_;
 					} else {
 						float a = 0.0f;
 						command_.get_word(1, sizeof(emsg), emsg);
 						if((utils::input("%f", emsg) % a).status()) {
-							freq_ = a;
-							setup_();
+//							freq_ = a;
+//							setup_();
 						} else {
 							error = true;							
 						}
 					}
 				} else if(command_.cmp_word(0, "help")) {
-					utils::format("form [sin,tri,sqr]\n");
 					utils::format("freq [xxxx(Hz)]\n");
 				} else {
 					command_.get_word(0, sizeof(emsg), emsg);

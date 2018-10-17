@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
-	// タイマーＢ初期化 (100Hz)
+	// タイマーＢ初期化
 	{
 		uint8_t ir_level = 2;
 		timer_b_.start_timer(100, ir_level);
@@ -123,7 +123,6 @@ int main(int argc, char *argv[])
 		if(!l3g_.start()) {
 			utils::format("Stall L3G4200D start\n");
 		}
-
 		l3g_.calibrate();
 	}
 
@@ -142,17 +141,8 @@ int main(int argc, char *argv[])
 		else P1.B0 = 0;
 		++cnt;
 
-///		if(itv >= 30) {
-			auto t = l3g_.get_temperature();
-			auto n = l3g_.get_normalize();
-			n.x *= 0.01f;  // 100Hz
-			n.y *= 0.01f;
-			n.z *= 0.01f;
-			utils::format("%5.4f, %5.4f, %5.4f\n") % n.x % n.y % n.z;
-///			itv = 0;
-///		} else {
-///			++itv;
-///		}
+		auto raw = l3g_.get_raw();
+		utils::format("%d,%d,%d\n") % raw.x % raw.y % raw.z;
 
 		// コマンド入力と、コマンド解析
 		if(command_.service()) {
