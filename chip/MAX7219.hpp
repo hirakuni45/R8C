@@ -3,7 +3,7 @@
 /*!	@file
 	@brief	MAX7219 ドライバー
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2018 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/RX/blob/master/LICENSE
 */
@@ -63,6 +63,15 @@ namespace chip {
 		 */
 		//-----------------------------------------------------------------//
 		MAX7219(SPI& spi) noexcept : spi_(spi), limit_(0) { }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	フレーム・バッファのサイズを返す
+			@return フレーム・バッファのサイズ
+		 */
+		//-----------------------------------------------------------------//
+		uint8_t size() const noexcept { return CHAIN * 8; }
 
 
 		//-----------------------------------------------------------------//
@@ -349,5 +358,17 @@ namespace chip {
 			return full;
 		}
 
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief データ参照
+			@param[in]	idx	インデックス
+			@return データ
+		 */
+		//-----------------------------------------------------------------//
+		uint8_t& at(uint8_t idx) noexcept
+		{
+			return data_[idx % size];
+		}
 	};
 }
