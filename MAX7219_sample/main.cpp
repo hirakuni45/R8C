@@ -5,12 +5,13 @@
 			P1_1: /CS @n
 			P1_2: CLK
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2018 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
 #include <cstdint>
+#include <cstdlib>
 #include "common/vect.h"
 #include "system.hpp"
 #include "clock.hpp"
@@ -26,19 +27,22 @@
 #include "common/spi_io.hpp"
 #include "chip/MAX7219.hpp"
 
+// Dot Matrix LED
+#define DOT_MATRIX
+
 namespace {
 
 	device::trb_io<utils::null_task, uint8_t> timer_b_;
 
 	typedef utils::fifo<uint8_t, 16> buffer;
 	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
+	uart	uart_;
 
 	typedef device::PORT<device::PORT1, device::bitpos::B0> SPI_SDA;
 	typedef device::PORT<device::PORT1, device::bitpos::B2> SPI_SCL;
 
 	typedef device::spi_io<device::NULL_PORT, SPI_SDA, SPI_SCL, device::soft_spi_mode::CK10> SPI;
-	SPI spi_;
+	SPI		spi_;
 
 	typedef device::PORT<device::PORT1, device::bitpos::B1> SELECT;
 	chip::MAX7219<SPI, SELECT> max7219_(spi_);
@@ -79,7 +83,6 @@ extern "C" {
 	void UART0_RX_intr(void) {
 		uart_.irecv();
 	}
-
 }
 
 
@@ -125,11 +128,12 @@ int main(int argc, char *argv[])
 
 	sci_puts("Start R8C MAX7219 sample\n");
 
-	// LED シグナル用ポートを出力
-	PD1.B0 = 1;
-
 	for(uint8_t i = 0; i < 8; ++i) {
+#ifdef DOT_MATRIX
+		max7219_.set(i, rand() & 0xff);
+#else
 		max7219_.set_cha(i, '-');
+#endif
 	}
 
 	uint8_t idx = 0;
@@ -143,9 +147,15 @@ int main(int argc, char *argv[])
 				max7219_.shift_top();
 				idx = 7;
 			}
-			char ch = sci_getch();
+#ifdef DOT_MATRIX
+			sci_getch();
+			auto ch = rand() & 0xff;
+			max7219_.set(idx ^ 7, ch);
+#else
+			auto ch = sci_getch();
 			sci_putch(ch);
 			max7219_.set_cha(idx ^ 7, ch);
+#endif
 			++idx;
 		}
 	}
