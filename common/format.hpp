@@ -2,8 +2,8 @@
 //=====================================================================//
 /*! @file
     @brief  format クラス @n
-			・安全性を考慮した、[s]printf 表示に準じたクラス
-			・二進表記として、「%b」をサポート
+			・安全性を考慮した、[s]printf 表示に準じたクラス @n
+			・二進表記として、「%b」をサポート @n
 			・固定小数点表示「%N.M:Ly」形式をサポート @n
 			※ N：全桁数、M：小数部桁数、L：小数部のビット数 @n
 			※ N には、小数点、符号が含まれる @n
@@ -12,9 +12,10 @@
 			+ 2017/06/11 20:00- 標準文字出力クラスの再定義、実装 @n 
 			+ 2017/06/11 21:00- 固定文字列クラス向け chaout、実装 @n
 			+ 2017/06/12 14:50- memory_chaoutと、専用コンストラクター実装 @n
-			+ 2017/06/14 05:34- memory_chaout size() のバグ修正
+			+ 2017/06/14 05:34- memory_chaout size() のバグ修正 @n
+			+ 2018/11/20 05:10- float を無効にするオプションを復活
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2013, 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2013, 2018 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/RX/blob/master/LICENSE
 */
@@ -23,6 +24,8 @@
 #include <unistd.h>
 #include <cstring>
 
+// float を無効にする場合（８ビット系マイコンでのメモリ節約用）
+// #define NO_FLOAT_FORM
 /* 
   e, E
      double 引き数を丸めて [-]d.ddde±dd の形に変換する。 小数点の前には一桁の数字があり、
@@ -537,10 +540,10 @@ namespace utils {
 			return m;
 		}
 
+
 		template <typename VAL>
 		void out_fixed_point_(VAL v, uint8_t fixpoi, bool sign)
 		{
-// std::cout << "Shift: " << static_cast<int>(fixpoi) << std::endl;
 			// 四捨五入処理用 0.5
 			VAL m = 0;
 			if(fixpoi < (sizeof(VAL) * 8 - 4)) {
@@ -587,7 +590,7 @@ namespace utils {
 			}
 		}
 
-
+#ifndef NO_FLOAT_FORM
 		void out_real_(float v, char e) {
 			void* p = &v;
 			uint32_t fpv = *(uint32_t*)p;
@@ -641,6 +644,7 @@ namespace utils {
 				out_dec_(dexp);
 			}
 		}
+#endif
 
 	public:
 		//-----------------------------------------------------------------//
@@ -809,6 +813,7 @@ namespace utils {
 				} else {
 					decimal_(static_cast<int32_t>(val), std::is_signed<T>::value);
 				}
+#ifndef NO_FLOAT_FORM
 			} else if(std::is_floating_point<T>::value) {
 				if(num_ == 0 && !zerosupp_ && point_ == 0) {
 					num_ = 6;
@@ -831,6 +836,7 @@ namespace utils {
 					error_ = error::different;
 					break;
 				}
+#endif
 			} else {
 				error_ = error::unknown;
 			}
