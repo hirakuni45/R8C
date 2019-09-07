@@ -2,18 +2,19 @@
 /*!	@file
 	@brief	R8C AD9851 サンプル @n
 			サインスマート AD9851 モジュール結線情報(R8C/M120AN) @n
-			・VCC   <---> VCC(7) 3.3V @n
-			・DGND  <---> VSS(5) @n
-			・SDATA <---- P1_0(20) @n
-			・SCLK  <---- P1_1(19) @n
-			・FSYNC <---- P1_2(18) @n
+			・DGND <---> VSS(5) @n
+			・D7   <---- P1_0(20) @n
+			・WCLK <---- P1_1(19) @n
+			・FQUP <---- P1_2(18) @n
+			・REST <---- P1_3(17) @n
+			・VCC  <---> VCC(7) 5.0V @n
 			---------------------- @n
 			※８ビット、１ストップビット、パリティ無し、５７６００ボー
 			・RXD   <---- P1_4(16):TXD0 @n
 			・TXD   ----> P1_5(15):RXD0 @n
 			※リセット、モード端子は、ハードウェアーマニュアルを参照の事
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2018 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2019 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -30,7 +31,7 @@
 #include "common/format.hpp"
 #include "common/input.hpp"
 #include "common/spi_io.hpp"
-#include "chip/AD9851.hpp"
+#include "chip/AD985X.hpp"
 
 // インジケーターＬＥＤ点滅を行う場合
 // #define INDICATOR_LED
@@ -45,19 +46,20 @@ namespace {
 	timer_b timer_b_;
 
 	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
+	typedef device::uart_io<device::UART0, buffer, buffer> UART;
+	UART	uart_;
 
 	// P1_0(20):
-	typedef device::PORT<device::PORT1, device::bitpos::B0> W_CLK;
+	typedef device::PORT<device::PORT1, device::bitpos::B0> D7;
 	// P1_1(19):
-	typedef device::PORT<device::PORT1, device::bitpos::B1> FQ_UD;
+	typedef device::PORT<device::PORT1, device::bitpos::B1> W_CLK;
 	// P1_2(18):
-	typedef device::PORT<device::PORT1, device::bitpos::B2> D7;
+	typedef device::PORT<device::PORT1, device::bitpos::B2> FQ_UP;
 	// P1_3(17):
 	typedef device::PORT<device::PORT1, device::bitpos::B3> RESET;
 
-	typedef chip::AD9851<W_CLK, FQ_UD, D7, RESET> AD9851;
+	// 180MHz
+	typedef chip::AD985X<D7, W_CLK, FQ_UP, RESET, 180> AD9851;
 	AD9851	ad9851_;
 
 	utils::command<64> command_;
@@ -133,6 +135,7 @@ int main(int argc, char *argv[])
 
 	{  // AD9851 開始
 		ad9851_.start();
+		ad9851_.reset();
 	}
 
 	utils::format("Start R8C AD9851 sample\n");
@@ -169,8 +172,7 @@ int main(int argc, char *argv[])
 						float a = 0.0f;
 						command_.get_word(1, sizeof(emsg), emsg);
 						if((utils::input("%f", emsg) % a).status()) {
-//							freq_ = a;
-//							setup_();
+							ad9851_.set_reg(0b00001001, a);  // Phase: 1, PLL 6x
 						} else {
 							error = true;							
 						}
