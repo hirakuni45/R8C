@@ -161,17 +161,16 @@ int main(int argc, char *argv[])
 		// コマンド入力と、コマンド解析
 		if(command_.service()) {
 			bool error = false;
-			char emsg[16];
-			emsg[0] = 0;
 			uint8_t cmdn = command_.get_words();
 			if(cmdn >= 1) {
 				if(command_.cmp_word(0, "freq")) {
 					if(cmdn == 1) {
 //						utils::format("freq: %1.3f\n") % freq_;
 					} else {
+						char tmp[32];
+						command_.get_word(1, sizeof(tmp), tmp);
 						float a = 0.0f;
-						command_.get_word(1, sizeof(emsg), emsg);
-						if((utils::input("%f", emsg) % a).status()) {
+						if((utils::input("%f", tmp) % a).status()) {
 							ad9851_.set_reg(0b00001001, a);  // Phase: 1, PLL 6x
 						} else {
 							error = true;							
@@ -180,11 +179,10 @@ int main(int argc, char *argv[])
 				} else if(command_.cmp_word(0, "help")) {
 					utils::format("freq [xxxx(Hz)]\n");
 				} else {
-					command_.get_word(0, sizeof(emsg), emsg);
 					error = true;
 				}
 				if(error) {					
-					utils::format("Command error: '%s'\n") % emsg;
+					utils::format("Command error: '%s'\n") % command_.get_command();
 				}
 			}
 		}
