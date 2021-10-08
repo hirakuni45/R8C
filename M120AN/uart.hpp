@@ -5,7 +5,7 @@
    			※複数チャネルを持つデバイスを考慮している為、シングルチャネル@n
 			デバイスでは、レジスター名を読み替える必要があります。
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2014, 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2014, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -37,7 +37,8 @@ namespace device {
 			bit_rw_t <io_, bitpos::B5>    PRY;
 			bit_rw_t <io_, bitpos::B6>    PRYE;
 		};
-		static umr_t<base + 0x00> UMR;
+		typedef umr_t<base + 0x00> UMR_;
+		static UMR_ UMR;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -45,7 +46,8 @@ namespace device {
 			@brief	UART ビットレートレジスタ UBRG
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		static rw8_t<base + 0x01> UBRG;
+		typedef rw8_t<base + 0x01> UBRG_;
+		static UBRG_ UBRG;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -53,7 +55,8 @@ namespace device {
 			@brief	UART 送信バッファレジスタ UTBL
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		static wo8_t<base + 0x02> UTBL;
+		typedef wo8_t<base + 0x02> UTBL_;
+		static UTBL_ UTBL;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -61,7 +64,8 @@ namespace device {
 			@brief	UART 送信バッファレジスタ UTBH
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		static wo8_t<base + 0x03> UTBH;
+		typedef wo8_t<base + 0x03> UTBH_;
+		static UTBH_ UTBH;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -85,7 +89,8 @@ namespace device {
 			bit_rw_t <io_, bitpos::B6>    CKPOL;
 			bit_rw_t <io_, bitpos::B7>    UFORM;
 		};
-		static uc0_t<base + 0x04> UC0;
+		typedef uc0_t<base + 0x04> UC0_;
+		static UC0_ UC0;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -109,7 +114,8 @@ namespace device {
 			bit_rw_t<io_, bitpos::B4> UIRS;
 			bit_rw_t<io_, bitpos::B5> URPM;
 		};
-		static uc1_t<base + 0x05> UC1;
+		typedef uc1_t<base + 0x05> UC1_;
+		static UC1_ UC1;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -134,7 +140,8 @@ namespace device {
 			bit_rw_t <io_, bitpos::B14> PER;
 			bit_rw_t <io_, bitpos::B15> SUM;
 		};
-		static urb_t<base + 0x06> URB;
+		typedef urb_t<base + 0x06> URB_;
+		static URB_ URB;
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -156,9 +163,18 @@ namespace device {
 			bit_rw_t<io_, bitpos::B6> URIF;
 			bit_rw_t<io_, bitpos::B7> UTIF;
 		};
-		static uir_t<base + 0x08> UIR;
+		typedef uir_t<base + 0x08> UIR_;
+		static UIR_ UIR;
 
 	};
+	template <uint16_t base> typename uart<base>::UMR_ uart<base>::UMR;
+	template <uint16_t base> typename uart<base>::UBRG_ uart<base>::UBRG;
+	template <uint16_t base> typename uart<base>::UTBL_ uart<base>::UTBL;
+	template <uint16_t base> typename uart<base>::UTBH_ uart<base>::UTBH;
+	template <uint16_t base> typename uart<base>::UC0_ uart<base>::UC0;
+	template <uint16_t base> typename uart<base>::UC1_ uart<base>::UC1;
+	template <uint16_t base> typename uart<base>::URB_ uart<base>::URB;
+	template <uint16_t base> typename uart<base>::UIR_ uart<base>::UIR;
 
 	typedef uart<0x0080> UART0;
 }

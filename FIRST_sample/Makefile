@@ -32,7 +32,7 @@ INC_SYS		=
 
 INC_APP		=	. ../ ../M120AN
 
-OPTIMIZE	=	-Os
+OPTIMIZE	=	-O2
 
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
@@ -159,10 +159,10 @@ bin_zip:
 	zip $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H)_bin.zip *.exe *.dll res/*.*
 
 run:
-	r8cprog -d R5F2M120 --progress -e -w -v $(TARGET).mot
+	r8c_prog -d R5F2M120 --progress -e -w -v $(TARGET).mot
 
 verify:
-	r8cprog -d R5F2M120 --progress -v $(TARGET).mot
+	r8c_prog -d R5F2M120 --progress -v $(TARGET).mot
 
 -include $(DEPENDS)
 

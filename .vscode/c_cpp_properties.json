@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "C:/msys64/usr/local/m32c-elf/m32c-elf/include",
+                "D:/Git/R8C/M120AN",
+                "D:/Git/R8C",
+                "C:/msys64/mingw64/include",
+                "${workspaceFolder}"
+            ],
+            "defines": [
+                "__GNUC__", "__BYTE_ORDER__=__ORDER_LITTLE_ENDIAN__",
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "8.1",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}

@@ -3,7 +3,7 @@
 /*!	@file
 	@brief	R8C/M110AN, R8C/M120AN グループ・ポート・レジスター定義
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2014, 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2014, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -515,21 +515,38 @@ namespace device {
 	/*!
 		@brief  単ポート定義テンプレート
 		@param[in]	PORTx	ポート定義
-		@param[in]	bpos	ビット位置	
+		@param[in]	bpos	ビット位置
+		@param[in]	sign	極性（反転する場合「false」）
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <class PORTx, bitpos bpos>
+	template <class PORTx, bitpos bpos, bool sign = true>
 	struct PORT {
 
 		static const uint8_t port_no  = PORTx::port_no_;
 		static const uint8_t port_bit = static_cast<uint8_t>(bpos);
+
+		typedef bit_rw_t<rw8_t<PORTx::base_address_ + 0x06>, bpos> p_t;
+		static p_t P_;
+
+		struct port_t {
+			void operator = (bool f) {
+				if(sign) P_ = f;
+				else P_ = !f;
+			}
+			bool operator () () const {
+				if(sign) return P_();
+				else return !P_();
+			}
+		};
+
 
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  ポート方向レジスタ
 		*/
 		//-----------------------------------------------------------------//
-		static bit_rw_t<rw8_t<PORTx::base_address_ + 0x00>, bpos> DIR;
+		typedef bit_rw_t<rw8_t<PORTx::base_address_ + 0x00>, bpos> dir_t;
+		static dir_t DIR;
 
 
 		//-----------------------------------------------------------------//
@@ -537,7 +554,8 @@ namespace device {
 			@brief  プルアップ制御・レジスタ
 		*/
 		//-----------------------------------------------------------------//
-		static bit_rw_t<rw8_t<PORTx::base_address_ + 0x0C>, bpos> PU;
+		typedef bit_rw_t<rw8_t<PORTx::base_address_ + 0x0C>, bpos> pu_t;
+		static pu_t PU;
 
 
 		//-----------------------------------------------------------------//
@@ -545,7 +563,8 @@ namespace device {
 			@brief  オープンドレイン制御・レジスタ
 		*/
 		//-----------------------------------------------------------------//
-		static bit_rw_t<rw8_t<PORTx::base_address_ + 0x18>, bpos> OD;
+		typedef bit_rw_t<rw8_t<PORTx::base_address_ + 0x18>, bpos> od_t;
+		static od_t OD;
 
 
 		//-----------------------------------------------------------------//
@@ -553,9 +572,19 @@ namespace device {
 			@brief  ポート・レジスタ
 		*/
 		//-----------------------------------------------------------------//
-		static bit_rw_t<rw8_t<PORTx::base_address_ + 0x06>, bpos> P;
+		static port_t P;
 
 	};
+	template <class PORTx, bitpos bpos, bool sign>
+		typename PORT<PORTx, bpos, sign>::p_t PORT<PORTx, bpos, sign>::P_;
+	template <class PORTx, bitpos bpos, bool sign>
+		typename PORT<PORTx, bpos, sign>::dir_t PORT<PORTx, bpos, sign>::DIR;
+	template <class PORTx, bitpos bpos, bool sign>
+		typename PORT<PORTx, bpos, sign>::pu_t PORT<PORTx, bpos, sign>::PU;
+	template <class PORTx, bitpos bpos, bool sign>
+		typename PORT<PORTx, bpos, sign>::od_t PORT<PORTx, bpos, sign>::OD;
+	template <class PORTx, bitpos bpos, bool sign>
+		typename PORT<PORTx, bpos, sign>::port_t  PORT<PORTx, bpos, sign>::P;
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -603,6 +632,5 @@ namespace device {
 		*/
 		//-----------------------------------------------------------------//
 		static null_t P;
-
 	};
 }
