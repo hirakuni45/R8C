@@ -21,7 +21,7 @@ CSOURCES	=	common/vect.c \
 PSOURCES	=	main.cpp
 
 
-USER_LIBS	=	stdc++
+USER_LIBS	=	supc++
 
 LDSCRIPT	=	../M120AN/m120an.ld
 
@@ -35,7 +35,7 @@ INC_APP		=	. ../ ../M120AN
 
 # -flto は、gcc がクラッシュする場合がある・・
 # OPTIMIZE	=	-Os -flto
-OPTIMIZE	=	-Os
+OPTIMIZE	=	-O0
 
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
