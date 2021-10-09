@@ -1,138 +1,86 @@
 EESchema-DOCLIB  Version 2.0
 #
 $CMP 2N7002K
-D N Channel MOSFET
-K MOSFET
+D Nch MOSFET
 $ENDCMP
 #
-$CMP 2P-SW
-D Single, 2P Push Switch
+$CMP 6P-SW
+D 6P Switch
 $ENDCMP
 #
-$CMP 3P-SW
-D Single, 3P Slide Switch
+$CMP A3967
+D Microstepping Driver with Translator (Allego Micro Systems, LLC)
 $ENDCMP
 #
-$CMP ADM3202
-D ANALOG DEVICES +3.3 to 5.5V Line Driver Reciver
-K ADM3202
-$ENDCMP
-#
-$CMP C
-D Capcitor
-K C CAP
-$ENDCMP
-#
-$CMP C-POL
-D 無極性コンデンサ
-K C CAP POL
-$ENDCMP
-#
-$CMP CAP
-D 無極性コンデンサ
-K C CAP
-$ENDCMP
-#
-$CMP CP
-D Polymer Capacitor
-K C CAP POL
+$CMP CAT4238
+D High Efficiency 10 LED Boost Converter
+K LED Boost Driver
+F https://www.onsemi.jp/pub/Collateral/CAT4238-D.PDF
 $ENDCMP
 #
 $CMP CRYSTAL
-D Crystal
-K XTAL
+D HC49 SMD Hand
 $ENDCMP
 #
-$CMP FDS4675
-D FAIRCHILD 40V P-Chanel PowerTrench MOSFET (-11A)
-K FDS4675
+$CMP CRYSTAL4
+D Miniature Size Low Profile SMD
+K SMD CRYSTAL
 $ENDCMP
 #
-$CMP FDS5680
-D FAIRCHILD 60V N-Chanle Power Trench MOSFET (8A)
-K FDS5680
+$CMP DMG3415U
+D Pch MOSFET
 $ENDCMP
 #
-$CMP FDS6612A
-D FAIRCHILD N-Chanle Power Trench MOSFET (8.4A, 30V)
-K FDS5612
+$CMP LCD_480_272
+D MDK43WQV118-WCT
 $ENDCMP
 #
-$CMP HT7750A
-D HOLTEC PFM Step-up DC/DC Converter
-K HT7750A HT7733A
+$CMP MAU106
+D １Ｗ級絶縁型ＤＣ－ＤＣコンバーター（±５Ｖ１００ｍＡ）
 $ENDCMP
 #
-$CMP IR2104
-D HALF-BRIDGE DRIVER (600V, IO+-130mA/270mA, 10 to 20V)
-K IR
+$CMP MAX3485
+D 3.3V, 10Mbps Half-Duplex RS-485/RS-422 Transceivers
+K RS-485 RS-422 Half
 $ENDCMP
 #
-$CMP L
-D Register
-K R
-$ENDCMP
-#
-$CMP LM336
-D Reference Diode
-$ENDCMP
-#
-$CMP LT6106
-D High Side Current Sense
-$ENDCMP
-#
-$CMP MCP3204
-D MICROCHIP 12bit 4Chanel A/D Converter (2.7V to 5.5V)
-K MCP3204
-$ENDCMP
-#
-$CMP MCP3208
-D Microchip Tecnorogy 2.7V to 5.5V 8chanels 12bits A/D Converter
-K MCP3208
-$ENDCMP
-#
-$CMP MCP4922
-D MICROCHIP 12-Bit DAC with SPI Interface (2.7V to 5.5V)
-K MCP4922
+$CMP MR
+D Flat Chip Resistors
 $ENDCMP
 #
 $CMP NJU7223DL1-33
-D JRC Regulator 3.3V 500mA
-K NJU7223
+D JRC 3.3V/500mA Regulator
+F http://akizukidenshi.com/download/ds/njr/NJU7223_j.pdf
+$ENDCMP
+#
+$CMP NON-POL
+D Non polarity capacitor
+$ENDCMP
+#
+$CMP PS7200K
+D 光ＭＯＳＦＥＴ
 $ENDCMP
 #
 $CMP R
-D Register
-K R
+D Resistor
+K R DEV
 $ENDCMP
 #
-$CMP RSS100N03
-D ROHM N-Chanle Power MOSFET (10A, 30V)
-K ROHM,MOSFET
+$CMP R-78E5
+D Low Cost Switching Regulator
+K RECOM Electronic GmbH.
 $ENDCMP
 #
-$CMP RTC4543SA
-D SEIKO Real Time Clock, 2.5V to 5.5V, With 32.768KHz XTAL and OSC
-K RTC
+$CMP STEREO
+D Stereo conector
 $ENDCMP
 #
-$CMP SG12864A
-D 128 dots by 64 dots monocolor graphics LCD
-K SG12864A
+$CMP TCM809R
+D Microcontroller Reset Monitors (3.3V)
 $ENDCMP
 #
-$CMP TLP222A
-D TOSHIBA Photocoupler Photorelay
-K TLP
-$ENDCMP
-#
-$CMP VS1011E-SO
-D VLSI SOLUTION Decoder MPEG 1.0 & 2.0 audio layer I,II,III,WAV,ADPCM
-K VS1011e
-$ENDCMP
-#
-$CMP XC6202
-D 3.3V Regulator
+$CMP VS1053
+D Audio Decoder
 $ENDCMP
 #
 #End Doc Library
