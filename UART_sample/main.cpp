@@ -7,7 +7,7 @@
 			P1_4: TXD(output) @n
 			P1_5: RXD(input)
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -28,11 +28,17 @@
 #include "common/input.hpp"
 
 namespace {
-	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
+
+	typedef device::PORT<device::PORT1, device::bitpos::B0, false> LED0;
+	typedef device::PORT<device::PORT1, device::bitpos::B1, false> LED1;
+
+	typedef utils::fifo<uint8_t, 16> TX_BUFF;  // 送信バッファ
+	typedef utils::fifo<uint8_t, 16> RX_BUFF;  // 受信バッファ
+	typedef device::uart_io<device::UART0, TX_BUFF, RX_BUFF> UART;
+	UART uart_;
 
 	utils::command<64> command_;
+
 }
 
 extern "C" {
@@ -96,10 +102,10 @@ int main(int argc, char *argv[])
 
 	// LED ポート設定
 	{
-		utils::PORT_MAP(utils::port_map::P10::PORT);
-		utils::PORT_MAP(utils::port_map::P11::PORT);
-		PD1.B0 = 1;
-		PD1.B1 = 1;
+		LED0::DIR = 1;
+		LED1::DIR = 1;
+		LED0::P = 0;
+		LED1::P = 0;
 	}
 
 	uart_.puts("Start R8C UART sample\n");
@@ -110,16 +116,16 @@ int main(int argc, char *argv[])
 	while(1) {
 
 		if(command_.service()) {
-			uint8_t cmdn = command_.get_words();
+			auto cmdn = command_.get_words();
 			if(cmdn >= 1) {
 				char tmp[32];
 				if(command_.get_word(0, sizeof(tmp), tmp)) {
-					int a = 0;
-					int n = (utils::input("%d", tmp) % a).num();
+					int32_t a = 0;
+					auto n = (utils::input("%d", tmp) % a).num();
 					if(n == 1) {
-						utils::format("Value: %d\n") % a;
+						utils::format("Value: %d, 0x%X\n") % a % a;
 					} else {
-						utils::format("Input decimal ?\n");
+						utils::format("Input only decimal: '%s'\n") % tmp;
 					}
 				}
 			}
@@ -141,19 +147,17 @@ int main(int argc, char *argv[])
 #endif
 
 		// 10ms ソフトタイマー
-		for(uint16_t i = 0; i < 10; ++i) {
-			utils::delay::micro_second(1000);
-		}
+		utils::delay::milli_second(10);
 
 		// LED の点滅
 		++cnt;
-		if(cnt < 50) {
-			P1.B0 = 0;
-			P1.B1 = 1;
+		if(cnt < 25) {
+			LED0::P = 0;
+			LED1::P = 1;
 		} else {
-			P1.B0 = 1;
-			P1.B1 = 0;
+			LED0::P = 1;
+			LED1::P = 0;
 		}
-		if(cnt >= 100) cnt = 0;
+		if(cnt >= 50) cnt = 0;
 	}
 }
