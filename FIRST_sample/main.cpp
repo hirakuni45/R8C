@@ -18,8 +18,9 @@
 
 namespace {
 
-	typedef device::PORT<device::PORT1, device::bitpos::B0> LED0;
-	typedef device::PORT<device::PORT1, device::bitpos::B1> LED1;
+	// LED は '0' で点灯、'1' で消灯するように接続するので、LED クラスの論理を反転して定義する
+	typedef device::PORT<device::PORT1, device::bitpos::B0, false> LED0;
+	typedef device::PORT<device::PORT1, device::bitpos::B1, false> LED1;
 
 }
 
