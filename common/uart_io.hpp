@@ -3,7 +3,7 @@
 /*!	@file
 	@brief	R8C グループ・UART I/O 制御
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2015, 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2015, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -152,7 +152,7 @@ private:
 
 			ILVL8.B45 = ir_level;
 			ILVL9.B01 = ir_level;
-			if(ir_level) {
+			if(ir_level != 0) {
 				UART::UIR = UART::UIR.URIE.b() | UART::UIR.UTIE.b();
 			} else {
 				UART::UIR = UART::UIR.URIE.b(false) | UART::UIR.UTIE.b(false);

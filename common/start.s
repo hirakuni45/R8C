@@ -37,3 +37,9 @@ _start:
 	.global _exit
 _exit:
 	jmp.w	_exit
+
+	.section .data
+	.global ___dso_handle
+	.weak   ___dso_handle
+___dso_handle:
+	.long   0
