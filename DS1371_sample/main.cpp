@@ -2,19 +2,15 @@
 /*!	@file
 	@brief	R8C DS1371 RTC サンプル
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include <cstring>
-#include "system.hpp"
-#include "clock.hpp"
-#include "port.hpp"
+#include "common/renesas.hpp"
+
 #include "common/command.hpp"
 #include "common/format.hpp"
-#include "common/intr_utils.hpp"
-#include "common/port_map.hpp"
 #include "common/uart_io.hpp"
 #include "common/fifo.hpp"
 #include "common/trb_io.hpp"
@@ -25,9 +21,9 @@ namespace {
 	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
 	timer_b timer_b_;
 
-	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
+	typedef utils::fifo<uint8_t, 16> BUFFER;
+	typedef device::uart_io<device::UART0, BUFFER, BUFFER> UART;
+	UART uart_;
 
 	// I2C ポートの定義クラス
 	// P4_B5: SDA
