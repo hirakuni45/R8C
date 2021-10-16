@@ -2,7 +2,7 @@
 #   @file
 #   @brief  R8C Makefile
 #   @author 平松邦仁 (hira@rvf-rc45.net)
-#	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+#	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 #				Released under the MIT license @n
 #				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 #=======================================================================
@@ -21,7 +21,7 @@ CSOURCES	=	common/vect.c \
 
 PSOURCES	=	main.cpp
 
-USER_LIBS	=	stdc++ m
+USER_LIBS	=	supc++ m
 
 LDSCRIPT	=	../M120AN/m120an.ld
 
@@ -31,7 +31,6 @@ MCU_TARGET	=	-mcpu=r8c
 
 WRITER		=	r8c_prog
 
-#INC_SYS		=	/usr/boost_1_53_0
 INC_SYS		=
 
 INC_APP		=	. ../ ../M120AN
