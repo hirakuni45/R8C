@@ -139,6 +139,7 @@ struct ray {
 static const uint8_t SKY=255;
 static const uint8_t FLOOR=254;
 
+__attribute__ ((section (".exttext")))
 uint8_t trace(const ray& r, float& distance, vec3& normal)
 {
   // Assume we didn't hit anything
@@ -187,6 +188,7 @@ uint8_t trace(const ray& r, float& distance, vec3& normal)
   return result;
 }
 
+__attribute__ ((section (".exttext")))
 float raise(float p, uint8_t n)
 {
   while (n--) {
@@ -204,6 +206,7 @@ float raise(float p, uint8_t n)
   If you wrote this then get in touch and I'll put
   your name here. :-)                              FTB.
 ----------------------------------------------------------*/
+__attribute__ ((section (".exttext")))
 uint8_t randomByte()
 {
   static uint8_t rngA, rngB, rngC, rngX;
@@ -215,6 +218,7 @@ uint8_t randomByte()
 }
 
 // A random float in the range [-0.5 ... 0.5]  (more or less)
+__attribute__ ((section (".exttext")))
 float randomFloat()
 {
   char r = char(randomByte());
@@ -226,6 +230,7 @@ float randomFloat()
 /*------------------------------------------------------------------------
   Sample the world and return the pixel color for a ray
 ------------------------------------------------------------------------*/
+__attribute__ ((section (".exttext")))
 float sample(ray& r, vec3& color)
 {
   // See if the ray hits anything in the world
@@ -295,6 +300,7 @@ float sample(ray& r, vec3& color)
 /*------------------------------------------------------------------------
   Raytrace the entire image
 ------------------------------------------------------------------------*/
+__attribute__ ((section (".exttext")))
 void doRaytrace(int raysPerPixel = 4, int dw = 320, int dh = 240, int q = 1)
 {
   // Trace it

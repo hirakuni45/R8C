@@ -2,7 +2,7 @@
 #   @file
 #   @brief  R8C Makefile
 #   @author 平松邦仁 (hira@rvf-rc45.net)
-#	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+#	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 #				Released under the MIT license @n
 #				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 #=======================================================================
@@ -20,7 +20,7 @@ CSOURCES	=	common/vect.c \
 PSOURCES	=	main.cpp
 
 
-USER_LIBS	=	stdc++
+USER_LIBS	=	supc++
 
 LDSCRIPT	=	../M120AN/m120an.ld
 
@@ -33,7 +33,7 @@ INC_SYS		=
 
 INC_APP		=	. ../ ../M120AN
 
-OPTIMIZE	=	-Os -flto
+OPTIMIZE	=	-Os
 
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \

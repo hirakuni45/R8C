@@ -9,15 +9,8 @@
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include <cstring>
-#include "common/vect.h"
-#include "system.hpp"
-#include "clock.hpp"
-#include "port.hpp"
-#include "intr.hpp"
-#include "common/intr_utils.hpp"
-#include "common/delay.hpp"
-#include "common/port_map.hpp"
+#include "common/renesas.hpp"
+
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
 #include "common/command.hpp"

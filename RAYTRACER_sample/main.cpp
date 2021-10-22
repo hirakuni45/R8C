@@ -26,6 +26,7 @@
 
 #include "common/command.hpp"
 
+#define NO_FLOAT_FORM
 #include "common/format.hpp"
 #include "common/input.hpp"
 
@@ -158,7 +159,7 @@ int main(int argc, char *argv[])
 
 	uart_.puts("Start R8C RAYTRACER sample\n");
 
-	doRaytrace(320, 240);
+	doRaytrace();
 
 	command_.set_prompt("# ");
 
