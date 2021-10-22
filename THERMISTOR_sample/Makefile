@@ -20,7 +20,7 @@ CSOURCES	=	common/vect.c \
 
 PSOURCES	=	main.cpp
 
-USER_LIBS	=	stdc++ m
+USER_LIBS	=	supc++ m
 
 LDSCRIPT	=	../M120AN/m120an.ld
 

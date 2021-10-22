@@ -4,7 +4,7 @@
 			P1_0: LED @n
 			P1_1: LED
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -23,6 +23,9 @@
 
 namespace {
 
+	typedef device::PORT<device::PORT1, device::bitpos::B0, false> LED0;
+	typedef device::PORT<device::PORT1, device::bitpos::B1, false> LED1;
+
 	volatile uint16_t trb_count_;
 
 	/// タイマー割り込みで実行する動作の定義
@@ -33,7 +36,8 @@ namespace {
 		}
 	};
 
-	device::trb_io<trb_intr_task, uint8_t> timer_b_;
+	typedef device::trb_io<trb_intr_task, uint8_t> TIMER_B;
+	TIMER_B	timer_b_;
 
 }
 
@@ -68,12 +72,12 @@ int main(int argc, char *argv[])
 		timer_b_.start_timer(freq, intr_level);
 	}
 
-	// ポート設定
+	// LED 設定
 	{
-		utils::PORT_MAP(utils::port_map::P10::PORT);
-		utils::PORT_MAP(utils::port_map::P11::PORT);
-		PD1.B0 = 1;
-		PD1.B1 = 1;
+		LED0::DIR = 1;
+		LED1::DIR = 1;
+		LED0::P = 0;
+		LED1::P = 0;
 	}
 
 	// タイマー・メイン
@@ -81,11 +85,11 @@ int main(int argc, char *argv[])
 	while(1) {
 		timer_b_.sync();
 		if(cnt < 20) {
-			P1.B0 = 0;
-			P1.B1 = 1;
+			LED0::P = 0;
+			LED1::P = 1;
 		} else {
-			P1.B0 = 1;
-			P1.B1 = 0;
+			LED0::P = 1;
+			LED1::P = 0;
 		}
 		++cnt;
 		if(cnt >= 60) cnt = 0;

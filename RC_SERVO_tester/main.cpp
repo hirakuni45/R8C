@@ -6,7 +6,7 @@
 			・PWM 出力： P1_3(12) @n
 			・インジケーター： P3_7(1) active-low
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -30,14 +30,17 @@
 namespace {
 
 #ifdef JR_TYPE_SERVO
-	static const uint16_t rcs_n_ =  3750;  // ニュートラル(JR)：  1500uS --> 3750
-	static const uint16_t rcs_d_ =  1500;  // 可動範囲(JR)：+-600uS --> +-1500
+	static const uint16_t RCS_N =  3750;  // ニュートラル(JR)：  1500uS --> 3750
+	static const uint16_t RCS_D =  1500;  // 可動範囲(JR)：+-600uS --> +-1500
 #endif
 
 #ifdef FUTABA_TYPE_SERVO
-	static const uint16_t rcs_n_ =  3800;  // ニュートラル(FUTABA)：  1520uS --> 3800
-	static const uint16_t rcs_d_ =  1500;  // 可動範囲(JR)：+-600uS --> +-1500
+	static const uint16_t RCS_N =  3800;  // ニュートラル(FUTABA)：  1520uS --> 3800
+	static const uint16_t RCS_D =  1500;  // 可動範囲(JR)：+-600uS --> +-1500
 #endif
+
+	// インジケーターＬＥＤ
+	typedef device::PORT<device::PORT3, device::bitpos::B7, false> LED;
 
 	class timer_intr {
 		static volatile uint8_t trc_sync_;
@@ -55,20 +58,20 @@ namespace {
 	};
 	volatile uint8_t timer_intr::trc_sync_ = 0;
 
-	typedef device::trc_io<timer_intr> trc_type;
-	trc_type timer_c_;
+	typedef device::trc_io<timer_intr> TRC_TYPE;
+	TRC_TYPE	timer_c_;
 
-	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
+	typedef utils::fifo<uint8_t, 16> BUFFER;
+	typedef device::uart_io<device::UART0, BUFFER, BUFFER> UART;
+	UART		uart_;
 
-	typedef device::adc_io<utils::null_task> adc;
-	adc adc_;
+	typedef device::adc_io<utils::null_task> ADC;
+	ADC			adc_;
 
 	uint16_t calc_pwm_(uint16_t adc_value)
 	{
-		auto v = (static_cast<uint32_t>(adc_value) * (rcs_d_ * 2)) >> 10;
-		return v - rcs_d_ + rcs_n_;
+		auto v = (static_cast<uint32_t>(adc_value) * (RCS_D * 2)) >> 10;
+		return v - RCS_D + RCS_N;
 	}
 }
 
@@ -138,7 +141,7 @@ int main(int argc, char *argv[])
 	// P10, P11 の A/D 変換
 	{
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.start(adc::cnv_type::CH1, adc::ch_grp::AN0_AN1, true);
+		adc_.start(ADC::cnv_type::CH1, ADC::ch_grp::AN0_AN1, true);
 	}
 
 	// ＰＷＭモード設定
@@ -147,14 +150,13 @@ int main(int argc, char *argv[])
 		bool pfl = 0;  // 0->1
 		uint8_t ir_level = 2;
 		// 2ms (50Hz)
-		timer_c_.start_pwm(50000, trc_type::divide::f8, pfl, ir_level);
-		timer_c_.set_pwm_c(rcs_n_);
+		timer_c_.start_pwm(50000, TRC_TYPE::divide::f8, pfl, ir_level);
+		timer_c_.set_pwm_c(RCS_N);
 	}
 
 	sci_puts("Start R8C RC-Servo monitor\n");
 
-	utils::PORT_MAP(utils::port_map::P37::PORT);
-	PD3.B7 = 1;
+	LED::DIR = 1;
 
 	uint8_t cnt = 0;
 	uint16_t ana = 0;
@@ -174,8 +176,8 @@ int main(int argc, char *argv[])
 		if(lim >= cmp) {
 			lim = 0;
 		}
-		if(lim < (cmp >> 1)) P3.B7 = 0;
-		else P3.B7 = 1;
+		if(lim < (cmp >> 1)) LED::P = 1;
+		else LED::P = 0;
 
 		++cnt;
 		if(cnt >= 50) {
