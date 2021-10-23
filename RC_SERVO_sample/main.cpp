@@ -2,17 +2,13 @@
 /*!	@file
 	@brief	R8C RC-Servo メイン
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include "system.hpp"
-#include "clock.hpp"
-#include "port.hpp"
-#include "common/delay.hpp"
-#include "common/intr_utils.hpp"
-#include "common/port_map.hpp"
+#include "common/renesas.hpp"
+
 #include "common/adc_io.hpp"
 #include "common/trc_io.hpp"
 #include "common/fifo.hpp"
@@ -50,15 +46,15 @@ namespace {
 	};
 	volatile uint8_t timer_intr::trc_sync_ = 0;
 
-	typedef device::trc_io<timer_intr> trc_type;
-	trc_type timer_c_;
+	typedef device::trc_io<timer_intr> TRC;
+	TRC		timer_c_;
 
-	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
+	typedef utils::fifo<uint8_t, 16> BUFFER;
+	typedef device::uart_io<device::UART0, BUFFER, BUFFER> UART;
+	UART	uart_;
 
-	typedef device::adc_io<utils::null_task> adc;
-	adc adc_;
+	typedef device::adc_io<utils::null_task> ADC;
+	ADC		adc_;
 
 	uint16_t calc_pwm_(uint16_t adc_value)
 	{
@@ -134,7 +130,7 @@ int main(int argc, char *argv[])
 	{
 		utils::PORT_MAP(utils::port_map::P10::AN0);
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
+		adc_.start(ADC::cnv_type::CH0_CH1, ADC::ch_grp::AN0_AN1, true);
 	}
 
 	// ＰＷＭモード設定
@@ -143,7 +139,7 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P13::TRCIOC);
 		bool pfl = 0;  // 0->1
 		uint8_t ir_level = 2;
-		timer_c_.start_pwm(50000, trc_type::divide::f8, pfl, ir_level);
+		timer_c_.start_pwm(50000, TRC::divide::f8, pfl, ir_level);
 		timer_c_.set_pwm_b(rcs_n_);
 		timer_c_.set_pwm_c(rcs_n_);
 	}
