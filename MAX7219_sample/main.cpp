@@ -5,21 +5,15 @@
 			P1_1: /CS @n
 			P1_2: CLK
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017, 2018 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include <cstdint>
+#include "common/renesas.hpp"
+
 #include <cstdlib>
-#include "common/vect.h"
-#include "system.hpp"
-#include "clock.hpp"
-#include "port.hpp"
-#include "intr.hpp"
-#include "common/intr_utils.hpp"
-#include "common/delay.hpp"
-#include "common/port_map.hpp"
+
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
 #include "common/format.hpp"

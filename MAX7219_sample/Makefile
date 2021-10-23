@@ -19,7 +19,6 @@ CSOURCES	=	common/vect.c \
 
 PSOURCES	=	main.cpp
 
-
 USER_LIBS	=	supc++
 
 LDSCRIPT	=	../M120AN/m120an.ld
@@ -28,10 +27,9 @@ USER_DEFS	=	F_CLK=20000000
 
 MCU_TARGET	=	-mcpu=r8c
 
-#INC_SYS		=	/usr/boost_1_53_0
 INC_SYS		=
 
-INC_APP		=	. ../ ../M120AN
+INC_APP		=	. ../
 
 OPTIMIZE	=	-Os
 
