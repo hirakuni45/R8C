@@ -2,15 +2,13 @@
 /*!	@file
 	@brief	R8C PWM メイン
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include "system.hpp"
-#include "clock.hpp"
-#include "port.hpp"
-#include "common/intr_utils.hpp"
+#include "common/renesas.hpp"
+
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
 #include "common/trb_io.hpp"
@@ -21,18 +19,18 @@
 
 namespace {
 
-	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
-	timer_b timer_b_;
+	typedef device::trb_io<utils::null_task, uint8_t> TIMER_B;
+	TIMER_B timer_b_;
 
-	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
+	typedef utils::fifo<uint8_t, 16> BUFFER;
+	typedef device::uart_io<device::UART0, BUFFER, BUFFER> UART;
+	UART	uart_;
 
-	typedef device::adc_io<utils::null_task> adc;
-	adc adc_;
+	typedef device::adc_io<utils::null_task> ADC;
+	ADC		adc_;
 
-	typedef device::trc_io<utils::null_task> timer_c;
-	timer_c timer_c_;
+	typedef device::trc_io<utils::null_task> TIMER_C;
+	TIMER_C	timer_c_;
 }
 
 extern "C" {
@@ -112,7 +110,7 @@ int main(int argc, char *argv[])
 	// ADC の設定（CH1のサイクルモード）
 	{
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.start(adc::cnv_type::CH1, adc::ch_grp::AN0_AN1, true);
+		adc_.start(ADC::cnv_type::CH1, ADC::ch_grp::AN0_AN1, true);
 	}
 
 	// ＰＷＭモード設定
