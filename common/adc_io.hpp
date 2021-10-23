@@ -75,7 +75,6 @@ namespace device {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		__attribute__ ((section (".text"))) 
 		adc_io() : level_(0), count_(0) { }
 
 

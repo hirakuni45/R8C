@@ -4,19 +4,12 @@
 			for ST7567 SPI @n
 			LCD: AQM1284A-RN (128x48) Akizuki
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include <cstring>
-#include "common/vect.h"
-#include "system.hpp"
-#include "clock.hpp"
-#include "intr.hpp"
-#include "port.hpp"
-#include "common/intr_utils.hpp"
-#include "common/delay.hpp"
+#include "common/renesas.hpp"
 
 // #include "bitmap/font32.h"
 
@@ -93,7 +86,6 @@ extern "C" {
 	}
 #endif
 }
-
 
 // __attribute__ ((section (".exttext")))
 int main(int argc, char *argv[])

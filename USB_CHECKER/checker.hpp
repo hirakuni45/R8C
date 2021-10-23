@@ -8,7 +8,8 @@
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include "common/port_map.hpp"
+#include "common/renesas.hpp"
+
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
 #include "common/format.hpp"
@@ -113,9 +114,41 @@ namespace app {
 		typedef chip::ST7565<SPI, LCD_SEL, LCD_A0, LCD_RES> LCD;
 		LCD 	lcd_;
 
+		class PLOT {
+		public:
+			typedef int16_t value_type;
+
+			static const int16_t WIDTH  = 128;
+			static const int16_t HEIGHT = 24;
+			static const int8_t PAGE_NUM = 2;
+
+		private:
+			uint8_t		fb_[WIDTH * HEIGHT / 8];
+
+		public:
+			void clear(uint8_t v = 0)
+			{
+				for(uint16_t i = 0; i < (WIDTH * HEIGHT / 8); ++i) {
+					fb_[i] = v;
+				}
+			} 
+
+			uint8_t* fb() { return fb_; }
+
+			void operator() (value_type x, value_type y, bool val)
+			{
+				if(x < 0 || x >= WIDTH) return;
+				if(y < 0 || y >= HEIGHT) return;
+
+				if(val) { fb_[(x >> 3) * y] |= 1 << (x & 7); }
+				else { fb_[(x >> 3) * y] &= ~(1 << (x & 7)); }
+			}
+		};
+
+
 		typedef graphics::font6x12 afont;
+		graphics::monograph<PLOT, afont> bitmap_;
 		graphics::kfont_null kfont_;
-		graphics::monograph<128, 24, afont> bitmap_;
 
 		uint8_t		loop_;
 		uint8_t		page_;
@@ -211,8 +244,8 @@ namespace app {
 			{
 				// contrast, reverse=yes, BIAS9=false(BIAS7), Voltage-Ratio: 3
 				lcd_.start(0x1C, true, false, 3);
-				bitmap_.flash(0);
-				bitmap_.enable_2x();
+				bitmap_.clear(0);
+///				bitmap_.enable_2x();
 			}
 
 #ifdef UART
@@ -416,7 +449,7 @@ namespace app {
 #endif
 
 			if(loop_ == 0) {
-				bitmap_.flash(0);
+				bitmap_.clear(0);
 			} else if(loop_ == 1) {
 				switch(task_) {
 				case TASK::MAIN:
@@ -447,7 +480,7 @@ namespace app {
 					break;
 				}
 			} else if(loop_ == 2) {
-				lcd_.copy(bitmap_.fb(), bitmap_.page_num(), page_ * 3);
+				lcd_.copy(bitmap_.at_plot().fb(), PLOT::PAGE_NUM, page_ * 3);
 				++page_;
 				page_ &= 1;
 			}

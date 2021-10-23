@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#include "integer.h"
+#include "pfatfs/src/integer.h"
 
 
 /* Status of Disk Functions */
