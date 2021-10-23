@@ -27,7 +27,7 @@ namespace graphics {
 			@brief	文字の横幅
 		*/
 		//-----------------------------------------------------------------//
-		static const int8_t width = 6;
+		static const int8_t WIDTH = 6;
 
 
 		//-----------------------------------------------------------------//
@@ -35,7 +35,7 @@ namespace graphics {
 			@brief	文字の高さ
 		*/
 		//-----------------------------------------------------------------//
-		static const int8_t height = 12;
+		static const int8_t HEIGHT = 12;
 
 
 		//-----------------------------------------------------------------//
@@ -45,7 +45,8 @@ namespace graphics {
 			@return 文字のビットマップ
 		*/
 		//-----------------------------------------------------------------//
-		static const uint8_t* get(uint8_t code) {
+		static const uint8_t* get(uint8_t code)
+		{
 			return &bitmap_[(static_cast<uint16_t>(code) << 3) + static_cast<uint16_t>(code)];
 		}
 
@@ -57,8 +58,9 @@ namespace graphics {
 			@return 文字幅
 		*/
 		//-----------------------------------------------------------------//
-		static int8_t get_width(uint8_t code) {
-			if(code < 32 || code >= 128) return width;
+		static int8_t get_width(uint8_t code)
+		{
+			if(code < 32 || code >= 128) return WIDTH;
 			else return width_tbl_[code - 32];
 		}
 
@@ -70,7 +72,8 @@ namespace graphics {
 			@return 文字幅
 		*/
 		//-----------------------------------------------------------------//
-		static int8_t get_kern(uint8_t code) {
+		static int8_t get_kern(uint8_t code)
+		{
 			switch(code) {
 			case '!':
 			case '|':

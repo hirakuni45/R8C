@@ -9,15 +9,8 @@
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include <cstring>
-#include "common/vect.h"
-#include "system.hpp"
-#include "clock.hpp"
-#include "port.hpp"
-#include "intr.hpp"
-#include "common/intr_utils.hpp"
-#include "common/delay.hpp"
-#include "common/port_map.hpp"
+#include "common/renesas.hpp"
+
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
 #include "common/command.hpp"
@@ -56,8 +49,26 @@ namespace {
 	typedef chip::ST7565<SPI, LCD_SEL, LCD_A0, LCD_RES> LCD;
 	LCD 	lcd_(spi_);
 
+	class PLOT {
+	public:
+		typedef int8_t value_type;
+
+		static const int8_t WIDTH  = 128;
+		static const int8_t HEIGHT = 64;
+
+		void clear(uint8_t v = 0)
+		{
+		} 
+
+		void operator() (int8_t x, int8_t y, bool val)
+		{
+			if(x < 0 || x >= WIDTH) return;
+			if(y < 0 || y >= HEIGHT) return;
+		}
+	};
+
 	graphics::kfont_null kfont_;
-	graphics::monograph<128, 32> bitmap_(kfont_);
+	graphics::monograph<PLOT> bitmap_(kfont_);
 }
 
 extern "C" {
@@ -179,7 +190,7 @@ int main(int argc, char *argv[])
 	uint8_t loop = 20;
 	while(1) {
 		timer_b_.sync();
-		lcd_.copy(bitmap_.fb(), bitmap_.page_num());
+///		lcd_.copy(bitmap_.fb(), bitmap_.page_num());
 
 		if(loop >= 20) {
 			loop = 0;

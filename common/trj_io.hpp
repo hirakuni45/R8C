@@ -9,9 +9,9 @@
 */
 //=====================================================================//
 #include "common/vect.h"
-#include "system.hpp"
-#include "intr.hpp"
-#include "timer_rj.hpp"
+#include "M120AN/system.hpp"
+#include "M120AN/intr.hpp"
+#include "M120AN/timer_rj.hpp"
 
 /// F_CLK はタイマー周期計算で必要で、設定が無いとエラーにします。
 #ifndef F_CLK

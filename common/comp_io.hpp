@@ -9,9 +9,9 @@
 */
 //=====================================================================//
 #include "common/vect.h"
-#include "system.hpp"
-#include "intr.hpp"
-#include "comp.hpp"
+#include "M120AN/system.hpp"
+#include "M120AN/intr.hpp"
+#include "M120AN/comp.hpp"
 
 namespace device {
 

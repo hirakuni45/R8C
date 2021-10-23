@@ -9,9 +9,9 @@
 */
 //=====================================================================//
 #include "common/vect.h"
-#include "system.hpp"
-#include "intr.hpp"
-#include "uart.hpp"
+#include "M120AN/system.hpp"
+#include "M120AN/intr.hpp"
+#include "M120AN/uart.hpp"
 
 /// F_CLK はボーレートパラメーター計算で必要で、設定が無いとエラーにします。
 #ifndef F_CLK
@@ -22,6 +22,29 @@ namespace device {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
+		@brief  UART 制御設定
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	class uart_base {
+	public:
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  UART 通信プロトコル設定
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class PROTOCOL : uint8_t {
+			D8_N_1S,	///< 8 Bits, No-Parity, 1 Stop bit
+			D8_E_1S,	///< 8 Bits, Even,      1 Stop bit
+			D8_O_1S,	///< 8 Bits, Odd,       1 Stop bit
+			D8_N_2S,	///< 8 Bits, No-Parity, 2 Stop bit
+			D8_E_2S,	///< 8 Bits, Even,      2 Stop bit
+			D8_O_2S,	///< 8 Bits, Odd,       2 Stop bit
+		};
+	};
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
 		@brief  UART I/O 制御クラス
 		@param[in]	UART	UARTx 定義クラス
 		@param[in]	SEND	送信バッファサイズ（最低８バイト）
@@ -29,7 +52,7 @@ namespace device {
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <class UART, class SEND, class RECV>
-	class uart_io {
+	class uart_io : public uart_base {
 
 		static SEND	send_;
 		static RECV	recv_;
@@ -124,11 +147,13 @@ private:
 		/*!
 			@brief  ボーレートを設定して、UART を有効にする
 			@param[in]	baud	ボーレート
-			@param[in]	ir_level	割り込みレベル、「０」の場合ポーリング
+			@param[in]	ilvl	割り込みレベル、「０」の場合ポーリング
+			@param[in]	prot	通信プロトコル
 			@return エラーなら「false」
 		*/
 		//-----------------------------------------------------------------//
-		bool start(uint32_t baud, uint8_t ir_level) {
+		bool start(uint32_t baud, uint8_t ilvl, PROTOCOL prot = PROTOCOL::D8_N_1S)
+		{
 			MSTCR.MSTUART = 0;  // モジュールスタンバイ解除
 
 			UART::UC1 = 0x00;
@@ -145,14 +170,45 @@ private:
 			if(brr) --brr;
 			UART::UBRG = static_cast<uint8_t>(brr);
 
-			// 8 ビット、１ストップ、パリティ無し
-			UART::UMR = UART::UMR.SMD.b(0b101);
+			// 8 ビットデータ固定
+			bool stps = 0;
+			bool pry = 0;
+			bool prye = 0;
+			switch(prot) {
+			case PROTOCOL::D8_N_1S:
+				break;
+			case PROTOCOL::D8_E_1S:
+				stps = 0;
+				pry = 1;
+				prye = 1;
+				break;
+			case PROTOCOL::D8_O_1S:
+				stps = 0;
+				pry = 0;
+				prye = 1;
+				break;
+			case PROTOCOL::D8_N_2S:
+				stps = 1;
+				prye = 0;
+				break;
+			case PROTOCOL::D8_E_2S:
+				stps = 1;
+				pry = 1;
+				prye = 1;
+				break;
+			case PROTOCOL::D8_O_2S:
+				stps = 1;
+				pry = 0;
+				prye = 1;
+				break;
+			}
+			UART::UMR = UART::UMR.SMD.b(0b101) | UART::UMR.STPS.b(stps) | UART::UMR.PRY.b(pry) | UART::UMR.PRYE.b(prye);
 
 			UART::UC1 = UART::UC1.TE.b() | UART::UC1.RE.b();
 
-			ILVL8.B45 = ir_level;
-			ILVL9.B01 = ir_level;
-			if(ir_level != 0) {
+			ILVL8.B45 = ilvl;
+			ILVL9.B01 = ilvl;
+			if(ilvl != 0) {
 				UART::UIR = UART::UIR.URIE.b() | UART::UIR.UTIE.b();
 			} else {
 				UART::UIR = UART::UIR.URIE.b(false) | UART::UIR.UTIE.b(false);

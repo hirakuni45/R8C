@@ -2,7 +2,7 @@
 #   @file
 #   @brief  R8C Makefile
 #   @author 平松邦仁 (hira@rvf-rc45.net)
-#	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+#	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 #				Released under the MIT license @n
 #				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 #=======================================================================
@@ -20,7 +20,7 @@ CSOURCES	=	common/vect.c \
 
 PSOURCES	=	main.cpp
 
-USER_LIBS	=	stdc++
+USER_LIBS	=	supc++
 
 LDSCRIPT	=	../M120AN/m120an.ld
 
@@ -28,10 +28,9 @@ USER_DEFS	=	F_CLK=20000000
 
 MCU_TARGET	=	-mcpu=r8c
 
-#INC_SYS		=	/usr/boost_1_53_0
 INC_SYS		=
 
-INC_APP		=	. ../ ../M120AN
+INC_APP		=	. ../
 
 OPTIMIZE	=	-Os
 
@@ -60,6 +59,7 @@ AR			=	m32c-elf-ar
 LD			=	m32c-elf-ld
 OBJCOPY		=	m32c-elf-objcopy
 OBJDUMP		=	m32c-elf-objdump
+SIZE		=	m32c-elf-size
 
 # AFLAGS        = -Wa,-adhlns=$(<:.s=.lst),-gstabs
 # AFLAGS        =	-Wa,-adhlns=$(<:.s=.lst)
@@ -94,6 +94,7 @@ all: $(BUILD) $(TARGET).elf text
 
 $(TARGET).elf: $(OBJECTS) $(LDSCRIPT) Makefile
 	$(CC) $(LDFLAGS) $(LIBINCS) -o $@ $(OBJECTS) $(LIBS)
+	$(SIZE) $@
 
 $(BUILD)/%.o: %.s
 	mkdir -p $(dir $@); \

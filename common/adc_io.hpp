@@ -9,9 +9,9 @@
 */
 //=====================================================================//
 #include "common/vect.h"
-#include "adc.hpp"
-#include "intr.hpp"
-#include "system.hpp"
+#include "M120AN/adc.hpp"
+#include "M120AN/intr.hpp"
+#include "M120AN/system.hpp"
 
 namespace device {
 
@@ -75,7 +75,6 @@ namespace device {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		__attribute__ ((section (".text"))) 
 		adc_io() : level_(0), count_(0) { }
 
 

@@ -2,11 +2,11 @@
 #   @file
 #   @brief  R8C Makefile
 #   @author 平松邦仁 (hira@rvf-rc45.net)
-#	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
+#	@copyright	Copyright (C) 2021 Kunihito Hiramatsu @n
 #				Released under the MIT license @n
 #				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 #=======================================================================
-TARGET		=	adc_sample
+TARGET		=	tetris
 
 BUILD		=	release
 
@@ -15,10 +15,11 @@ VPATH		=	../
 ASOURCES	=	common/start.s
 
 CSOURCES	=	common/vect.c \
-				common/init.c \
-				common/syscalls.c
+				common/init.c
 
-PSOURCES	=	main.cpp
+PSOURCES	=	main.cpp \
+				common/font6x12.cpp
+
 
 USER_LIBS	=	supc++
 
@@ -28,16 +29,16 @@ USER_DEFS	=	F_CLK=20000000
 
 MCU_TARGET	=	-mcpu=r8c
 
+#INC_SYS		=	/usr/boost_1_53_0
 INC_SYS		=
 
-INC_APP		=	. ../
+INC_APP		=	. ../ ../M120AN
 
 OPTIMIZE	=	-Os
 
 CP_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
-				-fno-exceptions \
-				-fno-rtti
+				-fno-exceptions
 
 CC_OPT		=	-Wall -Werror \
 				-Wno-unused-variable \
@@ -166,3 +167,5 @@ verify:
 	r8c_prog -d R5F2M120 --progress -v $(TARGET).mot
 
 -include $(DEPENDS)
+
+

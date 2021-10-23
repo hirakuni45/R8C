@@ -9,9 +9,9 @@
 */
 //=====================================================================//
 #include "common/vect.h"
-#include "system.hpp"
-#include "intr.hpp"
-#include "timer_rb.hpp"
+#include "M120AN/system.hpp"
+#include "M120AN/intr.hpp"
+#include "M120AN/timer_rb.hpp"
 
 /// F_CLK はタイマー周期計算で必要で、設定が無いとエラーにします。
 #ifndef F_CLK
@@ -62,7 +62,7 @@ namespace device {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		__attribute__ ((section (".text"))) 
+///		__attribute__ ((section (".text"))) 
 		trb_io() : limit_(0) { }
 
 

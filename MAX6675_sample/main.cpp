@@ -2,17 +2,13 @@
 /*!	@file
 	@brief	R8C MAX6675・メイン
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/RX/blob/master/LICENSE
 */
 //=====================================================================//
-#include "system.hpp"
-#include "clock.hpp"
-#include "port.hpp"
-#include "common/delay.hpp"
-#include "common/intr_utils.hpp"
-#include "common/port_map.hpp"
+#include "common/renesas.hpp"
+
 #include "common/format.hpp"
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"

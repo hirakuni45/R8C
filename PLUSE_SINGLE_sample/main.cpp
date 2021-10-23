@@ -4,16 +4,13 @@
 			P17(13) からパルス出力。@n
 			コンソールから、任意の周波数を設定（有限な設定範囲）
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/RX/blob/master/LICENSE
 */
 //=====================================================================//
-#include "system.hpp"
-#include "clock.hpp"
-#include "common/delay.hpp"
-#include "common/port_map.hpp"
-#include "common/intr_utils.hpp"
+#include "common/renesas.hpp"
+
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
 #include "common/trb_io.hpp"
@@ -22,12 +19,12 @@
 
 namespace {
 
-	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
+	typedef utils::fifo<uint8_t, 16> BUFFER;
+	typedef device::uart_io<device::UART0, BUFFER, BUFFER> UART;
+	UART	uart_;
 
-	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
-	timer_b timer_b_;
+	typedef device::trb_io<utils::null_task, uint8_t> TIMER_B;
+	TIMER_B	timer_b_;
 
 	// P1_B0 (20)
 	typedef device::PORT<device::PORT1, device::bitpos::B0> OUT;

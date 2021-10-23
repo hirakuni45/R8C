@@ -9,12 +9,7 @@
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include "system.hpp"
-#include "clock.hpp"
-#include "port.hpp"
-#include "common/vect.h"
-#include "common/delay.hpp"
-#include "common/port_map.hpp"
+#include "common/renesas.hpp"
 
 namespace {
 

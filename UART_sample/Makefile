@@ -20,7 +20,6 @@ CSOURCES	=	common/vect.c \
 
 PSOURCES	=	main.cpp
 
-
 USER_LIBS	=	supc++
 
 LDSCRIPT	=	../M120AN/m120an.ld
@@ -31,7 +30,7 @@ MCU_TARGET	=	-mcpu=r8c
 
 INC_SYS		=
 
-INC_APP		=	. ../ ../M120AN
+INC_APP		=	. ../
 
 OPTIMIZE	=	-Os
 

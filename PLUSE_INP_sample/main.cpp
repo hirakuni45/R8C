@@ -2,16 +2,13 @@
 /*!	@file
 	@brief	R8C タイマーＪ、パルス計測サンプル
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include "system.hpp"
-#include "clock.hpp"
-#include "common/delay.hpp"
-#include "common/port_map.hpp"
-#include "common/intr_utils.hpp"
+#include "common/renesas.hpp"
+
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
 #include "common/trb_io.hpp"
@@ -20,15 +17,15 @@
 
 namespace {
 
-	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
+	typedef utils::fifo<uint8_t, 16> BUFFER;
+	typedef device::uart_io<device::UART0, BUFFER, BUFFER> UART;
+	UART	uart_;
 
-	typedef device::trj_io<utils::null_task> timer_j;
-	timer_j timer_j_;
+	typedef device::trj_io<utils::null_task> TIMER_J;
+	TIMER_J	timer_j_;
 
-	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
-	timer_b timer_b_;
+	typedef device::trb_io<utils::null_task, uint8_t> TIMER_B;
+	TIMER_B timer_b_;
 
 }
 
@@ -107,13 +104,13 @@ int main(int argc, char *argv[])
 	}
 
 	// TRJ のパルス周期測定
-	timer_j::source srcclk = timer_j::source::f1;
+	auto srcclk = TIMER_J::source::f1;
 	uint32_t master = F_CLK;
 	{
 		utils::PORT_MAP(utils::port_map::P17::TRJIO);
 		device::PINSR.TRJIOSEL = 0;	// TRJIO を選択
 		// uint8_t ir_level = 2;
-		timer_j_.pluse_inp(timer_j::measurement::freq, srcclk);
+		timer_j_.pluse_inp(TIMER_J::measurement::freq, srcclk);
 	}
 
 	sci_puts("Start R8C PLUSE input sample\n");

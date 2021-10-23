@@ -17,15 +17,15 @@ namespace device {
 		@brief  ウォッチドッグタイマ機能レジスタ RISR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	struct risr_t : public io8<0x0030> {
-		typedef io8<0x0030> io_;
+	struct risr_t : public rw8_t<0x0030> {
+		typedef rw8_t<0x0030> io_;
 		using io_::operator =;
 		using io_::operator ();
 		using io_::operator |=;
 		using io_::operator &=;
 
-		bit_t<io_, 6> UFIF;
-		bit_t<io_, 7> RIS;
+		bit_rw_t<io_, bitpos::B6> UFIF;
+		bit_rw_t<io_, bitpos::B7> RIS;
 	};
 	static risr_t RISR;
 
@@ -35,7 +35,7 @@ namespace device {
 		@brief  ウォッチドッグタイマリセットレジスタ WDTR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	static io8_wo<0x0031> WDTR;
+	static wo8_t<0x0031> WDTR;
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -43,7 +43,7 @@ namespace device {
 		@brief  ウォッチドッグタイマスタートレジスタ WDTS
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	static io8_wo<0x0032> WDTS;
+	static wo8_t<0x0032> WDTS;
 
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -51,15 +51,15 @@ namespace device {
 		@brief  ウォッチドッグタイマ制御レジスタ WDTC
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	struct wdtc_t : public io8<0x0033> {
-		typedef io8<0x0033> io_;
+	struct wdtc_t : public rw8_t<0x0033> {
+		typedef rw8_t<0x0033> io_;
 		using io_::operator =;
 		using io_::operator ();
 		using io_::operator |=;
 		using io_::operator &=;
 
-		bit_t<io_, 6> WDTC6;
-		bit_t<io_, 7> WDTC7;
+		bit_rw_t<io_, bitpos::B6> WDTC6;
+		bit_rw_t<io_, bitpos::B7> WDTC7;
 	};
 	static wdtc_t WDTC;
 
@@ -69,14 +69,14 @@ namespace device {
 		@brief  カウントソース保護モードレジスタ CSPR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	struct cspr_t : public io8<0x0034> {
-		typedef io8<0x0034> io_;
+	struct cspr_t : public rw8_t<0x0034> {
+		typedef rw8_t<0x0034> io_;
 		using io_::operator =;
 		using io_::operator ();
 		using io_::operator |=;
 		using io_::operator &=;
 
-		bit_t<io_, 7> CSPRO;
+		bit_rw_t<io_, bitpos::B7> CSPRO;
 	};
 	static cspr_t CSPR;
 
@@ -86,15 +86,15 @@ namespace device {
 		@brief  周期タイマ割り込み制御レジスタ WDTIR
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	struct wdtir_t : public io8<0x0035> {
-		typedef io8<0x0035> io_;
+	struct wdtir_t : public rw8_t<0x0035> {
+		typedef rw8_t<0x0035> io_;
 		using io_::operator =;
 		using io_::operator ();
 		using io_::operator |=;
 		using io_::operator &=;
 
-		bit_t<io_, 6> WDTIF;
-		bit_t<io_, 7> WDTIE;
+		bit_rw_t<io_, bitpos::B6> WDTIF;
+		bit_rw_t<io_, bitpos::B7> WDTIE;
 	};
 	static wdtir_t WDTIR;
 

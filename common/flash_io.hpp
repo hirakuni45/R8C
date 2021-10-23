@@ -9,7 +9,7 @@
 */
 //=====================================================================//
 #include "common/vect.h"
-#include "flash.hpp"
+#include "M120AN/flash.hpp"
 
 namespace device {
 

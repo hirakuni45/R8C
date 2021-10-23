@@ -19,8 +19,8 @@ namespace graphics {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class afont_null {
 	public:
-		static const int8_t width = 0;
-		static const int8_t height = 0;
+		static const int8_t WIDTH = 0;
+		static const int8_t HEIGHT = 0;
 		static const uint8_t* get(uint8_t code) { return nullptr; }
 		static const int8_t get_width(uint8_t code) { return 0; }
 	};
@@ -33,8 +33,8 @@ namespace graphics {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	class kfont_null {
 	public:
-		static const int8_t width = 0;
-		static const int8_t height = 0;
+		static const int8_t WIDTH = 0;
+		static const int8_t HEIGHT = 0;
 		const uint8_t* get(uint16_t code) { return nullptr; }
 	};
 
@@ -42,18 +42,17 @@ namespace graphics {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
 		@brief	ビットマップ描画クラス
-		@param[in]	WIDTH	横幅
-		@param[in]	HEIGHT	高さ
+		@param[in]	PLOT	プロットクラス
 		@param[in]	AFONT	ASCII フォント・クラス
 		@param[in]	KFONT	漢字フォントクラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <uint16_t WIDTH, uint16_t HEIGHT, class AFONT = afont_null, class KFONT = kfont_null>
+	template <class PLOT, class AFONT = afont_null, class KFONT = kfont_null>
 	class monograph {
 
-		KFONT& kfont_;
+		PLOT		plot_;
 
-		uint8_t	fb_[WIDTH * HEIGHT / 8];
+		KFONT&		kfont_;
 
 		uint16_t	code_;
 		uint8_t		cnt_;
@@ -64,9 +63,19 @@ namespace graphics {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	コンストラクター
+			@param[in]	kf	KFONT
 		*/
 		//-----------------------------------------------------------------//
-		monograph(KFONT& kf) : kfont_(kf), code_(0), cnt_(0), x2_(false) { }
+		monograph(KFONT& kf) : plot_(), kfont_(kf), code_(0), cnt_(0), x2_(false) { }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	PLOT クラスへの参照
+			@return PLOT クラス
+		*/
+		//-----------------------------------------------------------------//
+		PLOT& at_plot() { return plot_; }
 
 
 		//-----------------------------------------------------------------//
@@ -75,7 +84,7 @@ namespace graphics {
 			@return 横幅
 		*/
 		//-----------------------------------------------------------------//
-		int16_t get_width() const { return WIDTH; }
+		auto get_width() const { return PLOT::WIDTH; }
 
 
 		//-----------------------------------------------------------------//
@@ -84,7 +93,7 @@ namespace graphics {
 			@return 高さ
 		*/
 		//-----------------------------------------------------------------//
-		int16_t get_height() const { return HEIGHT; }
+		auto get_height() const { return PLOT::HEIGHT; }
 
 
 		//-----------------------------------------------------------------//
@@ -93,7 +102,7 @@ namespace graphics {
 			@return フォントの幅
 		*/
 		//-----------------------------------------------------------------//
-		int8_t get_afont_width() const { return AFONT::width; }
+		int8_t get_afont_width() const { return AFONT::WIDTH; }
 
 
 		//-----------------------------------------------------------------//
@@ -102,7 +111,7 @@ namespace graphics {
 			@return フォントの高さ
 		*/
 		//-----------------------------------------------------------------//
-		int8_t get_afont_height() const { return AFONT::height; }
+		int8_t get_afont_height() const { return AFONT::HEIGHT; }
 
 
 		//-----------------------------------------------------------------//
@@ -111,7 +120,7 @@ namespace graphics {
 			@return フォントの幅
 		*/
 		//-----------------------------------------------------------------//
-		int8_t get_kfont_width() const { return KFONT::width; }
+		int8_t get_kfont_width() const { return KFONT::WIDTH; }
 
 
 		//-----------------------------------------------------------------//
@@ -120,86 +129,20 @@ namespace graphics {
 			@return フォントの高さ
 		*/
 		//-----------------------------------------------------------------//
-		int8_t get_kfont_height() const { return KFONT::height; }
+		int8_t get_kfont_height() const { return KFONT::HEIGHT; }
 
 
 		//-----------------------------------------------------------------//
 		/*!
-			@brief	フレームバッファのアドレスを返す
-			@return フレームバッファ・アドレス
+			@brief	点を描画
+			@param[in]	x	位置 X
+			@param[in]	y	位置 Y
+			@param[in]	c	カラー
 		*/
 		//-----------------------------------------------------------------//
-		const uint8_t* fb() const { return fb_; }
-
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief	フレームバッファのページ数を取得
-			@return フレームバッファのページ数
-		*/
-		//-----------------------------------------------------------------//
-		uint8_t page_num() const { return HEIGHT / 8; }
-
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief	２Ｘ の設定
-		*/
-		//-----------------------------------------------------------------//
-		void enable_2x(bool f = true) { x2_ = f; }
-
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief	点を描画する
-			@param[in]	x	開始点Ｘ軸を指定
-			@param[in]	y	開始点Ｙ軸を指定
-		*/
-		//-----------------------------------------------------------------//
-		void point_set(int16_t x, int16_t y) {
-			if(static_cast<uint16_t>(x) >= WIDTH) return;
-			if(static_cast<uint16_t>(y) >= HEIGHT) return;
-#ifdef LED16X16
-			fb_[((x & 8) >> 3) + (y << 1)] |= (1 << (x & 7));
-#else
-			fb_[((y & 0xf8) << 4) + x] |= (1 << (y & 7));
-#endif
-		}
-
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief	点を消去する
-			@param[in]	x	開始点Ｘ軸を指定
-			@param[in]	y	開始点Ｙ軸を指定
-		*/
-		//-----------------------------------------------------------------//
-		void point_reset(int16_t x, int16_t y) {
-			if(static_cast<uint16_t>(x) >= WIDTH) return;
-			if(static_cast<uint16_t>(y) >= HEIGHT) return;
-#ifdef LED16X16
-			fb_[((x & 8) >> 3) + (y << 1)] &= ~(1 << (x & 7));
-#else
-			fb_[((y & 0xf8) << 4) + x] &= ~(1 << (y & 7));
-#endif
-		}
-
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief	点を反転する
-			@param[in]	x	開始点Ｘ軸を指定
-			@param[in]	y	開始点Ｙ軸を指定
-		*/
-		//-----------------------------------------------------------------//
-		void point_reverse(int16_t x, int16_t y) {
-			if(static_cast<uint16_t>(x) >= WIDTH) return;
-			if(static_cast<uint16_t>(y) >= HEIGHT) return;
-#ifdef LED16X16
-			fb_[((x & 8) >> 3) + (y << 1)] ^= (1 << (x & 7));
-#else
-			fb_[((y & 0xf8) << 4) + x] ^= (1 << (y & 7));
-#endif
+		void plot(typename PLOT::value_type x, typename PLOT::value_type y, bool c)
+		{
+			plot_(x, y, c);
 		}
 
 
@@ -213,23 +156,17 @@ namespace graphics {
 			@param[in]	c	カラー
 		*/
 		//-----------------------------------------------------------------//
-		void fill(int16_t x, int16_t y, int16_t w, int16_t h, bool c) {
-			if(c) {
-				for(int16_t i = y; i < (y + h); ++i) {
-					for(int16_t j = x; j < (x + w); ++j) {
-						point_set(j, i);
-					}
-				}
-			} else {
-				for(int16_t i = y; i < (y + h); ++i) {
-					for(int16_t j = x; j < (x + w); ++j) {
-						point_reset(j, i);
-					}
+		void fill(typename PLOT::value_type x, typename PLOT::value_type y, typename PLOT::value_type w, typename PLOT::value_type h, bool c)
+		{
+			for(typename PLOT::value_type yy = y; yy < (y + h); ++yy) {
+				for(typename PLOT::value_type xx = x; xx < (x + w); ++xx) {
+					plot_(xx, yy, c);
 				}
 			}
 		}
 
 
+#if 0
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	領域を反転
@@ -239,26 +176,15 @@ namespace graphics {
 			@param[in]	h	高さ
 		*/
 		//-----------------------------------------------------------------//
-		void reverse(int16_t x, int16_t y, int16_t w, int16_t h) {
+		void reverse(int16_t x, int16_t y, int16_t w, int16_t h)
+		{
 			for(int16_t i = y; i < (y + h); ++i) {
 				for(int16_t j = x; j < (x + w); ++j) {
 					point_reverse(j, i);
 				}
 			}
 		}
-
-
-		//-----------------------------------------------------------------//
-		/*!
-			@brief	全画面クリアをする（高速）
-			@param[in]	c	クリアカラー
-		*/
-		//-----------------------------------------------------------------//
-		void flash(uint8_t c) {
-			for(uint16_t i = 0; i < (WIDTH * HEIGHT / 8); ++i) {
-				fb_[i] = c;
-			}
-		}
+#endif
 
 
 		//-----------------------------------------------------------------//
@@ -267,8 +193,9 @@ namespace graphics {
 			@param[in]	c	クリアカラー
 		*/
 		//-----------------------------------------------------------------//
-		void clear(bool c) {
-			fill(0, 0, WIDTH, HEIGHT, c);
+		void clear(bool c = 0)
+		{
+			plot_.clear(c ? 0xff : 0x00);
 		}
 
 
@@ -282,20 +209,19 @@ namespace graphics {
 			@param[in]	c	描画色
 		*/
 		//-----------------------------------------------------------------//
-		void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2, bool c)
+		void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2, bool c) noexcept
 		{
-			uint16_t dx;
+			int16_t dx;
 			int8_t sx;
 			if(x2 >= x1) { dx = x2 - x1; sx = 1; } else { dx = x1 - x2; sx = -1; }
-			uint16_t dy;
+			int16_t dy;
 			int8_t sy;
 			if(y2 >= y1) { dy = y2 - y1; sy = 1; } else { dy = y1 - y2; sy = -1; }
 
 			if(dx > dy) {
-				uint16_t m = dy >> 1;
-				for(uint16_t i = 0; i <= dx; i++) {
-					if(c) point_set(x1, y1);
-					else point_reset(x1, y1);
+				auto m = dy >> 1;
+				for(int16_t i = 0; i <= dx; i++) {
+					plot_(x1, y1, c);
 					m += dy;
 					if(m >= dx) {
 						m -= dx;
@@ -304,10 +230,9 @@ namespace graphics {
 					x1 += sx;
 				}
 			} else {
-				uint16_t m = dx >> 1;
-				for(uint16_t i = 0; i <= dy; i++) {
-					if(c) point_set(x1, y1);
-					else point_reset(x1, y1);
+				auto m = dx >> 1;
+				for(int16_t i = 0; i <= dy; i++) {
+					plot_(x1, y1, c);
 					m += dx;
 					if(m >= dy) {
 						m -= dy;
@@ -329,24 +254,15 @@ namespace graphics {
 			@param[in]	c	描画色
 		*/
 		//-----------------------------------------------------------------//
-		void frame(int16_t x, int16_t y, int16_t w, int16_t h, bool c) {
+		void frame(int16_t x, int16_t y, int16_t w, int16_t h, bool c) noexcept
+		{
 			for(int16_t i = 0; i < w; ++i) {
-				if(c) {
-					point_set(x + i, y);
-					point_set(x + i, y + h - 1);
-				} else {
-					point_reset(x + i, y);
-					point_reset(x + i, y + h - 1);
-				}
+				plot_(x + i, y, c);
+				plot_(x + i, y + h - 1, c);
 			}
 			for(int16_t i = 0; i < h; ++i) {
-				if(c) {
-					point_set(x, y + i);
-					point_set(x + w - 1, y + i);
-				} else {
-					point_reset(x, y + i);
-					point_reset(x + w - 1, y + i);
-				}
+				plot_(x, y + i, c);
+				plot_(x + w - 1, y + i, c);
 			}
 		}
 
@@ -361,7 +277,7 @@ namespace graphics {
 			@param[in]	h	描画ソースの高さ
 		*/
 		//-----------------------------------------------------------------//
-		void draw_image(int16_t x, int16_t y, const void* img, uint8_t w, uint8_t h)
+		void draw_image(typename PLOT::value_type x, typename PLOT::value_type y, const void* img, uint8_t w, uint8_t h)
 		{
 			if(img == nullptr) return;
 
@@ -371,7 +287,9 @@ namespace graphics {
 			for(uint8_t i = 0; i < h; ++i) {
 				int16_t xx = x;
 				for(uint8_t j = 0; j < w; ++j) {
-					if(c & k) point_set(xx, y);
+					if(c & k) {
+						plot_(xx, y, 1);
+					}
 					k <<= 1;
 					if(k == 0) {
 						k = 1;
@@ -384,6 +302,7 @@ namespace graphics {
 		}
 
 
+#if 0
 		//-----------------------------------------------------------------//
 		/*!
 			@brief	ビットマップイメージを描画する
@@ -421,6 +340,7 @@ namespace graphics {
 				yy += 2;
 			}
 		}
+#endif
 
 
 		//-----------------------------------------------------------------//
@@ -472,29 +392,29 @@ namespace graphics {
 		//-----------------------------------------------------------------//
 		void draw_font_utf16(int16_t x, int16_t y, uint16_t code)
 		{
-			if(y <= -AFONT::height || y >= static_cast<int16_t>(HEIGHT)) {
+			if(y <= -AFONT::HEIGHT || y >= static_cast<int16_t>(PLOT::HEIGHT)) {
 				return;
 			}
 			if(code < 0x80) {
-				if(x <= -AFONT::width || x >= static_cast<int16_t>(WIDTH)) {
+				if(x <= -AFONT::WIDTH || x >= static_cast<int16_t>(PLOT::WIDTH)) {
 					return;
 				}
-				if(x2_) {
-					draw_image2x(x, y, AFONT::get(code), AFONT::width, AFONT::height);
-				} else {
-					draw_image(x, y, AFONT::get(code), AFONT::width, AFONT::height);
-				}
+///				if(x2_) {
+///					draw_image2x(x, y, AFONT::get(code), AFONT::WIDTH, AFONT::HEIGHT);
+///				} else {
+					draw_image(x, y, AFONT::get(code), AFONT::WIDTH, AFONT::HEIGHT);
+///				}
 			} else {
-				if(x <= -KFONT::width || x >= static_cast<int16_t>(WIDTH)) {
+				if(x <= -KFONT::WIDTH || x >= static_cast<int16_t>(PLOT::WIDTH)) {
 					return;
 				}
 				auto p = kfont_.get(code);
 				if(p != nullptr) {
-					draw_image(x, y, p, KFONT::width, KFONT::height);
+					draw_image(x, y, p, KFONT::WIDTH, KFONT::HEIGHT);
 				} else {
-					draw_image(x, y, AFONT::get(0x12), AFONT::width, AFONT::height);
-					x += AFONT::width;
-					draw_image(x, y, AFONT::get(0x13), AFONT::width, AFONT::height);
+					draw_image(x, y, AFONT::get(0x12), AFONT::WIDTH, AFONT::HEIGHT);
+					x += AFONT::WIDTH;
+					draw_image(x, y, AFONT::get(0x13), AFONT::WIDTH, AFONT::HEIGHT);
 				}
 			}
 		}
@@ -523,8 +443,8 @@ namespace graphics {
 					x += AFONT::get_width(c);
 					if(x2_) x += AFONT::get_width(c);
 				} else {
-					x += AFONT::width;
-					if(x2_) x += AFONT::width;
+					x += AFONT::WIDTH;
+					if(x2_) x += AFONT::WIDTH;
 				}
 				code_ = 0;
 				return x;
@@ -549,7 +469,7 @@ namespace graphics {
 			}
 			if(cnt_ == 0 && code_ != 0) {
 				draw_font_utf16(x, y, code_);
-				x += KFONT::width;
+				x += KFONT::WIDTH;
 				code_ = 0;
 			}
 			return x;
@@ -616,14 +536,14 @@ namespace graphics {
 				for(uint8_t i = 0; i < w; ++i) {
 					if(i < l) {
 						if((i ^ j) & 1) {
-							point_set(x + i, y + j);
+							plot_(x + i, y + j, 1);
 						} else {
-							point_reset(x + i, y + j);
+							plot_(x + i, y + j, 0);
 						}
 					} else if(i == l && i != 0) {
-						point_set(x + i, y + j);
+						plot_(x + i, y + j, 1);
 					} else {
-						point_reset(x + i, y + j);
+						plot_(x + i, y + j, 0);
 					}
 				}
 			}

@@ -2,7 +2,7 @@
 #   @file
 #   @brief  R8C Makefile
 #   @author 平松邦仁 (hira@rvf-rc45.net)
-#	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+#	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 #				Released under the MIT license @n
 #				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 #=======================================================================
@@ -30,7 +30,7 @@ MCU_TARGET	=	-mcpu=r8c
 
 INC_SYS		=
 
-INC_APP		=	. ../ ../M120AN
+INC_APP		=	. ../
 
 OPTIMIZE	=	-Os
 

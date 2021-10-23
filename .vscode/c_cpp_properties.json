@@ -4,13 +4,18 @@
             "name": "Win32",
             "includePath": [
                 "C:/msys64/usr/local/m32c-elf/m32c-elf/include",
-                "D:/Git/R8C/M120AN",
+                "C:/msys64/usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/include-fixed",
+                "C:/msys64/usr/local/m32c-elf/lib/gcc/m32c-elf/4.9.4/include",
+                "C:/msys64/usr/local/m32c-elf/m32c-elf/include/c++/4.9.4/backward",
+                "C:/msys64/usr/local/m32c-elf/m32c-elf/include/c++/4.9.4/m32c-elf",
+                "C:/msys64/usr/local/m32c-elf/m32c-elf/include/c++/4.9.4",
                 "D:/Git/R8C",
                 "C:/msys64/mingw64/include",
                 "${workspaceFolder}"
             ],
             "defines": [
                 "__GNUC__", "__BYTE_ORDER__=__ORDER_LITTLE_ENDIAN__",
+                "VSC_INTELL_SENSE", "F_CLK=20000000",
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"

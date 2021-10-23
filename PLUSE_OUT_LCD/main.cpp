@@ -5,20 +5,13 @@
 			LCD: Aitendo M-G0812P7567 @n
 			ENCODER: A: P10, B: P11 Com: Vss
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
 //=====================================================================//
-#include <cstring>
-#include "common/vect.h"
-#include "system.hpp"
-#include "clock.hpp"
-#include "intr.hpp"
-#include "port.hpp"
-#include "common/intr_utils.hpp"
-#include "common/delay.hpp"
-#include "common/port_map.hpp"
+#include "common/renesas.hpp"
+
 #include "common/fifo.hpp"
 #include "common/uart_io.hpp"
 #include "common/command.hpp"
@@ -130,8 +123,35 @@ namespace {
 	typedef chip::ST7565<SPI, LCD_SEL, LCD_A0, LCD_RES> LCD;
 	LCD 	lcd_(spi_);
 
+	class PLOT {
+	public:
+		typedef int16_t value_type;
+
+		static const int16_t WIDTH  = 128;
+		static const int16_t HEIGHT = 32;
+
+	private:
+		uint8_t	fb_[WIDTH * HEIGHT / 8];
+
+	public:
+		void clear(uint8_t v = 0)
+		{
+			for(uint16_t i = 0; i < (WIDTH * HEIGHT / 8); ++i) {
+				fb_[i] = v;
+			}
+		} 
+
+		uint8_t* fb() { return fb_; }
+
+		void operator() (int16_t x, int16_t y, bool val)
+		{
+			if(x < 0 || x >= WIDTH) return;
+			if(y < 0 || y >= HEIGHT) return;
+		}
+	};
+
 	graphics::kfont_null kfont_;
-	graphics::monograph<128, 32> bitmap_(kfont_);
+	graphics::monograph<PLOT> bitmap_(kfont_);
 
 	typedef device::trj_io<utils::null_task> timer_j;
 	timer_j timer_j_;
@@ -317,7 +337,7 @@ int main(int argc, char *argv[])
 			} else {
 				bitmap_.draw_mobj(20 * 5, 0, nmbs_[10]);
 			}
-			lcd_.copy(bitmap_.fb(), 4);
+			lcd_.copy(bitmap_.at_plot().fb(), 4);
 		}
 
 		++cnt;
