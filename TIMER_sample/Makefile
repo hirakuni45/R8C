@@ -29,7 +29,7 @@ MCU_TARGET	=	-mcpu=r8c
 
 INC_SYS		=
 
-INC_APP		=	. ../ ../M120AN
+INC_APP		=	. ../
 
 OPTIMIZE	=	-Os
 
