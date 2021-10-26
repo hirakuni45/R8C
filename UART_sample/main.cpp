@@ -105,6 +105,8 @@ int main(int argc, char *argv[])
 
 	uart_.puts("Start R8C UART sample\n");
 
+	utils::format("Real baud rate: %u\n") % uart_.get_real_baud_rate();
+
 	command_.set_prompt("# ");
 
 	uint8_t cnt = 0;

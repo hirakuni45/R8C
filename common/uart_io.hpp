@@ -58,6 +58,7 @@ namespace device {
 		static RECV	recv_;
 		static volatile bool	send_stall_;
 		bool	crlf_;
+		uint8_t	ubrg_;
 
 	public:
 
@@ -140,7 +141,7 @@ private:
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		uart_io() : crlf_(true) { }
+		uart_io() : crlf_(true), ubrg_(0) { }
 
 
 		//-----------------------------------------------------------------//
@@ -160,7 +161,7 @@ private:
 
 			uint32_t brr = F_CLK / baud / 16;
 			uint8_t cks = 0;
-			static uint8_t shift_[] = { 0, 3, 2 };
+			static uint8_t shift_[] = { 0, 3, 5-3 };
 			while(brr > 256) {
 				brr >>= shift_[cks];
 				++cks;
@@ -168,7 +169,7 @@ private:
 			}
 			UART::UC0 = UART::UC0.CLK.b(cks);
 			if(brr) --brr;
-			UART::UBRG = static_cast<uint8_t>(brr);
+			UART::UBRG = ubrg_ = static_cast<uint8_t>(brr);
 
 			// 8 ビットデータ固定
 			bool stps = 0;
@@ -217,6 +218,22 @@ private:
 			send_stall_ = true;
 
 			return true;
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief	内部設定ボーレートを取得
+			@return 内部設定ボーレート
+		 */
+		//-----------------------------------------------------------------//
+		uint32_t get_real_baud_rate() const
+		{
+			uint32_t brr = ubrg_;
+			++brr;
+			static uint8_t shift_[] = { 0, 3, 5 };
+			brr <<= shift_[UART::UC0.CLK()];
+			return F_CLK / brr / 16;
 		}
 
 
