@@ -1,6 +1,11 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C エンコーダー・サンプル
+	@brief	R8C エンコーダー・サンプル @n
+			・ポート P1_0: A 相 @n
+			・ポート P1_1: B 相 @n
+			・各プルアップは 5K ～ 10K オーム（ロータリーエンコーダーの仕様を参照）@n
+			・エンコーダーのチャタリングは 2ms～3ms 程度なので、周期は 360Hz としている。 @n
+			※プルアップ抵抗の値により変化
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -14,56 +19,23 @@
 #include "common/uart_io.hpp"
 #include "common/trb_io.hpp"
 
+#include "chip/ENCODER.hpp"
+
 namespace {
 
-	uint8_t enc_lvl_ = 0;
-	volatile int8_t enc_cnt_ = 0;
+	typedef utils::fifo<uint8_t, 16> TX_BUFF;  // 送信バッファ
+	typedef utils::fifo<uint8_t, 16> RX_BUFF;  // 受信バッファ
+	typedef device::uart_io<device::UART0, TX_BUFF, RX_BUFF> UART;
+	UART	uart_;
 
-	class encoder {
-	public:
-		void operator() () {
-			uint8_t lvl = device::P1();  ///< 状態の取得
-			uint8_t enc_pos = ~enc_lvl_ &  lvl;  ///< 立ち上がりエッジ検出
-			uint8_t enc_neg =  enc_lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
-			enc_lvl_ = lvl;  ///< 状態のセーブ
+	// エンコーダー入力の定義
+	typedef device::PORT<device::PORT1, device::bitpos::B0> PHA;
+	typedef device::PORT<device::PORT1, device::bitpos::B1> PHB;
+	// パラメーターを指定しない場合、DECODE::PHA_POS: A 相の立ち上がりのみでカウントとなる。
+	typedef chip::ENCODER<PHA, PHB, uint16_t> ENCODER; 
 
-			if(enc_pos & device::P1.B0.b()) {
-				if(lvl & device::P1.B1.b()) {
-					--enc_cnt_;
-				} else {
-					++enc_cnt_;
-				}
-			}
-			if(enc_neg & device::P1.B0.b()) {
-				if(lvl & device::P1.B1.b()) {
-					++enc_cnt_;
-				} else {
-					--enc_cnt_;
-				}
-			}
-			if(enc_pos & device::P1.B1.b()) {
-				if(lvl & device::P1.B0.b()) {
-					++enc_cnt_;
-				} else {
-					--enc_cnt_;
-				}
-			}
-			if(enc_neg & device::P1.B1.b()) {
-				if(lvl & device::P1.B0.b()) {
-					--enc_cnt_;
-				} else {
-					++enc_cnt_;
-				}
-			}
-		}
-	};
-
-	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
-
-	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
-	timer_b timer_b_;
+	typedef device::trb_io<ENCODER, uint8_t> TIMER_B;
+	TIMER_B timer_b_;
 }
 
 extern "C" {
@@ -118,20 +90,16 @@ int main(int argc, char *argv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
-	// エンコーダー入力の設定 P10: (Phi_A), P11: (Phi_B), Vss: (COM)
+	// エンコーダークラスの開始
+	// 実態は、TIMER_B 内にある。
 	{
-		utils::PORT_MAP(utils::port_map::P10::PORT);
-		utils::PORT_MAP(utils::port_map::P11::PORT);
-		device::PD1.B0 = 0;
-		device::PD1.B1 = 0;
-		device::PUR1.B0 = 1;	///< プルアップ
-		device::PUR1.B1 = 1;	///< プルアップ
+		TIMER_B::task_.start();
 	}
 
 	// タイマーＢ初期化
 	{
 		uint8_t ir_level = 2;
-		timer_b_.start_timer(240, ir_level);
+		timer_b_.start(60 * 6, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
@@ -145,29 +113,20 @@ int main(int argc, char *argv[])
 
 	sci_puts("Start R8C ENCODER sample\n");
 
+	uint16_t value = TIMER_B::task_.get_count();
 	uint8_t cnt = 0;
-	uint16_t count = 0;
-	uint16_t value = 0;
 	while(1) {
 		timer_b_.sync();
 
-		// エンコーダー値の増減
-		if(enc_cnt_ >= 4) {
-			enc_cnt_ = 0;
-			--count;
-		} else if(enc_cnt_ <= -4) { 
-			enc_cnt_ = 0;
-			++count;
-		}
-
+		++cnt;
 		// 表示ループは１／６０秒で動かす
-		if((cnt & 3) == 0) {
+		if(cnt >= 6) {
+			auto count = TIMER_B::task_.get_count();
 			if(count != value) {
 				value = count;
-				utils::format("%05d\n") % static_cast<uint32_t>(count);
+				utils::format("%05d\n") % value;
 			}
+			cnt = 0;
 		}
-
-		++cnt;
 	}
 }

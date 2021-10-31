@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 	{
 		uint8_t intr_level = 1;
 		uint16_t freq = 60; // 60Hz
-		timer_b_.start_timer(freq, intr_level);
+		timer_b_.start(freq, intr_level);
 	}
 
 	// LED 設定

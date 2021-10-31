@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 	// ※無線データ変調で利用するので、優先順位は最大にする。
 	{
 		uint8_t ir_level = 2;
-		trb_.start_timer(2000, ir_level);
+		trb_.start(2000, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])

@@ -1,8 +1,10 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C ADC メイン
+	@brief	R8C ADC メイン (5V 動作) @n
+			アナログ入力０：P10_AN0 (20) @n
+			アナログ入力１：P11_AN1 (19)
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -17,15 +19,16 @@
 
 namespace {
 
-	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
-	timer_b timer_b_;
+	typedef device::trb_io<utils::null_task, uint8_t> TIMER_B;
+	TIMER_B	timer_b_;
 
-	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
+	typedef utils::fifo<uint8_t, 16> TX_BUFF;  // 送信バッファ
+	typedef utils::fifo<uint8_t, 16> RX_BUFF;  // 受信バッファ
+	typedef device::uart_io<device::UART0, TX_BUFF, RX_BUFF> UART;
+	UART	uart_;
 
-	typedef device::adc_io<utils::null_task> adc;
-	adc adc_;
+	typedef device::adc_io<utils::null_task> ADC;
+	ADC		adc_;
 }
 
 extern "C" {
@@ -82,10 +85,10 @@ int main(int argc, char *argv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
-	// タイマーＢ初期化
+	// インターバルタイマー開始（タイマーＢ）
 	{
 		uint8_t ir_level = 2;
-		timer_b_.start_timer(60, ir_level);
+		timer_b_.start(60, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
@@ -103,13 +106,11 @@ int main(int argc, char *argv[])
 	{
 		utils::PORT_MAP(utils::port_map::P10::AN0);
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, true);
+		adc_.start(ADC::CH_TYPE::CH0_CH1, ADC::CH_GROUP::AN0_AN1, true);
 	}
 
-	using namespace utils;
-
 	uint8_t cnt = 0;
-	int nnn = 0;
+	uint16_t nnn = 0;
 	while(1) {
 		timer_b_.sync();
 
@@ -118,9 +119,11 @@ int main(int argc, char *argv[])
 			cnt = 0;
 			adc_.scan();
 			adc_.sync();
+			// 「%3.2:8y」は小数点以下 8 ビットの固定小数点を 3 桁、小数点以下 2 桁表示
+			// 1.25 倍している、小数点以下 8 ビットで、5V 動作時、1023 で 5V 表示となる。
 			{
 				auto v = adc_.get_value(0);
-				utils::format("(%5d) CH0: %1.2:8y[V], %d\n")
+				utils::format("(%5d) CH0: %3.2:8y[V], %d\n")
 					% nnn
 					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
 					% v;
@@ -128,14 +131,14 @@ int main(int argc, char *argv[])
 
 			{
 				auto v = adc_.get_value(1);
-				utils::format("        CH1: %1.2:8y[V], %d\n")
+				utils::format("        CH1: %3.2:8y[V], %d\n")
 					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
 					% v;
 			}
 			++nnn;
 		}
 
-		if(uart_.length()) {  // UART のレシーブデータがあるか？
+		if(uart_.length() != 0) {  // UART のレシーブデータがあるか？
 			auto ch = uart_.getch();
 			uart_.putch(ch);
 		}

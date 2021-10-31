@@ -92,8 +92,8 @@ namespace app {
 #endif
 
 	private:
-		typedef device::adc_io<utils::null_task> adc;
-		adc adc_;
+		typedef device::adc_io<utils::null_task> ADC;
+		ADC		adc_;
 
 		// LCD SCL: P4_2(1)
 		typedef device::PORT<device::PORT4, device::bitpos::B2> SPI_SCL;
@@ -214,7 +214,7 @@ namespace app {
 			{
 		   		timer_b::task_.init();
 				uint8_t ir_level = 2;
-				timer_b_.start_timer(50, ir_level);
+				timer_b_.start(50, ir_level);
 			}
 #ifdef UART
 			// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
@@ -379,7 +379,7 @@ namespace app {
 
 			timer_b_.task_.service();
 
-			adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN0_AN1, false);
+			adc_.start(ADC::CH_TYPE::CH0_CH1, ADC::CH_GROUP::AN0_AN1, false);
 			adc_.scan(); // AN0, AN1 A/D scan start
 
 			if(timer_b::task_.positive(timer_b::task_type::type::SW_A)) {
@@ -416,7 +416,7 @@ namespace app {
 				uint32_t i = adc_.get_value(0);
 				uint32_t v = adc_.get_value(1);
 
-				adc_.start(adc::cnv_type::CH0_CH1, adc::ch_grp::AN2_AN3, false);
+				adc_.start(ADC::CH_TYPE::CH0_CH1, ADC::CH_GROUP::AN2_AN3, false);
 				adc_.scan(); // AN2, AN3 A/D scan start
 
 				if(i <= 3) i = 0;  // noise bias
