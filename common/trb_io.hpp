@@ -1,9 +1,9 @@
 #pragma once
 //=====================================================================//
 /*!	@file
-	@brief	R8C グループ・タイマー RB I/O 制御
+	@brief	R8C グループ・タイマー RB2 I/O 制御
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2015, 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2015, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -22,12 +22,29 @@ namespace device {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
-		@brief  タイマー RB I/O 制御クラス
-		@param[in]	TASK 割り込み内で実行されるクラス
+		@brief  タイマー RB2 ベースクラス
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	class trb_base {
+	public:
+		enum class OUTPUT : uint8_t {
+			NONE,	///< 出力無効
+			LOW,	///< 初期値：H、時間が来たら：L
+			HIGH,	///< 初期値：L、時間が来たら：H
+			TOGGLE,	///< 反転（周期の１／２）
+		};
+	};
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
+		@brief  タイマー RB2 I/O 制御クラス
+		@param[in]	TASK	割り込み内で実行されるクラス
+		@param[in]	CNT		内部カウンタの型
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <class TASK, typename CNT>
-	class trb_io {
+	class trb_io : public trb_base {
 	public:
 		typedef TASK task_type;
 
@@ -69,17 +86,19 @@ namespace device {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  タイマー開始
-			@param[in]	hz	周期（周波数）
+			@param[in]	freq	周期（周波数）
 			@param[in]	ir_lvl	割り込みレベル（０の場合割り込みを使用しない）
+			@param[in]	out		出力指定
 			@return 設定範囲を超えたら「false」
 		*/
 		//-----------------------------------------------------------------//
-		bool start_timer(uint16_t hz, uint8_t ir_lvl = 0) {
+		bool start(uint32_t freq, uint8_t ir_lvl = 0, OUTPUT out = OUTPUT::NONE)
+		{
 			MSTCR.MSTTRB = 0;  // モジュールスタンバイ解除
 
 			TRBCR.TSTART = 0;
 
-			uint32_t tn = F_CLK / hz;
+			uint32_t tn = F_CLK / freq;
 			uint8_t div = 0;
 			while(tn > 65536) {
 				tn >>= 1;
@@ -107,7 +126,19 @@ namespace device {
 			if(ir_lvl) {
 				TRBIR = TRBIR.TRBIE.b();				
 			} else {
-				TRBIR = TRBIR.TRBIE.b(false);
+				TRBIR = TRBIR.TRBIE.b(0);
+			}
+
+			switch(out) {
+			case OUTPUT::LOW:
+				break;
+			case OUTPUT::HIGH:
+				break;
+			case OUTPUT::TOGGLE:
+				TRBIOC = TRBIOC.TOPL.b(0) | TRBIOC.TOCNT.b(0);
+				break;
+			default:
+				break;
 			}
 
 			TRBCR.TSTART = 1;
@@ -139,7 +170,7 @@ namespace device {
 			@return カウント値
 		*/
 		//-----------------------------------------------------------------//
-		CNT get_count() const { return count_; }
+		auto get_count() const { return count_; }
 
 
 		//-----------------------------------------------------------------//
@@ -165,7 +196,6 @@ namespace device {
 			}
 			return n;
 		}
-
 	};
 
 	// スタティック実態定義
