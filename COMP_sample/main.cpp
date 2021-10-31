@@ -2,7 +2,7 @@
 /*!	@file
 	@brief	R8C メイン
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -14,11 +14,11 @@
 
 namespace {
 
-	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
-	timer_b timer_b_;
+	typedef device::trb_io<utils::null_task, uint8_t> TIMER_B;
+	TIMER_B	timer_b_;
 
-	typedef device::comp_io<utils::null_task, utils::null_task> comp;
-	comp comp_;
+	typedef device::comp_io<utils::null_task, utils::null_task> COMP;
+	COMP	comp_;
 
 }
 
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	// タイマー割り込み設定
 	{
 		uint8_t ir_lvl = 1;
-		timer_b_.start_timer(60, ir_lvl);
+		timer_b_.start(60, ir_lvl);
 	}
 
 	// コンパレーター３設定

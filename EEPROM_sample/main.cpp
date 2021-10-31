@@ -365,7 +365,7 @@ int main(int argc, char *argv[])
 	// タイマーＢ初期化
 	{
 		uint8_t intr_level = 2;
-		timer_b_.start_timer(60, intr_level);
+		timer_b_.start(60, intr_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])
