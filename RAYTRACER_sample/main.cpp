@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 	{
 		uint8_t intr_level = 1;
 		uint16_t freq = 100; // 100Hz
-		timer_b_.start_timer(freq, intr_level);
+		timer_b_.start(freq, intr_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[out], P1_5: RXD0[in])

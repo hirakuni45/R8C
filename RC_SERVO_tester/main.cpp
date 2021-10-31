@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 	// P10, P11 の A/D 変換
 	{
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.start(ADC::cnv_type::CH1, ADC::ch_grp::AN0_AN1, true);
+		adc_.start(ADC::CH_TYPE::CH1, ADC::CH_GROUP::AN0_AN1, true);
 	}
 
 	// ＰＷＭモード設定

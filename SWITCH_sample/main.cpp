@@ -1,6 +1,9 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C スイッチ入力、サンプル
+	@brief	R8C スイッチ入力、サンプル @n
+			P1_0: SW0 (ON した場合に GND に接続、通常は抵抗でプルアップ) @n
+			P1_1: SW1 (ON した場合に GND に接続、通常は抵抗でプルアップ) @n
+			※マイコン内蔵プルアップ抵抗を利用しているので、外部プルアップは省略出来る。
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -17,9 +20,15 @@
 
 namespace {
 
-	typedef utils::fifo<uint8_t, 16> BUFFER;
-	typedef device::uart_io<device::UART0, BUFFER, BUFFER> UART;
+	typedef utils::fifo<uint8_t, 16> TX_BUFF;  // 送信バッファ
+	typedef utils::fifo<uint8_t, 16> RX_BUFF;  // 受信バッファ
+	typedef device::uart_io<device::UART0, TX_BUFF, RX_BUFF> UART;
 	UART	uart_;
+
+	// スイッチの定義
+	// 解放で(1)、ON したら、(0) なので、論理を反転している。
+	typedef device::PORT<device::PORT1, device::bitpos::B0, false> SW0;
+	typedef device::PORT<device::PORT1, device::bitpos::B1, false> SW1;
 
 	typedef device::trb_io<utils::null_task, uint8_t> TIMER_B;
 	TIMER_B	timer_b_;
@@ -72,9 +81,9 @@ namespace {
 
 	void switch_service_()
 	{
-		uint8_t lvl = ~device::P1();  ///< 状態の取得
-		inp_pos_ = ~inp_lvl_ &  lvl;  ///< 立ち上がりエッジ検出
-		inp_neg_ =  inp_lvl_ & ~lvl;  ///< 立ち下がりエッジ検出
+		uint8_t lvl = SW0::P() | (SW1::P() << 1);  ///< 状態の取得
+		inp_pos_ = ~inp_lvl_ &  lvl;  ///< 立ち上がりエッジ検出（押した瞬間）
+		inp_neg_ =  inp_lvl_ & ~lvl;  ///< 立ち下がりエッジ検出（離した瞬間）
 		inp_lvl_ = lvl;  ///< 状態のセーブ
 	}
 }
@@ -96,7 +105,7 @@ int main(int argc, char *argv[])
 	// タイマーＢ初期化
 	{
 		uint8_t ir_level = 2;
-		timer_b_.start_timer(60, ir_level);
+		timer_b_.start(60, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
@@ -110,12 +119,10 @@ int main(int argc, char *argv[])
 
 	// スイッチ入力の設定 P10、P11、COM:Vss
 	{
-		utils::PORT_MAP(utils::port_map::P10::PORT);
-		utils::PORT_MAP(utils::port_map::P11::PORT);
-		device::PD1.B0 = 0;
-		device::PD1.B1 = 0;
-		device::PUR1.B0 = 1;	///< プルアップ
-		device::PUR1.B1 = 1;	///< プルアップ
+		SW0::DIR = 0;
+		SW1::DIR = 0;
+		SW0::PU = 1;  // 内蔵プルアップを有効
+		SW1::PU = 1;  // 内蔵プルアップを有効
 	}
 
 	sci_puts("Start R8C SWITCH sample\n");
@@ -126,27 +133,27 @@ int main(int argc, char *argv[])
 
 		switch_service_();
 
-		if(inp_pos_ & device::P1.B0.b()) {
+		if((inp_pos_ & 0b01) != 0) {  // SW0 の押した瞬間
 			sci_puts("SW0 - positive\n");
 		}
-		if(inp_pos_ & device::P1.B1.b()) {
+		if((inp_pos_ & 0b10) != 0) {  // SW1 の押した瞬間
 			sci_puts("SW1 - positive\n");
 		}
 
-		if(inp_neg_ & device::P1.B0.b()) {
+		if((inp_neg_ & 0b01) != 0) {  // SW0 の離した瞬間
 			sci_puts("SW0 - negative\n");
 		}
-		if(inp_neg_ & device::P1.B1.b()) {
+		if((inp_neg_ & 0b10) != 0) {  // SW1 の離した瞬間
 			sci_puts("SW1 - negative\n");
 		}
 
-		if(inp_lvl_ & device::P1.B0.b()) {
-			if((cnt % 10) == 0) {
+		if((inp_lvl_ & 0b01) != 0) {  // SW0 の押している状態
+			if((cnt % 30) == 0) {
 				sci_puts("SW0 - ON\n");
 			}
 		}
-		if(inp_lvl_ & device::P1.B1.b()) {
-			if((cnt % 10) == 0) {
+		if((inp_lvl_ & 0b10) != 0) {  // SW1 の押している状態
+			if((cnt % 30) == 0) {
 				sci_puts("SW1 - ON\n");
 			}
 		}

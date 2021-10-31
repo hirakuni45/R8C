@@ -1,6 +1,9 @@
 //=====================================================================//
 /*!	@file
-	@brief	R8C PWM メイン
+	@brief	R8C PWM メイン @n
+			PWM 出力 B：P12(TRCIOB) 18 pin @n
+			PWM 出力 C: P13(TRCIOC) 17 pin @n
+			PWM 出力 D: P10(TRCIOD) 20 pin
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -95,7 +98,7 @@ int main(int argc, char *argv[])
 	// タイマーＢ初期化
 	{
 		uint8_t ir_level = 2;
-		timer_b_.start_timer(60, ir_level);
+		timer_b_.start(60, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
@@ -110,7 +113,7 @@ int main(int argc, char *argv[])
 	// ADC の設定（CH1のサイクルモード）
 	{
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.start(ADC::cnv_type::CH1, ADC::ch_grp::AN0_AN1, true);
+		adc_.start(ADC::CH_TYPE::CH1, ADC::CH_GROUP::AN0_AN1, true);
 	}
 
 	// ＰＷＭモード設定

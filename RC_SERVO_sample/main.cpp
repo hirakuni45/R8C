@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 	{
 		utils::PORT_MAP(utils::port_map::P10::AN0);
 		utils::PORT_MAP(utils::port_map::P11::AN1);
-		adc_.start(ADC::cnv_type::CH0_CH1, ADC::ch_grp::AN0_AN1, true);
+		adc_.start(ADC::CH_TYPE::CH0_CH1, ADC::CH_GROUP::AN0_AN1, true);
 	}
 
 	// ＰＷＭモード設定
