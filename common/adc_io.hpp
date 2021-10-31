@@ -33,7 +33,7 @@ namespace device {
 			@brief  チャネル・タイプ
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		enum class cnv_type : uint8_t {
+		enum class CH_TYPE : uint8_t {
 			CH0,		//< チャネル０のみ
 			CH1,		//< チャネル１のみ
 			CH0_CH1		//< ０，１チャネル
@@ -45,7 +45,7 @@ namespace device {
 			@brief  チャネル・グループ
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		enum class ch_grp : uint8_t {
+		enum class CH_GROUP : uint8_t {
 			AN0_AN1,	//< AN0, AN1
 			AN2_AN3,	//< AN2, AN3
 			AN4_AN7		//< AN4, AN7
@@ -81,13 +81,13 @@ namespace device {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  変換開始
-			@param[in]	ct		変換タイプ
-			@param[in]	grp		グループ
+			@param[in]	ct		チャネル・タイプ
+			@param[in]	grp		チャネル・グループ
 			@param[in]	cycle	繰り返し変換の場合「true」
 			@param[in]	level	割り込みレベル（０の場合割り込みを使用しない）
 		*/
 		//-----------------------------------------------------------------//
-		void start(cnv_type ct, ch_grp cg, bool cycle, uint8_t level = 0)
+		void start(CH_TYPE ct, CH_GROUP cg, bool cycle, uint8_t level = 0)
 		{
 			level_ = level;
 
@@ -96,12 +96,12 @@ namespace device {
 			ADCON0.ADST = 0;
 
 			uint8_t md = 0;
-			if(ct == cnv_type::CH0_CH1) md = 2;
+			if(ct == CH_TYPE::CH0_CH1) md = 2;
 			if(cycle) ++md; 
 			ADMOD = ADMOD.CKS.b(3) | ADMOD.MD.b(md);
 
 			uint8_t chn = 0;
-			if(ct == cnv_type::CH1) chn = 1; 
+			if(ct == CH_TYPE::CH1) chn = 1; 
 			ADINSEL = ADINSEL.CH0.b(chn) | ADINSEL.ADGSEL.b(static_cast<uint8_t>(cg));
 
 			ILVL7.B01 = level_;
