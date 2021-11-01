@@ -48,6 +48,8 @@ namespace chip {
 		volatile VTYPE	count_;
 		uint8_t	lvl_;
 
+		uint8_t input_() { return static_cast<uint8_t>(PHA::P()) | (static_cast<uint8_t>(PHB::P()) << 1); }
+
 	public:
 		//-----------------------------------------------------------------//
 		/*!
@@ -59,7 +61,7 @@ namespace chip {
 			PHA::DIR = 0;
 			PHB::DIR = 0;
 			count_ = 0;
-			lvl_ = 0;
+			lvl_ = input_();
 		}
 
 
@@ -72,7 +74,7 @@ namespace chip {
 		//-----------------------------------------------------------------//
 		void service() noexcept
 		{
-			uint8_t lvl = static_cast<uint8_t>(PHA::P()) | (static_cast<uint8_t>(PHB::P()) << 1);
+			uint8_t lvl = input_();
 			uint8_t pos = ~lvl_ &  lvl;
 			uint8_t neg =  lvl_ & ~lvl; 
 			lvl_ = lvl;
