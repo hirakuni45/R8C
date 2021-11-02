@@ -39,8 +39,8 @@ namespace {
 	ADC		adc_;
 
 	// サーミスタ定義：
-	// A/D: 10 bits (1023), NT103_41G, 分圧抵抗: 10K (10000) オーム、サーミスタ: ＶＣＣ側
-	typedef chip::NTCTH<1023, chip::thermistor::NT103_41G, 10000, true> THMISTER;
+	// A/D: 10 bits (1023), HX103_3380, 分圧抵抗: 10K (10000) オーム、サーミスタ: ＶＣＣ側
+	typedef chip::NTCTH<1023, chip::thermistor::HX103_3380, 10000, true> THMISTER;
 	THMISTER thmister_;
 
 }

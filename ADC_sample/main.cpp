@@ -125,14 +125,14 @@ int main(int argc, char *argv[])
 				auto v = adc_.get_value(0);
 				utils::format("(%5d) CH0: %3.2:8y[V], %d\n")
 					% nnn
-					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
+					% static_cast<uint16_t>(((v + 1) * 10) >> 3)
 					% v;
 			}
 
 			{
 				auto v = adc_.get_value(1);
 				utils::format("        CH1: %3.2:8y[V], %d\n")
-					% static_cast<uint32_t>(((v + 1) * 10) >> 3)
+					% static_cast<uint16_t>(((v + 1) * 10) >> 3)
 					% v;
 			}
 			++nnn;

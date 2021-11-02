@@ -22,47 +22,49 @@ R8C sources
 リンカースクリプトで構成されています。   
 その為、専用のブートプログラムやローダーは必要なく、作成したバイナリーをそのまま実行できます。   
    
-デバイスＩ／Ｏ操作では、C++ で構成されたクラスライブラリーを活用出来るように専用のヘッダーを用意   
+デバイスＩ／Ｏ操作では、C++ で構成されたテンプレートクラスライブラリーを活用出来るように専用のヘッダーを用意   
 してあり、各種デバイス用の小さなクラスライブラリーの充実も行っています。   
 
 ## R8C プロジェクト・リスト
 
- - /r8cprog            --->   R8C フラッシュへのプログラム書き込みツール（Windows、OS-X、※Linux 対応）
- - /M120AN             --->   M120AN,M110AN デバイス、Ｉ／Ｏポート定義
- - /chip               --->   各種、専用チップ（ＩＣ）固有ヘッダー
- - /common             --->   R8C 共有クラス、小規模なクラスライブラリーなど
- - /pfatfs             --->   ぷち FatFS 関係ソース、ヘッダー
- - /FIRST_sample       --->   ＬＥＤ点滅サンプル
- - /UART_sample        --->   シリアルインターフェースの送信、受信サンプル
- - /TIMER_sample       --->   タイマーＲＢのサンプル（インターバルタイマー）
- - /ADC_sample         --->   Ａ／Ｄ変換のサンプル
- - /DATA_FLASH_sample  --->   データフラッシュの初期化、リード、ライト
- - /PWM_sample         --->   タイマーＲＣのサンプル（ＰＷＭ出力）
- - /RC_SERVO_sample    --->   ラジコン用サーボの動作テスト（ＰＷＭ、２出力）
- - /COMP_sample        --->   コンパレーターのサンプル
- - /DS1371_sample      --->   I2C RTC デバイスのサンプル（DS1371）
- - /DS3231_sample      --->   I2C RTC デバイスのサンプル（DS3231）
- - /EEPROM_sample      --->   I2C EEPROM デバイスのテスト
- - /VL53L0X_sample     --->   I2C VL53K0X レーザー距離センサのサンプル
- - /SWITCH_sample      --->   スイッチ入力テスト（チャタリング除去とトリガー判定）
- - /TOUCH_sample       --->   タッチスイッチのテスト
- - /ENCODER_sample     --->   エンコーダー入力テスト
- - /PLUSE_OUT_sample   --->   タイマーＲＪを使ったパルス出力テスト
- - /PLUSE_INP_sample   --->   タイマーＲＪを使った周波数計測テスト
- - /PLUSE_OUT_LCD      --->   タイマーＲＪ、ＬＣＤ、エンコーダ
- - /ARITH_sample       --->   文字列による計算式、評価サンプル
- - /MPU6050_sample     --->   MPU6050 加速度、ジャイロ、センサー、サンプル
- - /BMP180_sample      --->   Bosh BMP180 温度、標高、センサー、サンプル 
- - /MAX7219_sample     --->   LED ディスプレイ・ドライバー、サンプル
- - /MAX6675_sample     --->   SPI 接続、ｋ熱電対温度センサー、サンプル
- - /THERMISTOR_sample  --->   サーミスターを使った温度検出、サンプル
- - /LCD_DOT_sample     --->   128x32 mono color graphics のテスト
- - /SD_sample          --->   pFatFS を使った、SD カードのテスト
- - /SD_monitor         --->   pFatFS を使った、SD カードのモニター（未完）
- - /SD_WAV_play        --->   SD カード上の WAV 形式ファイルの PWM 再生
- - /RC_SERVO_tester    --->   ラジコン用サーボのテスター（ＪＲ、又はフタバＰＷＭ出力、１チャネル用）
- - /USB_CHECKER        --->   USB 電流、電圧チェッカー
- - /AD9833_sample      --->   DDS デバイスのサンプル（AD9833）
+|プロジェクト(DIR)|詳細|
+|---|---|
+|[r8cprog](/r8cprog)|R8C フラッシュへのプログラム書き込みツール（Windows、OS-X、※Linux 対応）|
+|[M120AN](/M120AN)|M120AN,M110AN デバイス、Ｉ／Ｏポート定義テンプレートクラス|
+|[chip](/chip)|I2C、SPI、専用チップ、IC 固有テンプレートクラス|
+|[common](/common)|R8C 共有クラス、小規模なクラスライブラリーなど|
+|[pfatfs](/pfatfs)|ぷち FatFS 関係ソース、ヘッダー|
+|[FIRST_sample](/FIRST_sample)|ＬＥＤ点滅サンプル|
+|[UART_sample](/UART_sample)|シリアルインターフェースの送信、受信サンプル|
+|[TIMER_sample](/TIMER_sample)|タイマーＲＢのサンプル（インターバルタイマー）|
+|[SWITCH_sample](/SWITCH_sample)|スイッチ入力テスト（チャタリング除去とトリガー判定）|
+|[ENCODER_sample](/ENCODER_sample)|ロータリーエンコーダー、カウント、サンプル|
+|[ADC_sample](/ADC_sample)|Ａ／Ｄ変換のサンプル|
+|[THERMISTOR_sample](/THERMISTOR_sample)|サーミスターを使った温度検出、サンプル（A/D 利用）|
+|[DATA_FLASH_sample](/DATA_FLASH_sample)|データフラッシュの初期化、リード、ライト|
+|[PWM_sample](/PWM_saple)|タイマーＲＣのサンプル（ＰＷＭ出力）|
+|[RC_SERVO_sample](/RC_SERVO_sample)|ラジコン用サーボの動作テスト（ＰＷＭ、２出力）|
+|[PLUSE_OUT_sample](/PLUSE_OUT_sample)|タイマーＲＪを使ったパルス出力テスト|
+|[PLUSE_INP_sample](/PLUSE_INP_sample)|タイマーＲＪを使った周波数計測テスト|
+|[COMP_sample](/COMP_sample)|コンパレーターのサンプル|
+|/DS1371_sample  |I2C RTC デバイスのサンプル（DS1371）|
+|/DS3231_sample  |I2C RTC デバイスのサンプル（DS3231）|
+|/EEPROM_sample  |I2C EEPROM デバイスのテスト|
+|/VL53L0X_sample |I2C VL53K0X レーザー距離センサのサンプル|
+|/MPU6050_sample |I2C MPU6050 加速度、ジャイロ、センサー、サンプル|
+|/BMP180_sample  |I2C Bosh BMP180 温度、標高、センサー、サンプル |
+|/TOUCH_sample   |タッチスイッチのテスト|
+|/PLUSE_OUT_LCD  |タイマーＲＪ、ＬＣＤ、エンコーダ|
+|/MAX7219_sample |SPI LED ディスプレイ・ドライバー、サンプル|
+|/MAX6675_sample |SPI 接続、ｋ熱電対温度センサー、サンプル|
+|/ARITH_sample   |文字列による計算式、評価サンプル|
+|/LCD_DOT_sample |128x32 mono color graphics のテスト|
+|/SD_sample      |pFatFS を使った、SD カードのテスト|
+|/SD_monitor     |pFatFS を使った、SD カードのモニター（未完）|
+|/SD_WAV_play    |SD カード上の WAV 形式ファイルの PWM 再生|
+|/RC_SERVO_tester|ラジコン用サーボのテスター（ＪＲ、又はフタバＰＷＭ出力、１チャネル用）|
+|/USB_CHECKER    |USB 電流、電圧チェッカー|
+|/AD9833_sample  |SPI DDS デバイスのサンプル（AD9833）|
    
 ---
 
