@@ -3,9 +3,9 @@
 	@brief	R8C エンコーダー・サンプル @n
 			・ポート P1_0: A 相 @n
 			・ポート P1_1: B 相 @n
-			・各プルアップは 5K ～ 10K オーム（ロータリーエンコーダーの仕様を参照）@n
+			・各プルアップは 5K ～ 10K オーム（ロータリーエンコーダーの仕様を参照） @n
 			・エンコーダーのチャタリングは 2ms～3ms 程度なので、周期は 360Hz としている。 @n
-			※プルアップ抵抗の値により変化
+			※プルアップ抵抗の値、電源電圧などにより異なるので仕様を確認
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2017, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -29,12 +29,38 @@ namespace {
 	UART	uart_;
 
 	// エンコーダー入力の定義
+	static const uint8_t TIMER_MULTI_NUM = 6;
 	typedef device::PORT<device::PORT1, device::bitpos::B0> PHA;
 	typedef device::PORT<device::PORT1, device::bitpos::B1> PHB;
 	// パラメーターを指定しない場合、DECODE::PHA_POS: A 相の立ち上がりのみでカウントとなる。
 	typedef chip::ENCODER<PHA, PHB, uint16_t> ENCODER; 
+	ENCODER	encoder_;
 
-	typedef device::trb_io<ENCODER, uint8_t> TIMER_B;
+	class timer_t {
+		uint8_t		multi_;
+		volatile uint8_t	count_;
+	public:
+		timer_t() : multi_(0), count_(0) { }
+
+		void sync60()
+		{
+			auto tmp = count_;
+			while(tmp == count_) ;
+		}
+
+		void operator () ()
+		{
+			encoder_();
+
+			++multi_;
+			if(multi_ >= TIMER_MULTI_NUM) {
+				++count_;
+				multi_ = 0;
+			}
+		}
+	};
+
+	typedef device::trb_io<timer_t, uint8_t> TIMER_B;
 	TIMER_B timer_b_;
 }
 
@@ -90,16 +116,15 @@ int main(int argc, char *argv[])
 	SCKCR.HSCKSEL = 1;
 	CKSTPR.SCKSEL = 1;
 
-	// エンコーダークラスの開始
-	// 実態は、TIMER_B 内にある。
+	// エンコーダー関係の初期化
 	{
-		TIMER_B::task_.start();
+		encoder_.start();
 	}
 
 	// タイマーＢ初期化
 	{
 		uint8_t ir_level = 2;
-		timer_b_.start(60 * 6, ir_level);
+		timer_b_.start(60 * TIMER_MULTI_NUM, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
@@ -113,20 +138,15 @@ int main(int argc, char *argv[])
 
 	sci_puts("Start R8C ENCODER sample\n");
 
-	uint16_t value = TIMER_B::task_.get_count();
-	uint8_t cnt = 0;
+	uint16_t value = encoder_.get_count();
 	while(1) {
-		timer_b_.sync();
+		// メインループは 60Hz で動かす
+		timer_b_.task_.sync60();
 
-		++cnt;
-		// 表示ループは１／６０秒で動かす
-		if(cnt >= 6) {
-			auto count = TIMER_B::task_.get_count();
-			if(count != value) {
-				value = count;
-				utils::format("%05d\n") % value;
-			}
-			cnt = 0;
+		auto count = encoder_.get_count();
+		if(count != value) {
+			value = count;
+			utils::format("%05d\n") % value;
 		}
 	}
 }
