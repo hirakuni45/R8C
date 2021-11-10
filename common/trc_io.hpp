@@ -40,13 +40,14 @@ namespace device {
 			@brief  PWM-A 割り込み
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		static inline void itask() {
-			task_();
+		static inline void itask()
+		{
 			volatile uint8_t f = TRCSR();
-			TRCGRB = pwm_b_;
-			TRCGRC = pwm_c_;
-			TRCGRD = pwm_d_;
 			TRCSR = 0x00;
+			task_();
+//			TRCGRB = pwm_b_;
+//			TRCGRC = pwm_c_;
+//			TRCGRD = pwm_d_;
 		}
 
 
@@ -55,12 +56,12 @@ namespace device {
 			@brief  カウンターディバイド
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		enum class divide : uint8_t {
-			f1,		///< F_CLK / 1
-			f2,		///< F_CLK / 2
-			f4,		///< F_CLK / 4
-			f8,		///< F_CLK / 8
-			f32		///< F_CLK / 32
+		enum class DIVIDE : uint8_t {
+			F1,		///< F_CLK / 1
+			F2,		///< F_CLK / 2
+			F4,		///< F_CLK / 4
+			F8,		///< F_CLK / 8
+			F32		///< F_CLK / 32
 		};
 
 	private:
@@ -84,7 +85,8 @@ namespace device {
 			@return 設定範囲を超えたら「false」
 		*/
 		//-----------------------------------------------------------------//
-		void start_pwm(uint16_t limit, divide cks, bool pfl, uint8_t ir_lvl = 0) const {
+		void start(uint16_t limit, DIVIDE cks, bool pfl, uint8_t ir_lvl = 0) const
+		{
 			MSTCR.MSTTRC = 0;  // モジュールスタンバイ解除
 
 			TRCMR.CTS = 0;  // カウント停止
@@ -95,18 +97,23 @@ namespace device {
 			TRCGRC = pwm_c_ = 128;
 			TRCGRD = pwm_d_ = 128;
 
-			TRCMR = TRCMR.PWM2.b(1) | TRCMR.PWMB.b(1) | TRCMR.PWMC.b(1) | TRCMR.PWMD.b(1);
+//			TRCMR = TRCMR.PWM2.b(1) | TRCMR.PWMB.b(1) | TRCMR.PWMC.b(1) | TRCMR.PWMD.b(1);
+//			TRCMR = TRCMR.PWM2.b(1) | TRCMR.PWMB.b(1) | TRCMR.BUFEB.b(1);
+			TRCMR = TRCMR.PWM2.b(1) | TRCMR.PWMB.b(1);
 
-			// コンペア一致Ａでカウンタクリア
+			// フリーランニング
 			TRCCR1 = TRCCR1.CCLR.b(1) | TRCCR1.TOA.b(0) | TRCCR1.CKS.b(static_cast<uint8_t>(cks))
 				   | TRCCR1.TOB.b(0) | TRCCR1.TOC.b(0) | TRCCR1.TOD.b(0);
 
-			TRCIOR0 = TRCIOR0.IOA.b(0) | TRCIOR0.IOB.b(2);
-			TRCIOR1 = TRCIOR1.IOC.b(8 | 2) | TRCIOR1.IOD.b(8 | 2);
+//			TRCIOR0 = TRCIOR0.IOA.b(0) | TRCIOR0.IOB.b(2);
+//			TRCIOR1 = TRCIOR1.IOC.b(2) | TRCIOR1.IOD.b(2) | 0b10001000;
+			TRCIOR0 = TRCIOR0.IOA.b(0) | TRCIOR0.IOB.b(0b10) | 0b10001000;
+			TRCIOR1 = TRCIOR1.IOC.b(0) | TRCIOR1.IOD.b(0b00);
 
 			TRCCR2 = TRCCR2.POLB.b(pfl) | TRCCR2.POLC.b(pfl) | TRCCR2.POLD.b(pfl);
 
-			TRCOER = TRCOER.EB.b(0) | TRCOER.EC.b(0) | TRCOER.ED.b(0);
+//			TRCOER = TRCOER.EB.b(0) | TRCOER.EC.b(0) | TRCOER.ED.b(0);
+			TRCOER = TRCOER.EB.b(0);
 
 			ILVL3.B45 = ir_lvl;
 			if(ir_lvl) {
@@ -130,7 +137,8 @@ namespace device {
 			@return 設定範囲を超えたら「false」
 		*/
 		//-----------------------------------------------------------------//
-		bool start_pwm(uint16_t hz, bool pfl, uint8_t ir_lvl = 0) const {
+		bool start(uint16_t hz, bool pfl, uint8_t ir_lvl = 0) const
+		{
 			// 周波数から最適な、カウント値を計算
 			uint32_t tn = F_CLK / hz;
 			uint8_t cks = 0;
@@ -145,7 +153,7 @@ namespace device {
 			if(tn) --tn;
 			if(tn == 0) return false;
 
-			start_pwm(tn, static_cast<divide>(cks), pfl, ir_lvl);
+			start(tn, static_cast<DIVIDE>(cks), pfl, ir_lvl);
 
 			return true;
 		}
