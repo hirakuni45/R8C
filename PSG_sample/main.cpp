@@ -28,8 +28,9 @@ namespace {
 	UART	uart_;
 
 	static const uint16_t BSIZE = 512;
+	static const uint16_t CNUM = 4;
 	typedef utils::psg_base PSG;
-	typedef utils::psg_mng<BSIZE> PSG_MNG;
+	typedef utils::psg_mng<BSIZE, CNUM> PSG_MNG;
 	PSG_MNG	psg_mng_;
 
 	volatile uint16_t pwm_pos_;
@@ -47,9 +48,12 @@ namespace {
 	typedef device::trc_io<pwm_task> TIMER_C;
 	TIMER_C	timer_c_;
 
-	// 楽譜
-	const PSG::SCORE score_[] = {
+	// テスト楽譜
+	const PSG::SCORE score0_[] = {
+		PSG::CTRL::VOLUME, 15,
+		PSG::CTRL::SQ50,
 		PSG::CTRL::TEMPO, 8,
+		PSG::CTRL::FOR, 3,
 		PSG::KEY::C_3, 16,
 		PSG::KEY::D_3, 16,
 		PSG::KEY::E_3, 16,
@@ -58,9 +62,46 @@ namespace {
 		PSG::KEY::A_4, 16,
 		PSG::KEY::B_4, 16,
 		PSG::KEY::C_4, 16,
+		PSG::CTRL::BEFORE,
+		PSG::CTRL::TRI,
+		PSG::CTRL::TEMPO, 10,
+		PSG::KEY::C_4, 16,
+		PSG::KEY::B_4, 16,
+		PSG::KEY::A_4, 16,
+		PSG::KEY::G_3, 16,
+		PSG::KEY::F_3, 16,
+		PSG::KEY::E_3, 16,
+		PSG::KEY::D_3, 16,
+		PSG::KEY::C_3, 16,
 		PSG::CTRL::END
 	};
 
+	const PSG::SCORE score1_[] = {
+		PSG::CTRL::VOLUME, 15,
+		PSG::CTRL::SQ50,
+		PSG::CTRL::TEMPO, 8,
+		PSG::CTRL::FOR, 3,
+		PSG::KEY::Cs_3, 16,
+		PSG::KEY::Ds_3, 16,
+		PSG::KEY::Q, 16,
+		PSG::KEY::Fs_3, 16,
+		PSG::KEY::Gs_3, 16,
+		PSG::KEY::Q, 16,
+		PSG::KEY::Q, 16,
+		PSG::KEY::Cs_4, 16,
+		PSG::CTRL::BEFORE,
+		PSG::CTRL::TRI,
+		PSG::CTRL::TEMPO, 10,
+		PSG::KEY::Cs_4, 16,
+		PSG::KEY::Q, 16,
+		PSG::KEY::Q, 16,
+		PSG::KEY::Gs_3, 16,
+		PSG::KEY::Fs_3, 16,
+		PSG::KEY::Q, 16,
+		PSG::KEY::Ds_3, 16,
+		PSG::KEY::Cs_3, 16,
+		PSG::CTRL::END
+	};
 }
 
 
@@ -146,17 +187,18 @@ int main(int argc, char *argv[])
 
 	sci_puts("Start R8C PSG sample\n");
 
-	psg_mng_.set_volume(PSG_MNG::CHANNEL::CH0, 15);
-//	psg_mng_.set_wtype(PSG_MNG::CHANNEL::CH0, PSG_MNG::WTYPE::SQ50);
- 	psg_mng_.set_wtype(PSG_MNG::CHANNEL::CH0, PSG_MNG::WTYPE::TRI);
+//	psg_mng_.set_volume(0, 15);
+//	psg_mng_.set_volume(1, 0);
+//	psg_mng_.set_volume(2, 0);
+//	psg_mng_.set_volume(3, 0);
 
-	psg_mng_.set_volume(PSG_MNG::CHANNEL::CH1, 0);
-	psg_mng_.set_volume(PSG_MNG::CHANNEL::CH2, 0);
+//	psg_mng_.set_wtype(0, PSG_MNG::WTYPE::SQ50);
+// 	psg_mng_.set_wtype(0, PSG_MNG::WTYPE::TRI);
+//	psg_mng_.set_freq(0, 880);
+//	psg_mng_.set_key(0, PSG_MNG::KEY::A_3);
 
-//	psg_mng_.set_freq(PSG_MNG::CHANNEL::CH0, 880);
-//	psg_mng_.set_key(PSG_MNG::CHANNEL::CH0, PSG_MNG::KEY::A_3);
-
-	psg_mng_.set_score(score_, nullptr, nullptr);
+	psg_mng_.set_score(0, score0_);
+	psg_mng_.set_score(1, score1_);
 
 	auto pos = pwm_pos_;
 	uint8_t delay = 100;
