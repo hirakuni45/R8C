@@ -13,6 +13,7 @@
 */
 //=====================================================================//
 #include "renesas.hpp"
+#include "common/format.hpp"
 
 namespace utils {
 
@@ -44,96 +45,136 @@ namespace utils {
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		enum class KEY : uint8_t {
-			A_1,	///< A  ラ  27.5Hz
-			As_1,	///< A#
-			B_1,	///< B  シ
-			C_1,	///< C  ド
-			Cs_1,	///< C#
-			D_1,	///< D  レ
-			Ds_1,	///< D#
-			E_1,	///< E  ミ
-			F_1,	///< F  ファ
-			Fs_1,	///< F#
-			G_1,	///< G  ソ
-			Gs_1,	///< G#
+			A_0,		///< A  ラ  27.5Hz (0)
+			As0,		///< A#
+			Bb0 = As0,	///< Bb
+			B_0,		///< B  シ
+			C_1,		///< C  ド
+			Cs1,		///< C#
+			Db1 = Cs1,	///< Db
+			D_1,		///< D  レ
+			Ds1,		///< D#
+			Eb1 = Ds1,	///< Eb
+			E_1,		///< E  ミ
+			F_1,		///< F  ファ
+			Fs1,		///< F#
+			Gb1 = Fs1,	///< Gb
+			G_1,		///< G  ソ
+			Gs1,		///< G#
 
-			A_2,	///< A  ラ  55Hz
-			As_2,	///< A#
-			B_2,	///< B  シ
-			C_2,	///< C  ド
-			Cs_2,	///< C#
-			D_2,	///< D  レ
-			Ds_2,	///< D#
-			E_2,	///< E  ミ
-			F_2,	///< F  ファ
-			Fs_2,	///< F#
-			G_2,	///< G  ソ
-			Gs_2,	///< G#
+			Ab1 = Gs1,	///< Ab
+			A_1,		///< A  ラ  55Hz (1)
+			As1,		///< A#
+			Bb1 = As1,	///< Bb
+			B_1,		///< B  シ
+			C_2,		///< C  ド
+			Cs2,		///< C#
+			Db2 = Cs2,	///< Db
+			D_2,		///< D  レ
+			Ds2,		///< D#
+			Eb2 = Ds2,	///< Eb
+			E_2,		///< E  ミ
+			F_2,		///< F  ファ
+			Fs2,		///< F#
+			Gb2 = Fs2,	///< Gb
+			G_2,		///< G  ソ
+			Gs2,		///< G#
 
-			A_3,	///< A  ラ  110Hz
-			As_3,	///< A#
-			B_3,	///< B  シ
-			C_3,	///< C  ド
-			Cs_3,	///< C#
-			D_3,	///< D  レ
-			Ds_3,	///< D#
-			E_3,	///< E  ミ
-			F_3,	///< F  ファ
-			Fs_3,	///< F#
-			G_3,	///< G  ソ
-			Gs_3,	///< G#
+			Ab2 = Gs2,	///< Ab
+			A_2,		///< A  ラ  110Hz (2)
+			As2,		///< A#
+			Bb2 = As2,	///< Bb
+			B_2,		///< B  シ
+			C_3,		///< C  ド
+			Cs3,		///< C#
+			Db3 = Cs3,	///< Db
+			D_3,		///< D  レ
+			Ds3,		///< D#
+			Eb3 = Ds3,	///< Eb
+			E_3,		///< E  ミ
+			F_3,		///< F  ファ
+			Fs3,		///< F#
+			Gb3 = Fs3,	///< Gb
+			G_3,		///< G  ソ
+			Gs3,		///< G#
 
-			A_4,	///< A  ラ  220Hz
-			As_4,	///< A#
-			B_4,	///< B  シ
-			C_4,	///< C  ド
-			Cs_4,	///< C#
-			D_4,	///< D  レ
-			Ds_4,	///< D#
-			E_4,	///< E  ミ
-			F_4,	///< F  ファ
-			Fs_4,	///< F#
-			G_4,	///< G  ソ
-			Gs_4,	///< G#
+			Ab3 = Gs3,	///< Ab
+			A_3,		///< A  ラ  220Hz (3)
+			As3,		///< A#
+			Bb3 = As3,	///< Bb
+			B_3,		///< B  シ
+			C_4,		///< C  ド
+			Cs4,		///< C#
+			Db4 = Cs4,	///< Db
+			D_4,		///< D  レ
+			Ds4,		///< D#
+			Eb4 = Ds4,	///< Eb
+			E_4,		///< E  ミ
+			F_4,		///< F  ファ
+			Fs4,		///< F#
+			Gb4 = Fs4,	///< Gb
+			G_4,		///< G  ソ
+			Gs4,		///< G#
 
-			A_5,	///< A  ラ  440Hz
-			As_5,	///< A#
-			B_5,	///< B  シ
-			C_5,	///< C  ド
-			Cs_5,	///< C#
-			D_5,	///< D  レ
-			Ds_5,	///< D#
-			E_5,	///< E  ミ
-			F_5,	///< F  ファ
-			Fs_5,	///< F#
-			G_5,	///< G  ソ
-			Gs_5,	///< G#
+			Ab4 = Gs4,	///< Ab
+			A_4,		///< A  ラ  440Hz (4)
+			As4,		///< A#
+			Bb4 = As4,	///< Bb
+			B_4,		///< B  シ
+			C_5,		///< C  ド
+			Cs5,		///< C#
+			Db5 = Cs5,	///< Db
+			D_5,		///< D  レ
+			Ds5,		///< D#
+			Eb5 = Ds5,	///< Eb
+			E_5,		///< E  ミ
+			F_5,		///< F  ファ
+			Fs5,		///< F#
+			Gb5 = Fs5,	///< Gb
+			G_5,		///< G  ソ
+			Gs5,		///< G#
 
-			A_6,	///< A  ラ  880Hz
-			As_6,	///< A#
-			B_6,	///< B  シ
-			C_6,	///< C  ド
-			Cs_6,	///< C#
-			D_6,	///< D  レ
-			Ds_6,	///< D#
-			E_6,	///< E  ミ
-			F_6,	///< F  ファ
-			Fs_6,	///< F#
-			G_6,	///< G  ソ
-			Gs_6,	///< G#
+			Ab5 = Gs5,	///< Ab
+			A_5,		///< A  ラ  880Hz (5)
+			As5,		///< A#
+			Bb5 = As5,	///< Bb
+			B_5,		///< B  シ
+			C_6,		///< C  ド
+			Cs6,		///< C#
+			Db6 = Cs6,	///< Db
+			D_6,		///< D  レ
+			Ds6,		///< D#
+			Eb6 = Ds6,	///< Eb
+			E_6,		///< E  ミ
+			F_6,		///< F  ファ
+			Fs6,		///< F#
+			Gb6 = Fs6,	///< Gb
+			G_6,		///< G  ソ
+			Gs6,		///< G#
 
-			A_7,	///< A  ラ 1760Hz
-			As_7,	///< A#
-			B_7,	///< B  シ
-			C_7,	///< C  ド
-			Cs_7,	///< C#
-			D_7,	///< D  レ
-			Ds_7,	///< D#
-			E_7,	///< E  ミ
-			F_7,	///< F  ファ
-			Fs_7,	///< F#
-			G_7,	///< G  ソ
-			Gs_7,	///< G#
+			Ab6 = Gs6,	///< Ab
+			A_6,		///< A  ラ 1760Hz (6)
+			As6,		///< A#
+			Bb6 = As6,	///< Bb
+			B_6,		///< B  シ
+			C_7,		///< C  ド
+			Cs7,		///< C#
+			Db7 = Cs7,	///< Db
+			D_7,		///< D  レ
+			Ds7,		///< D#
+			Eb7 = Ds7,	///< Eb
+			E_7,		///< E  ミ
+			F_7,		///< F  ファ
+			Fs7,		///< F#
+			Gb7 = Fs7,	///< Gb
+			G_7,		///< G  ソ
+			Gs7,		///< G#
+
+			Ab7 = Gs7,	///< Ab
+			A_7,		///< A  ラ 3520Hz (7)
+			As7,		///< A#
+			B_7,		///< B  シ
+			C_8,		///< C  ド
 
 			Q,		///< 休符
 		};
@@ -145,7 +186,7 @@ namespace utils {
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		enum class CTRL : uint8_t {
-			TR = 84+1,	///< (2) トランスポーズ, num
+			TR = 89,	///< (2) トランスポーズ, num
 			SQ25,		///< (1) 波形 SQ25
 			SQ50,		///< (1) 波形 SQ50
 			SQ75,		///< (1) 波形 SQ75
@@ -156,6 +197,7 @@ namespace utils {
 			BEFORE,		///< (1) ループ終了
 			END,		///< (1) 終了
 			LOOP,		///< (1) 最初に戻る
+			TEST,
 		};
 
 
@@ -174,9 +216,9 @@ namespace utils {
 				CTRL	ctrl;
 				uint8_t	len;
 			};
-			SCORE(KEY k) : key(k) { }
-			SCORE(CTRL c) : ctrl(c) { }
-			SCORE(uint8_t l) : len(l) { }
+			constexpr SCORE(KEY k) noexcept : key(k) { }
+			constexpr SCORE(CTRL c) noexcept : ctrl(c) { }
+			constexpr SCORE(uint8_t l) noexcept : len(l) { }
 		};
 	};
 
@@ -192,7 +234,7 @@ namespace utils {
 	template <uint16_t BSIZE, uint16_t CNUM>
 	class psg_mng : public psg_base {
 
-		static const uint16_t BASE_FRQ = F_CLK / 4 / 256;
+		static constexpr uint16_t BASE_FRQ = F_CLK / 4 / 256;
 
 		// 12 平均音階率の計算：
 		// 2^(1/12) の定数、１２乗すると２倍（１オクターブ上がる）となる。
@@ -216,6 +258,8 @@ namespace utils {
 
 		bool		pause_;
 
+		static uint16_t	frame_;
+
 		struct channel {
 			uint8_t		vol_;  // 0 to 15
 			WTYPE		wtype_;
@@ -224,20 +268,19 @@ namespace utils {
 			const SCORE*	score_org_;
 			uint16_t	score_pos_;
 			uint8_t		tempo_;
-			uint8_t		count_;
-			uint8_t		alen_;
+			uint16_t	count_;
 			uint8_t		tr_;
 			uint16_t	loop_org_;
 			uint8_t		loop_cnt_;
-			channel() : vol_(0), wtype_(WTYPE::SQ50), acc_(0), spd_(0),
+			channel() noexcept : vol_(0), wtype_(WTYPE::SQ50), acc_(0), spd_(0),
 				score_org_(nullptr), score_pos_(0),
-				tempo_(0), count_(0), alen_(0),
+				tempo_(0), count_(0),
 				tr_(0), loop_org_(0), loop_cnt_(0)
 			{ }
 
-			void update() { acc_ += spd_; }
+			void update() noexcept { acc_ += spd_; }
 
-			int8_t get()
+			int8_t get() noexcept
 			{
 				if(spd_ == 0) return 0;
 
@@ -272,42 +315,36 @@ namespace utils {
 				return w;
 			}
 
-			void set_freq(uint16_t frq) { spd_ = (static_cast<uint32_t>(frq) << 16) / BASE_FRQ; }
-//			void set_spd(uint16_t spd) { spd_ = spd; }
+			void set_freq(uint16_t frq) noexcept { spd_ = (static_cast<uint32_t>(frq) << 16) / BASE_FRQ; }
+//			void set_spd(uint16_t spd) noexcept { spd_ = spd; }
 
 			// 完了なら「true」
-			bool service()
+			bool service() noexcept
 			{
 				if(score_org_ == nullptr) return true;
 
-				if(alen_ > 0) {
-					if(count_ > 0) {
-						count_--;
-					} else {
-						alen_--;
-					}
-					return true;
+				if(count_ > 0) {
+					count_--;
+					if(count_ > 0) return true;
 				}
 
 				auto v = score_org_[score_pos_];
 				++score_pos_;
-				if(v.len < 84) {
+				if(v.len < 88) {
 					v.len += tr_;
 					if(v.len >= 0x80) v.len = 0;
-					else if(v.len >= 84) v.len = 84;
+					else if(v.len >= 88) v.len = 87;
 					auto o = v.len / 12;
 					auto k = v.len % 12;
 					spd_ = key_tbl_[k] >> (7 - o);
 					acc_ = 0;
-					count_ = tempo_;
-					alen_ = score_org_[score_pos_].len;
+					count_ = score_org_[score_pos_].len * tempo_;
 					++score_pos_;
 					return true;
-				} else if(v.len == 84) {  // 休符
+				} else if(v.len == 88) {  // 休符
 					spd_ = 0;
 					acc_ = 0;
-					count_ = tempo_;
-					alen_ = score_org_[score_pos_].len;
+					count_ = score_org_[score_pos_].len * tempo_;
 					++score_pos_;
 					return true;
 				} else {
@@ -354,9 +391,11 @@ namespace utils {
 						break;
 					case CTRL::LOOP:
 						score_pos_ = 0;
-						alen_ = 0;
 						tempo_ = 0;
 						count_ = 0;
+						break;
+					case CTRL::TEST:
+//						utils::format("%d\n") % frame_;
 						break;
 					default:
 						break;
@@ -483,6 +522,7 @@ namespace utils {
 			if(ch >= CNUM) return;
 			channel_[ch].score_org_ = score;
 			channel_[ch].score_pos_ = 0;
+			channel_[ch].count_ = 0;
 		}
 
 
@@ -493,6 +533,8 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		void service() noexcept
 		{
+			frame_++;
+
 			for(uint8_t i = 0; i < CNUM; ++i) {
 				for(;;) {
 					if(channel_[i].service()) {
@@ -513,4 +555,5 @@ namespace utils {
 	};
 
 	template<uint16_t BSIZE, uint16_t CNUM> constexpr uint16_t psg_mng<BSIZE, CNUM>::key_tbl_[12];
+	template<uint16_t BSIZE, uint16_t CNUM> uint16_t psg_mng<BSIZE, CNUM>::frame_;
 }
