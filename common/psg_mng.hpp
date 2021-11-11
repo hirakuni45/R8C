@@ -3,7 +3,9 @@
 /*!	@file
 	@brief	PSG Emulations Manager @n
 			ファミコン内蔵音源と同じような機能を持った波形生成 @n
-			波形メモリを PWM 変調などで出力する事を前提にしている。
+			波形をレンダリングして波形バッファに生成する。 @n
+			生成した波形メモリを PWM 変調などで出力する事を前提にしている。 @n
+			分解能は８ビット
     @author 平松邦仁 (hira@rvf-rc45.net)
 	@copyright	Copyright (C) 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
@@ -23,18 +25,6 @@ namespace utils {
 	public:
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
-			@brief  チャネル
-		*/
-		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		enum class CHANNEL : uint8_t {
-			CH0,
-			CH1,
-			CH2,
-		};
-
-
-		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		/*!
 			@brief  波形タイプ
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -43,13 +33,13 @@ namespace utils {
 			SQ50,	///< 矩形波 Duty50%
 			SQ75,	///< 矩形波 Duty75%
 			TRI,	///< 三角波
-			NOISE,	///< ノイズ
+			NOISE,	///< ノイズ（現在未サポート）
 		};
 
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
-			@brief  １２平均音階のキー @n
+			@brief  １２平均音階率によるキーテーブル @n
 					(0)27.5, (1)55, (2)110, (3)220, (4)440, (5)880, (6)1760, (7)3520
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
@@ -159,7 +149,8 @@ namespace utils {
 			SQ25,		///< (1) 波形 SQ25
 			SQ50,		///< (1) 波形 SQ50
 			SQ75,		///< (1) 波形 SQ75
-			TRI,		///< (1) 波形 三角波
+			TRI,		///< (1) 波形 TRI
+			VOLUME,		///< (2) ボリューム
 			TEMPO,		///< (2) テンポ, num
 			FOR,		///< (2) ループ開始, num
 			BEFORE,		///< (1) ループ終了
@@ -170,7 +161,7 @@ namespace utils {
 
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		/*!
-			@brief  スコア・コマンド @n
+			@brief  スコア・コマンド構造 @n
 					・KEY, len @n
 					・TR, num @n
 					・TEMPO, num @n
@@ -195,9 +186,10 @@ namespace utils {
 		@brief  PSG Manager テンプレート class @n
 				PWM 変調は、(F_CLK:20MHz / 4 / 256) = 19531Hz としている。 
 		@param[in] BSIZE	バッファサイズ（通常５１２）
+		@param[in] CNUM		チャネル数（通常４）
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <uint16_t BSIZE>
+	template <uint16_t BSIZE, uint16_t CNUM>
 	class psg_mng : public psg_base {
 
 		static const uint16_t BASE_FRQ = F_CLK / 4 / 256;
@@ -222,6 +214,8 @@ namespace utils {
 		uint16_t	wav_pos_;
 		uint8_t		wav_[BSIZE];
 
+		bool		pause_;
+
 		struct channel {
 			uint8_t		vol_;  // 0 to 15
 			WTYPE		wtype_;
@@ -232,15 +226,20 @@ namespace utils {
 			uint8_t		tempo_;
 			uint8_t		count_;
 			uint8_t		alen_;
+			uint8_t		tr_;
+			uint16_t	loop_org_;
+			uint8_t		loop_cnt_;
 			channel() : vol_(0), wtype_(WTYPE::SQ50), acc_(0), spd_(0),
-				score_org_(nullptr), score_pos_(0), tempo_(0), count_(0), alen_(0)
+				score_org_(nullptr), score_pos_(0),
+				tempo_(0), count_(0), alen_(0),
+				tr_(0), loop_org_(0), loop_cnt_(0)
 			{ }
 
 			void update() { acc_ += spd_; }
 
-			uint8_t get()
+			int8_t get()
 			{
-				if(spd_ == 0) return 0x80;
+				if(spd_ == 0) return 0;
 
 				bool on = false;
 				switch(wtype_) {
@@ -255,32 +254,31 @@ namespace utils {
 					break;
 				case WTYPE::TRI:
 					{
-						uint8_t a = (acc_ >> 11) & 0x7;
-						if((acc_ & 0x4000) != 0) a ^= 0x7;
-						a *= vol_;
-						uint8_t w = 0x80;
-						if((acc_ & 0x8000) == 0) {
-							w += a;
-						} else {
-							w -= a;
+						int8_t w = (acc_ >> 11) & 0x7;
+						if((acc_ & 0x4000) != 0) w ^= 0x7;
+						w *= vol_;
+						if((acc_ & 0x8000) != 0) {
+							w = -w;
 						}
 						return w;
 					}
 				case WTYPE::NOISE:
-					return 0x80;
+					return 0;
 				}
-				uint8_t w = (vol_ << 3) | (vol_ >> 1);
-				if(on) { w += 0x80; }
-				else { w = 0x80 - w; }
+//				int8_t w = (vol_ << 3) | (vol_ >> 1);
+				// 矩形波は、三角波に比べて、音圧が高いので、バランスを取る為少し弱める。
+				int8_t w = (vol_ << 2) + (vol_ << 1);
+				if(!on) { w = -w; }
 				return w;
 			}
 
 			void set_freq(uint16_t frq) { spd_ = (static_cast<uint32_t>(frq) << 16) / BASE_FRQ; }
-			void set_spd(uint16_t spd) { spd_ = spd; }
+//			void set_spd(uint16_t spd) { spd_ = spd; }
 
-			void service()
+			// 完了なら「true」
+			bool service()
 			{
-				if(score_org_ == nullptr) return;
+				if(score_org_ == nullptr) return true;
 
 				if(alen_ > 0) {
 					if(count_ > 0) {
@@ -288,12 +286,15 @@ namespace utils {
 					} else {
 						alen_--;
 					}
-					return;
+					return true;
 				}
 
 				auto v = score_org_[score_pos_];
 				++score_pos_;
 				if(v.len < 84) {
+					v.len += tr_;
+					if(v.len >= 0x80) v.len = 0;
+					else if(v.len >= 84) v.len = 84;
 					auto o = v.len / 12;
 					auto k = v.len % 12;
 					spd_ = key_tbl_[k] >> (7 - o);
@@ -301,19 +302,51 @@ namespace utils {
 					count_ = tempo_;
 					alen_ = score_org_[score_pos_].len;
 					++score_pos_;
-					return;
-				} else if(v.len == (84+1)) {  // 休符
+					return true;
+				} else if(v.len == 84) {  // 休符
 					spd_ = 0;
 					acc_ = 0;
 					count_ = tempo_;
 					alen_ = score_org_[score_pos_].len;
 					++score_pos_;
+					return true;
 				} else {
 					switch(v.ctrl) {
+					case CTRL::TR:
+						tr_ = score_org_[score_pos_].len;
+						++score_pos_;
+						break;
+					case CTRL::SQ25:
+						wtype_ = WTYPE::SQ25;
+						break;
+					case CTRL::SQ50:
+						wtype_ = WTYPE::SQ50;
+						break;
+					case CTRL::SQ75:
+						wtype_ = WTYPE::SQ75;
+						break;
+					case CTRL::TRI:
+						wtype_ = WTYPE::TRI;
+						break;
+					case CTRL::VOLUME:
+						vol_ = score_org_[score_pos_].len;
+						++score_pos_;
+						break;
 					case CTRL::TEMPO:
 						tempo_ = score_org_[score_pos_].len;
-						count_ = 0;
 						++score_pos_;
+						count_ = 0;
+						break;
+					case CTRL::FOR:
+						loop_cnt_ = score_org_[score_pos_].len;
+						++score_pos_;
+						loop_org_ = score_pos_;
+						break;
+					case CTRL::BEFORE:
+						if(loop_cnt_ > 1) {
+							loop_cnt_--;
+							score_pos_ = loop_org_;
+						}
 						break;
 					case CTRL::END:
 						score_org_ = nullptr;
@@ -328,15 +361,12 @@ namespace utils {
 					default:
 						break;
 					}
+					return false;
 				}
 			}
 		};
 
-		channel		channel_[3];
-
-		bool		pause_;
-
-//		uint16_t	score_pos_;
+		channel		channel_[CNUM];
 
 	public:
 		//-----------------------------------------------------------------//
@@ -344,8 +374,9 @@ namespace utils {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		psg_mng() noexcept : wav_pos_(0), wav_{ 0x80 }, channel_{ },
-			pause_(false)
+		psg_mng() noexcept : wav_pos_(0), wav_{ 0x80 },
+			pause_(false),
+			channel_{ }
 		{ }
 
 
@@ -356,9 +387,10 @@ namespace utils {
 			@param[in]	wt		波形タイプ
 		*/
 		//-----------------------------------------------------------------//
-		void set_wtype(CHANNEL ch, WTYPE wt) noexcept
+		void set_wtype(uint8_t ch, WTYPE wt) noexcept
 		{
-			channel_[static_cast<uint8_t>(ch)].wtype_ = wt;
+			if(ch >= CNUM) return;
+			channel_[ch].wtype_ = wt;
 		}
 
 
@@ -369,9 +401,10 @@ namespace utils {
 			@param[in]	vol		ボリューム（0 to 15）	
 		*/
 		//-----------------------------------------------------------------//
-		void set_volume(CHANNEL ch, uint8_t vol) noexcept
+		void set_volume(uint8_t ch, uint8_t vol) noexcept
 		{
-			channel_[static_cast<uint8_t>(ch)].vol_ = vol & 15;
+			if(ch >= CNUM) return;
+			channel_[ch].vol_ = vol & 15;
 		}
 
 
@@ -382,10 +415,11 @@ namespace utils {
 			@param[in]	frq		周波数
 		*/
 		//-----------------------------------------------------------------//
-		void set_freq(CHANNEL ch, uint16_t frq) noexcept
+		void set_freq(uint8_t ch, uint16_t frq) noexcept
 		{
-			channel_[static_cast<uint8_t>(ch)].set_freq(frq);
-			channel_[static_cast<uint8_t>(ch)].acc_ = 0;
+			if(ch >= CNUM) return;
+			channel_[ch].set_freq(frq);
+			channel_[ch].acc_ = 0;
 		}
 
 
@@ -396,12 +430,13 @@ namespace utils {
 			@param[in]	key		キー
 		*/
 		//-----------------------------------------------------------------//
-		void set_key(CHANNEL ch, KEY key) noexcept
+		void set_key(uint8_t ch, KEY key) noexcept
 		{
+			if(ch >= CNUM) return;
 			auto o = static_cast<uint8_t>(key) / 12;
 			auto k = static_cast<uint8_t>(key) % 12;
-			channel_[static_cast<uint8_t>(ch)].spd_ = key_tbl_[k] >> (7 - o);
-			channel_[static_cast<uint8_t>(ch)].acc_ = 0;
+			channel_[ch].spd_ = key_tbl_[k] >> (7 - o);
+			channel_[ch].acc_ = 0;
 		}
 
 
@@ -414,13 +449,12 @@ namespace utils {
 		void render(uint16_t count) noexcept
 		{
 			for(uint16_t i = 0; i < count; ++i) {
-				channel_[0].update();
-				auto ch0 = channel_[0].get();
-				channel_[1].update();
-				auto ch1 = channel_[1].get();
-				channel_[2].update();
-				auto ch2 = channel_[2].get();
-				wav_[wav_pos_] = (static_cast<uint16_t>(ch0) + static_cast<uint16_t>(ch1) + static_cast<uint16_t>(ch2)) / 3;
+				int16_t sum = 0;
+				for(uint8_t j = 0; j < CNUM; ++j) {
+					channel_[j].update();
+					sum += channel_[j].get();
+				}
+				wav_[wav_pos_] = (sum / CNUM) + 0x80;
 				++wav_pos_;
 				if(wav_pos_ >= BSIZE) wav_pos_ = 0;
 			}
@@ -440,19 +474,15 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  スコアの設定
-			@param[in]	ch0		CH0 スコア
-			@param[in]	ch1		CH1 スコア
-			@param[in]	ch2		CH2 スコア
+			@param[in]	ch		チャネル番号
+			@param[in]	score	スコア
 		*/
 		//-----------------------------------------------------------------//
-		void set_score(const SCORE* ch0, const SCORE* ch1, const SCORE* ch2) noexcept
+		void set_score(uint8_t ch, const SCORE* score)
 		{
-			channel_[0].score_org_ = ch0;
-			channel_[0].score_pos_ = 0;
-			channel_[1].score_org_ = ch1;
-			channel_[1].score_pos_ = 0;
-			channel_[2].score_org_ = ch2;
-			channel_[2].score_pos_ = 0;
+			if(ch >= CNUM) return;
+			channel_[ch].score_org_ = score;
+			channel_[ch].score_pos_ = 0;
 		}
 
 
@@ -463,18 +493,13 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		void service() noexcept
 		{
-			channel_[0].service();
-			channel_[1].service();
-			channel_[2].service();
-#if 0
-			static const KEY key[] = { KEY::C_3, KEY::D_3, KEY::E_3, KEY::F_3, KEY::G_3, KEY::A_4, KEY::B_4, KEY::C_4 };
-			if((score_pos_ % 100) == 0) {
-				auto k = score_pos_ / 100;
-				set_key(CHANNEL::CH0, key[k]);
+			for(uint8_t i = 0; i < CNUM; ++i) {
+				for(;;) {
+					if(channel_[i].service()) {
+						break;
+					}
+				}
 			}
-			score_pos_++;
-			if(score_pos_ >= (100 * 8)) score_pos_ = 0;
-#endif
 		}
 
 
@@ -487,5 +512,5 @@ namespace utils {
 		void pause(bool ena = true) noexcept { pause_ = ena; }
 	};
 
-	template<uint16_t BSIZE> constexpr uint16_t psg_mng<BSIZE>::key_tbl_[12];
+	template<uint16_t BSIZE, uint16_t CNUM> constexpr uint16_t psg_mng<BSIZE, CNUM>::key_tbl_[12];
 }
