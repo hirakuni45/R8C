@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P13::TRCIOC);
 		bool pfl = 0;  // 0->1
 		uint8_t ir_level = 2;
-		timer_c_.start_pwm(255, timer_c::divide::f4, pfl, ir_level);
+		timer_c_.start(255, timer_c::DIVIDE::F4, pfl, ir_level);
 	}
 
 	// タイマーＢ初期化

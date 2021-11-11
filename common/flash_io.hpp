@@ -3,7 +3,7 @@
 /*!	@file
 	@brief	R8C グループ・フラッシュ制御
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2015, 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2015, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -26,9 +26,9 @@ namespace device {
 			@brief  データ・バンク定義
 		*/
 		//-----------------------------------------------------------------//
-		enum class data_area {
-			bank0,	///< 0x3000 to 0x33FF (1024)
-			bank1,	///< 0x3400 to 0x37FF (1024)
+		enum class DATA_AREA {
+			BANK0,	///< 0x3000 to 0x33FF (1024)
+			BANK1,	///< 0x3400 to 0x37FF (1024)
 		};
 
 	private:
@@ -92,11 +92,11 @@ namespace device {
 			@return エラーがあれば「false」
 		*/
 		//-----------------------------------------------------------------//
-		bool erase(data_area bank) const {
+		bool erase(DATA_AREA bank) const {
 			uint16_t ofs;
-			if(bank == data_area::bank0) {
+			if(bank == DATA_AREA::BANK0) {
 				ofs = 0x0000;
-			} else if(bank == data_area::bank1) {
+			} else if(bank == DATA_AREA::BANK1) {
 				ofs = 0x0400;
 			} else {
 				return false;

@@ -48,11 +48,11 @@ namespace {
 	typedef device::trc_io<pwm_task> TIMER_C;
 	TIMER_C	timer_c_;
 
-	// ドラゴンクエスト・ラダトーム城
+	// ドラゴンクエスト１・ラダトーム城（Dragon Quest 1 Chateau Ladutorm）
 	constexpr PSG::SCORE score0_[] = {
 		PSG::CTRL::VOLUME, 15,
 		PSG::CTRL::SQ50,
-		PSG::CTRL::TEMPO, 3,
+		PSG::CTRL::TEMPO, 85,
 		// 1
 		PSG::KEY::Q,   8,
 		PSG::KEY::E_5, 8,
@@ -239,7 +239,7 @@ namespace {
 	constexpr PSG::SCORE score1_[] = {
 		PSG::CTRL::VOLUME, 15,
 		PSG::CTRL::SQ50,
-		PSG::CTRL::TEMPO, 3,
+		PSG::CTRL::TEMPO, 85,
 		// 1
 		PSG::KEY::A_2, 8,
 		PSG::KEY::Q,   8*7,

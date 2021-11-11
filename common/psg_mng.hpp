@@ -323,9 +323,9 @@ namespace utils {
 			{
 				if(score_org_ == nullptr) return true;
 
-				if(count_ > 0) {
-					count_--;
-					if(count_ > 0) return true;
+				if(count_ >= tempo_) {
+					count_ -= tempo_;
+					if(count_ >= tempo_) return true;
 				}
 
 				auto v = score_org_[score_pos_];
@@ -338,13 +338,13 @@ namespace utils {
 					auto k = v.len % 12;
 					spd_ = key_tbl_[k] >> (7 - o);
 					acc_ = 0;
-					count_ = score_org_[score_pos_].len * tempo_;
+					count_ += score_org_[score_pos_].len << 8;
 					++score_pos_;
 					return true;
 				} else if(v.len == 88) {  // 休符
 					spd_ = 0;
 					acc_ = 0;
-					count_ = score_org_[score_pos_].len * tempo_;
+					count_ += score_org_[score_pos_].len << 8;
 					++score_pos_;
 					return true;
 				} else {
@@ -522,6 +522,7 @@ namespace utils {
 			if(ch >= CNUM) return;
 			channel_[ch].score_org_ = score;
 			channel_[ch].score_pos_ = 0;
+			channel_[ch].tempo_ = 64;  // 初期テンポ
 			channel_[ch].count_ = 0;
 		}
 

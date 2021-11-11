@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P13::TRCIOC);
 		bool pfl = 0;  // 0->1
 		uint8_t ir_level = 2;
-		timer_c_.start_pwm(50000, TRC::divide::f8, pfl, ir_level);
+		timer_c_.start(50000, TRC::DIVIDE::F8, pfl, ir_level);
 		timer_c_.set_pwm_b(rcs_n_);
 		timer_c_.set_pwm_c(rcs_n_);
 	}
