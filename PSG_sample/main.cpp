@@ -27,9 +27,10 @@ namespace {
 	typedef device::uart_io<device::UART0, TX_BUFF, RX_BUFF> UART;
 	UART	uart_;
 
-	static const uint16_t BSIZE = 512;
+	static constexpr uint16_t BSIZE = 512;
+	static constexpr uint16_t CNUM = 4;
 	typedef utils::psg_base PSG;
-	typedef utils::psg_mng<BSIZE> PSG_MNG;
+	typedef utils::psg_mng<BSIZE, CNUM> PSG_MNG;
 	PSG_MNG	psg_mng_;
 
 	volatile uint16_t pwm_pos_;
@@ -47,20 +48,314 @@ namespace {
 	typedef device::trc_io<pwm_task> TIMER_C;
 	TIMER_C	timer_c_;
 
-	// 楽譜
-	const PSG::SCORE score_[] = {
-		PSG::CTRL::TEMPO, 8,
-		PSG::KEY::C_3, 16,
-		PSG::KEY::D_3, 16,
-		PSG::KEY::E_3, 16,
-		PSG::KEY::F_3, 16,
-		PSG::KEY::G_3, 16,
-		PSG::KEY::A_4, 16,
-		PSG::KEY::B_4, 16,
-		PSG::KEY::C_4, 16,
+	// ドラゴンクエスト・ラダトーム城
+	constexpr PSG::SCORE score0_[] = {
+		PSG::CTRL::VOLUME, 15,
+		PSG::CTRL::SQ50,
+		PSG::CTRL::TEMPO, 3,
+		// 1
+		PSG::KEY::Q,   8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::E_5, 8,
+		// 2
+		PSG::KEY::A_4, 8*3,
+		PSG::KEY::Q,   8*5,
+		// 3
+		PSG::KEY::Q,   8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::F_5, 8,
+		// 4
+		PSG::KEY::B_4, 8*3,
+		PSG::KEY::Q,   8*5,
+		// 5
+		PSG::KEY::Q,   8,
+		PSG::KEY::G_5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::G_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::G_5, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::G_5, 8,
+		// 6
+		PSG::KEY::F_5, 16,
+		PSG::KEY::G_5, 16,
+		PSG::KEY::A_5, 16,
+		PSG::KEY::G_5, 8,
+		PSG::KEY::F_5, 8,
+		// 7
+		PSG::KEY::E_5, 16,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::D_5, 16,
+		PSG::KEY::Eb5, 16,
+		// 8
+		PSG::KEY::E_5, 8*8,
+		// 9
+		PSG::KEY::Q,   8,
+		PSG::KEY::A_5, 4,
+		PSG::KEY::Gs5, 4,
+		PSG::KEY::A_5, 8,
+		PSG::KEY::E_5, 4,
+		PSG::KEY::Eb5, 4,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::C_5, 4,
+		PSG::KEY::B_4, 4,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::A_4, 8,
+		// 10
+		PSG::KEY::Q,   8,
+		PSG::KEY::A_5, 4,
+		PSG::KEY::Gs5, 4,
+		PSG::KEY::A_5, 8,
+		PSG::KEY::E_5, 4,
+		PSG::KEY::Eb5, 4,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::C_5, 4,
+		PSG::KEY::B_4, 4,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::A_4, 8,
+		// 11
+		PSG::KEY::B_4, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::A_4, 8,
+		// 12
+		PSG::KEY::E_5, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::E_5, 8,
+		// 13
+		PSG::KEY::Q,   8,
+		PSG::KEY::A_5, 4,
+		PSG::KEY::Gs5, 4,
+		PSG::KEY::A_5, 8,
+		PSG::KEY::F_5, 4,
+		PSG::KEY::E_5, 4,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::D_5, 4,
+		PSG::KEY::Cs5, 4,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::A_4, 8,
+		// 14
+		PSG::KEY::Q,   8,
+		PSG::KEY::A_5, 4,
+		PSG::KEY::Gs5, 4,
+		PSG::KEY::A_5, 8,
+		PSG::KEY::F_5, 4,
+		PSG::KEY::E_5, 4,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::D_5, 4,
+		PSG::KEY::Cs5, 4,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::A_4, 8,
+		// 15
+		PSG::KEY::B_4, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::F_5, 8,
+		// 16
+		PSG::KEY::E_5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::B_3, 8,
+		// 17
+		PSG::KEY::Q,   8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::E_5, 8,
+		// 18
+		PSG::KEY::A_4, 8*3,
+		PSG::KEY::Q,   8*5,
+		// 19
+		PSG::KEY::Q,   8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::F_5, 8,
+		// 20
+		PSG::KEY::B_4, 8*3,
+		PSG::KEY::Q,   8*5,
+		// 21
+		PSG::KEY::Q,   8,
+		PSG::KEY::G_5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::G_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::G_5, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::G_5, 8,
+		// 22
+		PSG::KEY::F_5, 16,
+		PSG::KEY::G_5, 16,
+		PSG::KEY::A_5, 16,
+		PSG::KEY::G_5, 8,
+		PSG::KEY::F_5, 8,
+		// 23
+		PSG::KEY::E_5, 16,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::D_5, 16,
+		PSG::KEY::Eb5, 16,
+		// 24
+		PSG::KEY::E_5, 8*8,
+		// 25
+
 		PSG::CTRL::END
 	};
 
+	constexpr PSG::SCORE score1_[] = {
+		PSG::CTRL::VOLUME, 15,
+		PSG::CTRL::SQ50,
+		PSG::CTRL::TEMPO, 3,
+		// 1
+		PSG::KEY::A_2, 8,
+		PSG::KEY::Q,   8*7,
+		// 2
+		PSG::KEY::Q,   8,
+		PSG::KEY::A_2, 8,
+		PSG::KEY::C_3, 8,
+		PSG::KEY::E_3, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::G_3, 8,
+		PSG::KEY::F_3, 8,
+		PSG::KEY::E_3, 8,
+		// 3
+		PSG::KEY::D_3, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::D_4, 8,
+		// 4
+		PSG::KEY::Gs3, 8,
+		PSG::KEY::E_3, 8,
+		PSG::KEY::Gs3, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::E_3, 8,
+		PSG::KEY::Fs3, 8,
+		PSG::KEY::G_3, 8,
+		// 5
+		PSG::KEY::A_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::Cs4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::E_4, 8,
+		// 6
+		PSG::KEY::D_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::D_4, 8,
+		// 7
+		PSG::KEY::C_4, 8,
+		PSG::KEY::G_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::G_3, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::Fs4, 8,
+		// 8
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::E_3, 8,
+		PSG::KEY::Gs3, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::B_4, 8,
+		// 9
+		PSG::KEY::A_3, 8,
+		PSG::KEY::C_4, 4,
+		PSG::KEY::B_3, 4,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::C_4, 4,
+		PSG::KEY::B_3, 4,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::Eb4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::C_4, 8,
+		// 10
+		PSG::KEY::G_3, 8,
+		PSG::KEY::C_4, 4,
+		PSG::KEY::B_3, 4,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::C_4, 4,
+		PSG::KEY::B_3, 4,
+		PSG::KEY::E_4, 8, // PSG::KEY::Fs3, 8,
+		PSG::KEY::Eb4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::C_4, 8,
+		// 11
+		PSG::KEY::F_3, 16,
+		PSG::KEY::E_3, 16,
+		PSG::KEY::D_3, 16,
+		PSG::KEY::Eb3, 16,
+		// 12
+		PSG::KEY::E_3, 16*2,
+		PSG::KEY::A_3, 16*2,
+		// 13
+		PSG::KEY::D_3, 8,
+		PSG::KEY::F_4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::Ds4, 4,
+		PSG::KEY::C_4, 4,
+		PSG::KEY::Ds4, 8,
+		PSG::KEY::F_4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::Ds4, 8,
+		// 14
+
+
+
+		PSG::CTRL::END
+	};
 }
 
 
@@ -146,17 +441,8 @@ int main(int argc, char *argv[])
 
 	sci_puts("Start R8C PSG sample\n");
 
-	psg_mng_.set_volume(PSG_MNG::CHANNEL::CH0, 15);
-//	psg_mng_.set_wtype(PSG_MNG::CHANNEL::CH0, PSG_MNG::WTYPE::SQ50);
- 	psg_mng_.set_wtype(PSG_MNG::CHANNEL::CH0, PSG_MNG::WTYPE::TRI);
-
-	psg_mng_.set_volume(PSG_MNG::CHANNEL::CH1, 0);
-	psg_mng_.set_volume(PSG_MNG::CHANNEL::CH2, 0);
-
-//	psg_mng_.set_freq(PSG_MNG::CHANNEL::CH0, 880);
-//	psg_mng_.set_key(PSG_MNG::CHANNEL::CH0, PSG_MNG::KEY::A_3);
-
-	psg_mng_.set_score(score_, nullptr, nullptr);
+	psg_mng_.set_score(0, score0_);
+	psg_mng_.set_score(1, score1_);
 
 	auto pos = pwm_pos_;
 	uint8_t delay = 100;
@@ -173,10 +459,5 @@ int main(int argc, char *argv[])
 		} else {
 			psg_mng_.service();
 		}
-//		cnt++;
-//		if(cnt >= 50) {
-//			cnt = 0;
-//			utils::format("Num: %d\n") % n;
-//		}
 	}
 }
