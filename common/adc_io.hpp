@@ -3,7 +3,7 @@
 /*!	@file
 	@brief	R8C グループ・A/D 制御 
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2015, 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2015, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -75,7 +75,7 @@ namespace device {
 			@brief  コンストラクター
 		*/
 		//-----------------------------------------------------------------//
-		adc_io() : level_(0), count_(0) { }
+		adc_io() noexcept : level_(0), count_(0) { }
 
 
 		//-----------------------------------------------------------------//
@@ -87,7 +87,7 @@ namespace device {
 			@param[in]	level	割り込みレベル（０の場合割り込みを使用しない）
 		*/
 		//-----------------------------------------------------------------//
-		void start(CH_TYPE ct, CH_GROUP cg, bool cycle, uint8_t level = 0)
+		void start(CH_TYPE ct, CH_GROUP cg, bool cycle, uint8_t level = 0) noexcept
 		{
 			level_ = level;
 
@@ -95,10 +95,10 @@ namespace device {
 
 			ADCON0.ADST = 0;
 
-			uint8_t md = 0;
-			if(ct == CH_TYPE::CH0_CH1) md = 2;
-			if(cycle) ++md; 
-			ADMOD = ADMOD.CKS.b(3) | ADMOD.MD.b(md);
+			uint8_t md = 0b00;
+			if(ct == CH_TYPE::CH0_CH1) md = 0b10;
+			if(cycle) md |= 0b01; 
+			ADMOD = ADMOD.CKS.b(0b011) | ADMOD.MD.b(md) | ADMOD.ADCAP.b(0b00);
 
 			uint8_t chn = 0;
 			if(ct == CH_TYPE::CH1) chn = 1; 
@@ -114,7 +114,8 @@ namespace device {
 			@param[in]	f	変換停止の場合「false」
 		*/
 		//-----------------------------------------------------------------//
-		void scan(bool f = 1) {
+		void scan(bool f = true) noexcept
+		{
 			count_ = intr_count_;
 			if(f && level_ > 0) {
 				ADICSR.ADIE = 1;
@@ -129,7 +130,8 @@ namespace device {
 			@return 変換終了なら「true」
 		*/
 		//-----------------------------------------------------------------//
-		bool get_state() const {
+		bool get_state() const noexcept
+		{
 			if(level_ == 0) {
 				bool f = ADICSR.ADF();
 				if(f) ADICSR.ADF = 0;
@@ -145,7 +147,7 @@ namespace device {
 			@brief  変換終了を同期
 		*/
 		//-----------------------------------------------------------------//
-		void sync() const {
+		void sync() const noexcept {
 			while(!get_state()) sleep_();
 		}
 
@@ -157,7 +159,7 @@ namespace device {
 			@return 変換結果
 		*/
 		//-----------------------------------------------------------------//
-		uint16_t get_value(bool chanel) const {
+		uint16_t get_value(bool chanel) const noexcept {
 			if(chanel) {
 				return AD1();
 			} else {

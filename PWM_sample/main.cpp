@@ -17,8 +17,6 @@
 #include "common/trb_io.hpp"
 #include "common/trc_io.hpp"
 #include "common/adc_io.hpp"
-#include "common/port_map.hpp"
-#include "common/delay.hpp"
 
 namespace {
 
@@ -122,7 +120,7 @@ int main(int argc, char *argv[])
 		utils::PORT_MAP(utils::port_map::P13::TRCIOC);
 		utils::PORT_MAP(utils::port_map::P10::TRCIOD);
 		bool pfl = 0;  // 0->1
-		timer_c_.start_pwm(10000, pfl);
+		timer_c_.start(10000, pfl);
 		uint16_t n = timer_c_.get_pwm_limit();
 		timer_c_.set_pwm_b(n >> 2);  // 25%
 		timer_c_.set_pwm_c(n - (n >> 2));  // 75%

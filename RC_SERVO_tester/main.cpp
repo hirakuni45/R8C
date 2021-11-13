@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 		bool pfl = 0;  // 0->1
 		uint8_t ir_level = 2;
 		// 2ms (50Hz)
-		timer_c_.start_pwm(50000, TRC_TYPE::divide::f8, pfl, ir_level);
+		timer_c_.start(50000, TRC_TYPE::DIVIDE::F8, pfl, ir_level);
 		timer_c_.set_pwm_c(RCS_N);
 	}
 
