@@ -27,6 +27,10 @@ namespace {
 	typedef device::uart_io<device::UART0, TX_BUFF, RX_BUFF> UART;
 	UART	uart_;
 
+	// 電源電圧を１０倍した整数を設定
+//	constexpr int16_t VCC = 50;    ///< 5.0V (1.25)
+	constexpr int16_t VCC = 33;    ///< 3.3V (0.825)
+
 	typedef device::adc_io<utils::null_task> ADC;
 	ADC		adc_;
 }
@@ -120,19 +124,20 @@ int main(int argc, char *argv[])
 			adc_.scan();
 			adc_.sync();
 			// 「%3.2:8y」は小数点以下 8 ビットの固定小数点を 3 桁、小数点以下 2 桁表示
-			// 1.25 倍している、小数点以下 8 ビットで、5V 動作時、1023 で 5V 表示となる。
+			//   5V の場合 1.25  倍して、小数点以下 8 ビットで、1023 で   5V 表示となる。
+			// 3.3V の場合 0.825 倍して、小数点以下 8 ビットで、1023 で 3.3V 表示となる。
 			{
 				auto v = adc_.get_value(0);
 				utils::format("(%5d) CH0: %3.2:8y[V], %d\n")
 					% nnn
-					% static_cast<uint16_t>(((v + 1) * 10) >> 3)
+					% static_cast<uint16_t>(((v + 1) * VCC) / (1024 * 10 / 256))
 					% v;
 			}
 
 			{
 				auto v = adc_.get_value(1);
 				utils::format("        CH1: %3.2:8y[V], %d\n")
-					% static_cast<uint16_t>(((v + 1) * 10) >> 3)
+					% static_cast<uint16_t>(((v + 1) * VCC) / (1024 * 10 / 256))
 					% v;
 			}
 			++nnn;
