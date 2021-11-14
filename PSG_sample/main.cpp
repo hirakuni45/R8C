@@ -27,10 +27,23 @@ namespace {
 	typedef device::uart_io<device::UART0, TX_BUFF, RX_BUFF> UART;
 	UART	uart_;
 
-	static constexpr uint16_t BSIZE = 512;
-	static constexpr uint16_t CNUM = 4;
+	static constexpr uint16_t TRC_LIM = 256;  // サンプリング分解能（２５６固定）
+	// サンプリング周期を変更すると、アタックやリリースを変更する必要がある。
+// #define LOW_PROFILE
+#ifdef LOW_PROFILE
+	static constexpr auto TRC_DIV = device::trc_base::DIVIDE::F8;  // TRC の分周器パラメーター（１／８）
+	static constexpr uint16_t SAMPLE = F_CLK / 8 / TRC_LIM;  // サンプリング周期（F_CLK は CPU の動作周波数）
+	static constexpr uint16_t BSIZE = 256;  // SAMPLE / TICK * 2 以上で、２のｎ乗倍になる値
+#else
+	// サンプリングを倍にした、より高音質な設定
+	static constexpr auto TRC_DIV = device::trc_base::DIVIDE::F4;  // TRC の分周器パラメーター（１／４）
+	static constexpr uint16_t SAMPLE = F_CLK / 4 / TRC_LIM;  // サンプリング周期（F_CLK は CPU の動作周波数）
+	static constexpr uint16_t BSIZE = 512;  // SAMPLE / TICK * 2 以上で、２のｎ乗倍になる値
+#endif
+	static constexpr uint16_t TICK = 100;	// サンプルの楽曲では、１００を前提にしている。
+	static constexpr uint16_t CNUM = 3;		// 同時発音数（大きくすると処理負荷が増えるので注意）
 	typedef utils::psg_base PSG;
-	typedef utils::psg_mng<BSIZE, CNUM> PSG_MNG;
+	typedef utils::psg_mng<SAMPLE, TICK, BSIZE, CNUM> PSG_MNG;
 	PSG_MNG	psg_mng_;
 
 	volatile uint16_t pwm_pos_;
@@ -50,9 +63,10 @@ namespace {
 
 	// ドラゴンクエスト１・ラダトーム城（Dragon Quest 1 Chateau Ladutorm）
 	constexpr PSG::SCORE score0_[] = {
-		PSG::CTRL::VOLUME, 15,
+		PSG::CTRL::VOLUME, 128,
 		PSG::CTRL::SQ50,
-		PSG::CTRL::TEMPO, 85,
+		PSG::CTRL::TEMPO, 80,
+//		PSG::CTRL::ATTACK, 120,
 		// 1
 		PSG::KEY::Q,   8,
 		PSG::KEY::E_5, 8,
@@ -237,9 +251,10 @@ namespace {
 	};
 
 	constexpr PSG::SCORE score1_[] = {
-		PSG::CTRL::VOLUME, 15,
-		PSG::CTRL::SQ50,
-		PSG::CTRL::TEMPO, 85,
+		PSG::CTRL::VOLUME, 128,
+		PSG::CTRL::SQ75,
+		PSG::CTRL::TEMPO, 80,
+//		PSG::CTRL::ATTACK, 120,
 		// 1
 		PSG::KEY::A_2, 8,
 		PSG::KEY::Q,   8*7,
@@ -269,7 +284,7 @@ namespace {
 		PSG::KEY::E_4, 8,
 		PSG::KEY::E_3, 8,
 		PSG::KEY::Fs3, 8,
-		PSG::KEY::G_3, 8,
+		PSG::KEY::Gs3, 8,
 		// 5
 		PSG::KEY::A_3, 8,
 		PSG::KEY::E_4, 8,
@@ -305,7 +320,7 @@ namespace {
 		PSG::KEY::E_4, 8,
 		PSG::KEY::D_4, 8,
 		PSG::KEY::C_4, 8,
-		PSG::KEY::B_4, 8,
+		PSG::KEY::B_3, 8,
 		// 9
 		PSG::KEY::A_3, 8,
 		PSG::KEY::C_4, 4,
@@ -343,16 +358,98 @@ namespace {
 		PSG::KEY::F_4, 4,
 		PSG::KEY::E_4, 4,
 		PSG::KEY::F_4, 8,
-		PSG::KEY::Ds4, 4,
-		PSG::KEY::C_4, 4,
+		PSG::KEY::D_4, 4,
+		PSG::KEY::Cs4, 4,
 		PSG::KEY::Ds4, 8,
 		PSG::KEY::F_4, 4,
 		PSG::KEY::E_4, 4,
 		PSG::KEY::F_4, 8,
-		PSG::KEY::Ds4, 8,
+		PSG::KEY::D_4, 8,
 		// 14
-
-
+		PSG::KEY::C_4, 8,
+		PSG::KEY::F_4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::D_4, 4,
+		PSG::KEY::Cs4, 4,
+		PSG::KEY::D_4, 8,  // B_3, 8
+		PSG::KEY::F_4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::D_4, 8,
+		// 15
+		PSG::KEY::F_3, 16,
+		PSG::KEY::E_3, 16,
+		PSG::KEY::D_3, 32,
+		// 16
+		PSG::KEY::E_3, 16,
+		PSG::KEY::Q,   8*6,
+		// 17
+		PSG::KEY::A_2, 16,
+		PSG::KEY::Q,   8*6,
+		// 18
+		PSG::KEY::Q,   8,
+		PSG::KEY::A_2, 8,
+		PSG::KEY::C_3, 8,
+		PSG::KEY::E_3, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::G_3, 8,
+		PSG::KEY::F_3, 8,
+		PSG::KEY::E_3, 8,
+		// 19
+		PSG::KEY::D_3, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::D_4, 8,
+		// 20
+		PSG::KEY::Gs3, 8,
+		PSG::KEY::E_3, 8,
+		PSG::KEY::Gs3, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::E_3, 8,
+		PSG::KEY::Fs3, 8,
+		PSG::KEY::Gs3, 8,
+		// 21
+		PSG::KEY::A_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::Cs4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::E_4, 8,
+		// 22
+		PSG::KEY::D_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::D_4, 8,
+		// 23
+		PSG::KEY::C_4, 8,
+		PSG::KEY::G_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::G_3, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::Fs4, 8,
+		// 24
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::E_3, 8,
+		PSG::KEY::Gs3, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::B_3, 8,
 
 		PSG::CTRL::END
 	};
@@ -419,7 +516,7 @@ int main(int argc, char *argv[])
 	// タイマーＢ初期化
 	{
 		uint8_t ir_level = 2;
-		timer_b_.start(100, ir_level);
+		timer_b_.start(TICK, ir_level);
 	}
 
 	// UART の設定 (P1_4: TXD0[in], P1_5: RXD0[in])
@@ -431,12 +528,12 @@ int main(int argc, char *argv[])
 		uart_.start(57600, ir_level);
 	}
 
-	// タイマーＣ初期化（ＰＷＭ）
+	// タイマーＣ初期化ＰＳＧ用
 	{
+		// SAMPLE 周期
 		utils::PORT_MAP(utils::port_map::P12::TRCIOB);
-		bool pfl = 0;  // 0->1
 		uint8_t ir_lvl = 2;
-		timer_c_.start(256, TIMER_C::DIVIDE::F4, pfl, ir_lvl);
+		timer_c_.start_psg(TRC_LIM, TRC_DIV, ir_lvl);
 	}
 
 	sci_puts("Start R8C PSG sample\n");

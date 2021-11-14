@@ -186,17 +186,21 @@ namespace utils {
 		*/
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 		enum class CTRL : uint8_t {
-			TR = 89,	///< (2) トランスポーズ, num
+			TR = 89,	///< (2) トランスポーズ, num(-88 ~ 0 ~ 88)
 			SQ25,		///< (1) 波形 SQ25
 			SQ50,		///< (1) 波形 SQ50
 			SQ75,		///< (1) 波形 SQ75
 			TRI,		///< (1) 波形 TRI
-			VOLUME,		///< (2) ボリューム
-			TEMPO,		///< (2) テンポ, num
-			FOR,		///< (2) ループ開始, num
+			VOLUME,		///< (2) ボリューム, num(0 ~ 128)
+			FADE,		///< (2) フェード目標値, num(0 ~ 128)
+			FADE_SPEED,	///< (2) フェード速度, num(0 ~ 255)
+			TEMPO,		///< (2) テンポ, num(1 ~ 255)
+			FOR,		///< (2) ループ開始, num(1 ~ 255)
 			BEFORE,		///< (1) ループ終了
 			END,		///< (1) 終了
-			LOOP,		///< (1) 最初に戻る
+			REPEAT,		///< (1) リピート
+			ATTACK,		///< (2) 音のアタック, num(0 ~ 255)
+			RELEASE,	///< (3) 音のリリース, frame(n), num(0 ~ 255)
 			TEST,
 		};
 
@@ -225,32 +229,31 @@ namespace utils {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
-		@brief  PSG Manager テンプレート class @n
-				PWM 変調は、(F_CLK:20MHz / 4 / 256) = 19531Hz としている。 
-		@param[in] BSIZE	バッファサイズ（通常５１２）
-		@param[in] CNUM		チャネル数（通常４）
+		@brief  PSG Manager テンプレート class
+		@param[in]	SAMPLE	サンプリング周期
+		@param[in]	TICK	演奏tick（通常１００Ｈｚ）
+		@param[in]	BSIZE	バッファサイズ（通常５１２）
+		@param[in]	CNUM	チャネル数（通常４）
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-	template <uint16_t BSIZE, uint16_t CNUM>
+	template <uint16_t SAMPLE, uint16_t TICK, uint16_t BSIZE, uint16_t CNUM>
 	class psg_mng : public psg_base {
-
-		static constexpr uint16_t BASE_FRQ = F_CLK / 4 / 256;
 
 		// 12 平均音階率の計算：
 		// 2^(1/12) の定数、１２乗すると２倍（１オクターブ上がる）となる。
 		static constexpr uint16_t key_tbl_[12] = {
-			static_cast<uint16_t>((3520 * 65536.0 * 1.000000000) / (F_CLK / 4.0 / 256.0)),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.059463094) / (F_CLK / 4.0 / 256.0)),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.122462048) / (F_CLK / 4.0 / 256.0)),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.189207115) / (F_CLK / 4.0 / 256.0)),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.25992105 ) / (F_CLK / 4.0 / 256.0)),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.334839854) / (F_CLK / 4.0 / 256.0)),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.414213562) / (F_CLK / 4.0 / 256.0)),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.498307077) / (F_CLK / 4.0 / 256.0)),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.587401052) / (F_CLK / 4.0 / 256.0)),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.681792831) / (F_CLK / 4.0 / 256.0)),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.781797436) / (F_CLK / 4.0 / 256.0)),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.887748625) / (F_CLK / 4.0 / 256.0)),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.000000000) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.059463094) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.122462048) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.189207115) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.25992105 ) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.334839854) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.414213562) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.498307077) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.587401052) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.681792831) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.781797436) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.887748625) / SAMPLE),
 		};
 
 		uint16_t	wav_pos_;
@@ -258,10 +261,11 @@ namespace utils {
 
 		bool		pause_;
 
-		static uint16_t	frame_;
-
 		struct channel {
-			uint8_t		vol_;  // 0 to 15
+			uint8_t		volume_;
+			uint8_t		fade_;
+			uint8_t		fade_spd_;
+			uint8_t		fade_cnt_;
 			WTYPE		wtype_;
 			uint16_t	acc_;
 			uint16_t	spd_;
@@ -272,19 +276,45 @@ namespace utils {
 			uint8_t		tr_;
 			uint16_t	loop_org_;
 			uint8_t		loop_cnt_;
-			channel() noexcept : vol_(0), wtype_(WTYPE::SQ50), acc_(0), spd_(0),
+			uint8_t		env_;  // 0 to 127
+			uint8_t		attack_;
+			uint8_t		rel_frame_;
+			uint8_t		release_;
+			uint16_t	rel_count_;
+			channel() noexcept : volume_(0), fade_(0), fade_spd_(0), fade_cnt_(0),
+				wtype_(WTYPE::SQ50), acc_(0), spd_(0),
 				score_org_(nullptr), score_pos_(0),
 				tempo_(0), count_(0),
-				tr_(0), loop_org_(0), loop_cnt_(0)
+				tr_(0), loop_org_(0), loop_cnt_(0),
+				env_(0), attack_(0), rel_frame_(0), release_(0), rel_count_(0)
 			{ }
 
-			void update() noexcept { acc_ += spd_; }
+			void init() noexcept
+			{
+				spd_ = 0;
+				volume_ = 128;  // ボリューム初期値
+				fade_ = 0;
+				fade_spd_ = 64;
+				fade_cnt_ = 0;
+				tempo_ = 64;  // テンポ初期値
+				count_ = 0;
+				env_ = 0;
+				attack_ = 180;  // アタック初期値
+				release_ = 12; // リリース減衰初期値
+				rel_frame_ = 6; // リリース TICK 標準
+			}
+
+			void update() noexcept
+			{
+				acc_ += spd_;
+			}
 
 			int8_t get() noexcept
 			{
 				if(spd_ == 0) return 0;
 
 				bool on = false;
+				int8_t w = 0;
 				switch(wtype_) {
 				case WTYPE::SQ25:
 					if((acc_ & 0xc000) >= 0xc000) on = true;
@@ -299,29 +329,48 @@ namespace utils {
 					{
 						int8_t w = (acc_ >> 11) & 0x7;
 						if((acc_ & 0x4000) != 0) w ^= 0x7;
-						w *= vol_;
+						w *= env_ >> 3;
 						if((acc_ & 0x8000) != 0) {
 							w = -w;
 						}
-						return w;
 					}
+					break;
 				case WTYPE::NOISE:
-					return 0;
+					w = 0;
+					break;
 				}
-//				int8_t w = (vol_ << 3) | (vol_ >> 1);
 				// 矩形波は、三角波に比べて、音圧が高いので、バランスを取る為少し弱める。
-				int8_t w = (vol_ << 2) + (vol_ << 1);
+				w = env_ - (env_ >> 3);
 				if(!on) { w = -w; }
+
+				if(rel_count_ > 0) {
+					rel_count_--;
+					// +エンベロープ
+					env_ += static_cast<uint16_t>((volume_ - env_) * attack_) >> 8;
+				} else {
+					// -エンベロープ
+					env_ -= static_cast<uint16_t>(env_ * release_) >> 8;
+				}
 				return w;
 			}
 
-			void set_freq(uint16_t frq) noexcept { spd_ = (static_cast<uint32_t>(frq) << 16) / BASE_FRQ; }
-//			void set_spd(uint16_t spd) noexcept { spd_ = spd; }
+			void set_freq(uint16_t frq) noexcept { spd_ = (static_cast<uint32_t>(frq) << 16) / SAMPLE; }
 
 			// 完了なら「true」
 			bool service() noexcept
 			{
 				if(score_org_ == nullptr) return true;
+
+				if(fade_ != 0 && fade_spd_ != 0) {
+					uint16_t tmp = fade_cnt_;
+					tmp += fade_spd_;
+					fade_cnt_ = tmp;
+					if(tmp >= 256) {
+						fade_cnt_ = 0;
+						if(volume_ > fade_) volume_--;
+						else if(volume_ < fade_) volume_++;
+					}
+				}
 
 				if(count_ >= tempo_) {
 					count_ -= tempo_;
@@ -338,12 +387,16 @@ namespace utils {
 					auto k = v.len % 12;
 					spd_ = key_tbl_[k] >> (7 - o);
 					acc_ = 0;
-					count_ += score_org_[score_pos_].len << 8;
+					env_ = 0;
+					count_ += static_cast<uint16_t>(score_org_[score_pos_].len) << 8;
 					++score_pos_;
+					// リリースポイント計算
+					rel_count_ = ((count_ / tempo_) - rel_frame_) * (SAMPLE / TICK);
 					return true;
 				} else if(v.len == 88) {  // 休符
 					spd_ = 0;
 					acc_ = 0;
+					env_ = 0;
 					count_ += score_org_[score_pos_].len << 8;
 					++score_pos_;
 					return true;
@@ -366,8 +419,18 @@ namespace utils {
 						wtype_ = WTYPE::TRI;
 						break;
 					case CTRL::VOLUME:
-						vol_ = score_org_[score_pos_].len;
+						volume_ = score_org_[score_pos_].len;
 						++score_pos_;
+						break;
+					case CTRL::FADE:
+						fade_ = score_org_[score_pos_].len;
+						++score_pos_;
+						fade_cnt_ = 0;
+						break;
+					case CTRL::FADE_SPEED:
+						fade_spd_ = score_org_[score_pos_].len;
+						++score_pos_;
+						fade_cnt_ = 0;
 						break;
 					case CTRL::TEMPO:
 						tempo_ = score_org_[score_pos_].len;
@@ -389,10 +452,19 @@ namespace utils {
 						score_org_ = nullptr;
 						spd_ = 0;
 						break;
-					case CTRL::LOOP:
+					case CTRL::REPEAT:
 						score_pos_ = 0;
-						tempo_ = 0;
-						count_ = 0;
+						init();
+						break;
+					case CTRL::ATTACK:
+						attack_ = score_org_[score_pos_].len;
+						++score_pos_;
+						break;
+					case CTRL::RELEASE:
+						rel_frame_ = score_org_[score_pos_].len;
+						++score_pos_;
+						release_ = score_org_[score_pos_].len;
+						++score_pos_;
 						break;
 					case CTRL::TEST:
 //						utils::format("%d\n") % frame_;
@@ -482,18 +554,24 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		/*!
 			@brief  レンダリング
-			@param[in]	count	回数
+			@param[in]	count	波形数
 		*/
 		//-----------------------------------------------------------------//
 		void render(uint16_t count) noexcept
 		{
 			for(uint16_t i = 0; i < count; ++i) {
 				int16_t sum = 0;
+				// int8_t n = 0;
+				int8_t n = 1;  // 理由がイマイチ判らないが、フルスケールで合成するとノイズが乗るので、とりあえず、全体のゲインを下げる。
+				// ノイズが乗る原因は、そもそも PWM 変調に問題があるのかもしれない・・
 				for(uint8_t j = 0; j < CNUM; ++j) {
-					channel_[j].update();
-					sum += channel_[j].get();
+					if(channel_[j].score_org_ != nullptr) {
+						channel_[j].update();
+						sum += static_cast<int16_t>(channel_[j].get());
+						++n;
+					}
 				}
-				wav_[wav_pos_] = (sum / CNUM) + 0x80;
+				wav_[wav_pos_] = (sum / n) + 0x80;
 				++wav_pos_;
 				if(wav_pos_ >= BSIZE) wav_pos_ = 0;
 			}
@@ -520,10 +598,10 @@ namespace utils {
 		void set_score(uint8_t ch, const SCORE* score)
 		{
 			if(ch >= CNUM) return;
+
 			channel_[ch].score_org_ = score;
 			channel_[ch].score_pos_ = 0;
-			channel_[ch].tempo_ = 64;  // 初期テンポ
-			channel_[ch].count_ = 0;
+			channel_[ch].init();
 		}
 
 
@@ -534,8 +612,6 @@ namespace utils {
 		//-----------------------------------------------------------------//
 		void service() noexcept
 		{
-			frame_++;
-
 			for(uint8_t i = 0; i < CNUM; ++i) {
 				for(;;) {
 					if(channel_[i].service()) {
@@ -555,6 +631,6 @@ namespace utils {
 		void pause(bool ena = true) noexcept { pause_ = ena; }
 	};
 
-	template<uint16_t BSIZE, uint16_t CNUM> constexpr uint16_t psg_mng<BSIZE, CNUM>::key_tbl_[12];
-	template<uint16_t BSIZE, uint16_t CNUM> uint16_t psg_mng<BSIZE, CNUM>::frame_;
+	template<uint16_t SAMPLE, uint16_t TICK, uint16_t BSIZE, uint16_t CNUM>
+		constexpr uint16_t psg_mng<SAMPLE, TICK, BSIZE, CNUM>::key_tbl_[12];
 }
