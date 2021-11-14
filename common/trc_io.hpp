@@ -22,12 +22,34 @@ namespace device {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	/*!
+		@brief  TimerRC ベースクラス
+	*/
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	class trc_base {
+	public:
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		/*!
+			@brief  カウンターディバイド
+		*/
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+		enum class DIVIDE : uint8_t {
+			F1,		///< F_CLK / 1
+			F2,		///< F_CLK / 2
+			F4,		///< F_CLK / 4
+			F8,		///< F_CLK / 8
+			F32		///< F_CLK / 32
+		};
+	};
+
+
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+	/*!
 		@brief  TimerRC I/O 制御クラス
 		@param[in]	TASK 割り込み内で実行されるクラス
 	*/
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 	template <class TASK>
-	class trc_io {
+	class trc_io : public trc_base {
 	public:
 		static TASK task_;
 
@@ -49,20 +71,6 @@ namespace device {
 //			TRCGRC = pwm_c_;
 //			TRCGRD = pwm_d_;
 		}
-
-
-		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		/*!
-			@brief  カウンターディバイド
-		*/
-		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-		enum class DIVIDE : uint8_t {
-			F1,		///< F_CLK / 1
-			F2,		///< F_CLK / 2
-			F4,		///< F_CLK / 4
-			F8,		///< F_CLK / 8
-			F32		///< F_CLK / 32
-		};
 
 	private:
 
@@ -127,6 +135,39 @@ namespace device {
 			TRCMR.CTS = 1;  // カウント開始
 		}
 
+
+		// TRCIOB 出力のみ
+		void start_psg(uint16_t limit, DIVIDE cks, uint8_t ir_lvl) const
+		{
+			MSTCR.MSTTRC = 0;  // モジュールスタンバイ解除
+
+			TRCMR.CTS = 0;  // カウント停止
+
+			TRCCNT = 0x0000;
+			TRCGRA = limit;
+			TRCGRB = 128;
+			TRCGRD = 128;
+			TRCMR = TRCMR.PWM2.b(1) | TRCMR.PWMB.b(1);
+
+			TRCCR1 = TRCCR1.CCLR.b(1) | TRCCR1.CKS.b(static_cast<uint8_t>(cks))
+				   | TRCCR1.TOA.b(0) | TRCCR1.TOB.b(0) | TRCCR1.TOC.b(0) | TRCCR1.TOD.b(0);
+
+			TRCIOR0 = TRCIOR0.IOA.b(0b000) | TRCIOR0.IOB.b(0b010) | 0b10001000;
+
+//			TRCCR2 = TRCCR2.POLB.b(pfl) | TRCCR2.POLC.b(pfl) | TRCCR2.POLD.b(pfl);
+
+			TRCOER = TRCOER.EB.b(0);
+
+			ILVL3.B45 = ir_lvl;
+			if(ir_lvl) {
+				TRCIER = TRCIER.IMIEA.b(1);  // カウンターＡのマッチをトリガーにして割り込み
+			} else {
+				TRCIER = 0x00;
+			}
+
+			TRCMR.CTS = 1;  // カウント開始
+		}
+	
 
 		//-----------------------------------------------------------------//
 		/*!
