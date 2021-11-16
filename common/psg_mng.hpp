@@ -434,6 +434,7 @@ namespace utils {
 					spd_ = 0;
 					acc_ = 0;
 					env_ = 0;
+					total_count_ += score_org_[score_pos_].len;
 					count_ += score_org_[score_pos_].len << 8;
 					++score_pos_;
 					return true;
