@@ -13,7 +13,10 @@
 */
 //=====================================================================//
 #include "renesas.hpp"
-#include "common/format.hpp"
+
+extern "C" {
+	void sci_putch(char ch);
+}
 
 namespace utils {
 
@@ -198,10 +201,19 @@ namespace utils {
 			FOR,		///< (2) ループ開始, num(1 ~ 255)
 			BEFORE,		///< (1) ループ終了
 			END,		///< (1) 終了
+			CALL0,		///< (1) サブルーチンコール０
+			CALL1,		///< (1) サブルーチンコール１
+			CALL2,		///< (1) サブルーチンコール２
+			CALL3,		///< (1) サブルーチンコール３
+			CALL4,		///< (1) サブルーチンコール４
+			CALL5,		///< (1) サブルーチンコール５
+			CALL6,		///< (1) サブルーチンコール６
+			CALL7,		///< (1) サブルーチンコール７
+			RET,		///< (1) サブルーチンコールから復帰
 			REPEAT,		///< (1) リピート
 			ATTACK,		///< (2) 音のアタック, num(0 ~ 255)
 			RELEASE,	///< (3) 音のリリース, frame(n), num(0 ~ 255)
-			TEST,
+			CHOUT,		///< (2) 文字出力, char（楽譜のデバッグ用に文字を出力）
 		};
 
 
@@ -256,12 +268,29 @@ namespace utils {
 			static_cast<uint16_t>((3520 * 65536.0 * 1.887748625) / SAMPLE),
 		};
 
+		static constexpr uint8_t	SUB_SCORE_NUM = 8;  // サブスコア最大数
+		static constexpr uint8_t	STACK_DEPTH = 4;  // 4 レベル
+
 		uint16_t	wav_pos_;
 		uint8_t		wav_[BSIZE];
 
-		bool		pause_;
+		struct share_t {
+			const SCORE*	sub_score_[SUB_SCORE_NUM];
+			bool			pause_;
+			share_t() noexcept :
+				sub_score_{ nullptr }, pause_(false)
+			{ }
+		};
+		share_t		share_;
+
+
+		struct stack_t {
+			const SCORE*	org_;
+			uint16_t		pos_;
+		};
 
 		struct channel {
+			share_t&	share_;
 			uint8_t		volume_;
 			uint8_t		fade_;
 			uint8_t		fade_spd_;
@@ -281,12 +310,17 @@ namespace utils {
 			uint8_t		rel_frame_;
 			uint8_t		release_;
 			uint16_t	rel_count_;
-			channel() noexcept : volume_(0), fade_(0), fade_spd_(0), fade_cnt_(0),
+			stack_t		stack_[STACK_DEPTH];
+			uint8_t		stack_pos_;
+			uint16_t	total_count_;
+			channel(share_t& share) noexcept : share_(share), volume_(0), fade_(0), fade_spd_(0), fade_cnt_(0),
 				wtype_(WTYPE::SQ50), acc_(0), spd_(0),
 				score_org_(nullptr), score_pos_(0),
 				tempo_(0), count_(0),
 				tr_(0), loop_org_(0), loop_cnt_(0),
-				env_(0), attack_(0), rel_frame_(0), release_(0), rel_count_(0)
+				env_(0), attack_(0), rel_frame_(0), release_(0), rel_count_(0),
+				stack_{ }, stack_pos_(0),
+				total_count_(0)
 			{ }
 
 			void init() noexcept
@@ -372,6 +406,8 @@ namespace utils {
 					}
 				}
 
+				if(share_.pause_) return true;
+
 				if(count_ >= tempo_) {
 					count_ -= tempo_;
 					if(count_ >= tempo_) return true;
@@ -388,6 +424,7 @@ namespace utils {
 					spd_ = key_tbl_[k] >> (7 - o);
 					acc_ = 0;
 					env_ = 0;
+					total_count_ += score_org_[score_pos_].len;
 					count_ += static_cast<uint16_t>(score_org_[score_pos_].len) << 8;
 					++score_pos_;
 					// リリースポイント計算
@@ -397,6 +434,7 @@ namespace utils {
 					spd_ = 0;
 					acc_ = 0;
 					env_ = 0;
+					total_count_ += score_org_[score_pos_].len;
 					count_ += score_org_[score_pos_].len << 8;
 					++score_pos_;
 					return true;
@@ -452,6 +490,29 @@ namespace utils {
 						score_org_ = nullptr;
 						spd_ = 0;
 						break;
+					case CTRL::CALL0:
+					case CTRL::CALL1:
+					case CTRL::CALL2:
+					case CTRL::CALL3:
+					case CTRL::CALL4:
+					case CTRL::CALL5:
+					case CTRL::CALL6:
+					case CTRL::CALL7:
+						if(stack_pos_ < STACK_DEPTH) {
+							stack_[stack_pos_].org_ = score_org_;
+							stack_[stack_pos_].pos_ = score_pos_;
+							++stack_pos_;
+							score_org_ = share_.sub_score_[v.len - static_cast<uint8_t>(CTRL::CALL0)];
+							score_pos_ = 0;
+						}
+						break;
+					case CTRL::RET:
+						if(stack_pos_ > 0 && stack_pos_ <= STACK_DEPTH) {
+							stack_pos_--;
+							score_org_ = stack_[stack_pos_].org_;
+							score_pos_ = stack_[stack_pos_].pos_;
+						}
+						break;
 					case CTRL::REPEAT:
 						score_pos_ = 0;
 						init();
@@ -466,8 +527,9 @@ namespace utils {
 						release_ = score_org_[score_pos_].len;
 						++score_pos_;
 						break;
-					case CTRL::TEST:
-//						utils::format("%d\n") % frame_;
+					case CTRL::CHOUT:
+						sci_putch(static_cast<char>(score_org_[score_pos_].len));
+						++score_pos_;
 						break;
 					default:
 						break;
@@ -486,8 +548,8 @@ namespace utils {
 		*/
 		//-----------------------------------------------------------------//
 		psg_mng() noexcept : wav_pos_(0), wav_{ 0x80 },
-			pause_(false),
-			channel_{ }
+			share_(),
+			channel_{ share_, share_, share_ }
 		{ }
 
 
@@ -595,13 +657,28 @@ namespace utils {
 			@param[in]	score	スコア
 		*/
 		//-----------------------------------------------------------------//
-		void set_score(uint8_t ch, const SCORE* score)
+		void set_score(uint8_t ch, const SCORE* score) noexcept
 		{
 			if(ch >= CNUM) return;
 
 			channel_[ch].score_org_ = score;
 			channel_[ch].score_pos_ = 0;
 			channel_[ch].init();
+		}
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  サブ・スコアの設定
+			@param[in]	idx		インデックス
+			@param[in]	score	スコア
+		*/
+		//-----------------------------------------------------------------//
+		void set_sub_score(uint8_t idx, const SCORE* score) noexcept
+		{
+			if(idx >= SUB_SCORE_NUM) return;
+
+			share_.sub_score_[idx] = score;
 		}
 
 
@@ -628,7 +705,23 @@ namespace utils {
 			@param[in]	ena		「false」を指定するとポーズを解除
 		*/
 		//-----------------------------------------------------------------//
-		void pause(bool ena = true) noexcept { pause_ = ena; }
+		void pause(bool ena = true) noexcept { share_.pause_ = ena; }
+
+
+		//-----------------------------------------------------------------//
+		/*!
+			@brief  合計音長を得る
+			@param[in]	ch	チャネル
+		*/
+		//-----------------------------------------------------------------//
+		uint16_t get_total_count(uint8_t ch) const noexcept
+		{
+			if(ch < CNUM) {
+				return channel_[ch].total_count_;
+			} else {
+				return 0;
+			}
+		}
 	};
 
 	template<uint16_t SAMPLE, uint16_t TICK, uint16_t BSIZE, uint16_t CNUM>
