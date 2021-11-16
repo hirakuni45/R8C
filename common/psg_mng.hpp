@@ -254,22 +254,23 @@ namespace utils {
 		// 12 平均音階率の計算：
 		// 2^(1/12) の定数、１２乗すると２倍（１オクターブ上がる）となる。
 		static constexpr uint16_t key_tbl_[12] = {
-			static_cast<uint16_t>((3520 * 65536.0 * 1.000000000) / SAMPLE),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.059463094) / SAMPLE),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.122462048) / SAMPLE),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.189207115) / SAMPLE),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.25992105 ) / SAMPLE),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.334839854) / SAMPLE),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.414213562) / SAMPLE),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.498307077) / SAMPLE),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.587401052) / SAMPLE),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.681792831) / SAMPLE),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.781797436) / SAMPLE),
-			static_cast<uint16_t>((3520 * 65536.0 * 1.887748625) / SAMPLE),
+			static_cast<uint16_t>((3520 * 65536.0 * 1.000000000) / SAMPLE),  ///< A  ラ
+			static_cast<uint16_t>((3520 * 65536.0 * 1.059463094) / SAMPLE),  ///< A#
+			static_cast<uint16_t>((3520 * 65536.0 * 1.122462048) / SAMPLE),  ///< B  シ
+			static_cast<uint16_t>((3520 * 65536.0 * 1.189207115) / SAMPLE),  ///< C  ド
+			static_cast<uint16_t>((3520 * 65536.0 * 1.25992105 ) / SAMPLE),  ///< C#
+			static_cast<uint16_t>((3520 * 65536.0 * 1.334839854) / SAMPLE),  ///< D  レ
+			static_cast<uint16_t>((3520 * 65536.0 * 1.414213562) / SAMPLE),  ///< D#
+			static_cast<uint16_t>((3520 * 65536.0 * 1.498307077) / SAMPLE),  ///< E  ミ
+			static_cast<uint16_t>((3520 * 65536.0 * 1.587401052) / SAMPLE),  ///< F  ファ
+			static_cast<uint16_t>((3520 * 65536.0 * 1.681792831) / SAMPLE),  ///< F#
+			static_cast<uint16_t>((3520 * 65536.0 * 1.781797436) / SAMPLE),  ///< G  ソ
+			static_cast<uint16_t>((3520 * 65536.0 * 1.887748625) / SAMPLE),  ///< G#
 		};
 
 		static constexpr uint8_t	SUB_SCORE_NUM = 8;  // サブスコア最大数
 		static constexpr uint8_t	STACK_DEPTH = 4;  // 4 レベル
+		static constexpr uint8_t	ENV_CYCLE = SAMPLE / TICK;
 
 		uint16_t	wav_pos_;
 		uint8_t		wav_[BSIZE];
@@ -282,7 +283,6 @@ namespace utils {
 			{ }
 		};
 		share_t		share_;
-
 
 		struct stack_t {
 			const SCORE*	org_;
@@ -306,6 +306,7 @@ namespace utils {
 			uint16_t	loop_org_;
 			uint8_t		loop_cnt_;
 			uint8_t		env_;  // 0 to 127
+			uint8_t		env_cycle_;
 			uint8_t		attack_;
 			uint8_t		rel_frame_;
 			uint8_t		release_;
@@ -318,7 +319,7 @@ namespace utils {
 				score_org_(nullptr), score_pos_(0),
 				tempo_(0), count_(0),
 				tr_(0), loop_org_(0), loop_cnt_(0),
-				env_(0), attack_(0), rel_frame_(0), release_(0), rel_count_(0),
+				env_(0), env_cycle_(0), attack_(0), rel_frame_(0), release_(0), rel_count_(0),
 				stack_{ }, stack_pos_(0),
 				total_count_(0)
 			{ }
@@ -333,8 +334,8 @@ namespace utils {
 				tempo_ = 64;  // テンポ初期値
 				count_ = 0;
 				env_ = 0;
-				attack_ = 180;  // アタック初期値
-				release_ = 12; // リリース減衰初期値
+				attack_ = 150;  // アタック初期値
+				release_ = 10; // リリース減衰初期値
 				rel_frame_ = 6; // リリース TICK 標準
 			}
 
@@ -352,20 +353,26 @@ namespace utils {
 				switch(wtype_) {
 				case WTYPE::SQ25:
 					if((acc_ & 0xc000) >= 0xc000) on = true;
+					// 矩形波は、三角波に比べて、音圧が高いので、バランスを取る為少し弱める。
+					w = env_ - (env_ >> 3);
 					break;
 				case WTYPE::SQ50:
 					if((acc_ & 0xc000) >= 0x8000) on = true;
+					// 矩形波は、三角波に比べて、音圧が高いので、バランスを取る為少し弱める。
+					w = env_ - (env_ >> 3);
 					break;
 				case WTYPE::SQ75:
 					if((acc_ & 0xc000) >= 0x4000) on = true;
+					// 矩形波は、三角波に比べて、音圧が高いので、バランスを取る為少し弱める。
+					w = env_ - (env_ >> 3);
 					break;
 				case WTYPE::TRI:
 					{
-						int8_t w = (acc_ >> 11) & 0x7;
-						if((acc_ & 0x4000) != 0) w ^= 0x7;
+						w = (acc_ >> 11) & 0b111;
+						if((acc_ & 0x4000) != 0) w ^= 0b111;
 						w *= env_ >> 3;
 						if((acc_ & 0x8000) != 0) {
-							w = -w;
+							on = true;
 						}
 					}
 					break;
@@ -373,17 +380,21 @@ namespace utils {
 					w = 0;
 					break;
 				}
-				// 矩形波は、三角波に比べて、音圧が高いので、バランスを取る為少し弱める。
-				w = env_ - (env_ >> 3);
 				if(!on) { w = -w; }
 
-				if(rel_count_ > 0) {
-					rel_count_--;
-					// +エンベロープ
-					env_ += static_cast<uint16_t>((volume_ - env_) * attack_) >> 8;
-				} else {
-					// -エンベロープ
-					env_ -= static_cast<uint16_t>(env_ * release_) >> 8;
+				++env_cycle_;
+				if(env_cycle_ >= ENV_CYCLE) {
+					env_cycle_ = 0;
+					if(rel_count_ > 0) {
+						rel_count_--;
+						// +エンベロープ
+						env_ += static_cast<uint16_t>((volume_ - env_) * attack_) >> 8;
+					} else {
+						// -エンベロープ
+						uint8_t n = static_cast<uint16_t>(env_ * release_) >> 8;
+						if(n > 0) env_ -= n;
+						else env_ = 0;
+					}
 				}
 				return w;
 			}
@@ -428,7 +439,8 @@ namespace utils {
 					count_ += static_cast<uint16_t>(score_org_[score_pos_].len) << 8;
 					++score_pos_;
 					// リリースポイント計算
-					rel_count_ = ((count_ / tempo_) - rel_frame_) * (SAMPLE / TICK);
+					rel_count_ = (count_ / tempo_) - rel_frame_;
+					env_cycle_ = 0;
 					return true;
 				} else if(v.len == 88) {  // 休符
 					spd_ = 0;

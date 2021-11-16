@@ -66,7 +66,7 @@ namespace {
 		PSG::CTRL::VOLUME, 128,
 		PSG::CTRL::SQ50,
 		PSG::CTRL::TEMPO, 80,
-//		PSG::CTRL::ATTACK, 120,
+		PSG::CTRL::ATTACK, 175,
 		// 1
 		PSG::KEY::Q,   8,
 		PSG::KEY::E_5, 8,
@@ -588,9 +588,9 @@ namespace {
 
 	constexpr PSG::SCORE score1_[] = {
 		PSG::CTRL::VOLUME, 128,
-		PSG::CTRL::SQ75,
+		PSG::CTRL::SQ50,
 		PSG::CTRL::TEMPO, 80,
-//		PSG::CTRL::ATTACK, 120,
+		PSG::CTRL::ATTACK, 175,
 		// 1
 		PSG::KEY::A_2, 8,
 		PSG::KEY::Q,   8*7,
@@ -1013,6 +1013,16 @@ namespace {
 
 		PSG::CTRL::END
 	};
+
+	constexpr PSG::SCORE score_test_[] = {
+		PSG::CTRL::VOLUME, 128,
+		PSG::CTRL::TRI,
+		PSG::CTRL::TEMPO,1,
+		PSG::CTRL::FOR,100,
+		PSG::KEY::A_4, 128,
+		PSG::CTRL::BEFORE,
+		PSG::CTRL::REPEAT
+	};
 }
 
 
@@ -1100,6 +1110,7 @@ int main(int argc, char *argv[])
 
 	psg_mng_.set_score(0, score0_);
 	psg_mng_.set_score(1, score1_);
+//	psg_mng_.set_score(0, score_test_);
 
 	auto pos = pwm_pos_;
 	uint8_t delay = 100;
