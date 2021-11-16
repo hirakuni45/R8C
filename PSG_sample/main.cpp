@@ -246,6 +246,342 @@ namespace {
 		// 24
 		PSG::KEY::E_5, 8*8,
 		// 25
+		PSG::KEY::Q   ,8,
+		PSG::KEY::A_5, 4,
+		PSG::KEY::Gs5, 4,
+		PSG::KEY::A_5, 8,
+		PSG::KEY::E_5, 4,
+		PSG::KEY::Eb5, 4,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::C_5, 4,
+		PSG::KEY::B_4, 4,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::A_4, 8,
+		// 26
+		PSG::KEY::Q   ,8,
+		PSG::KEY::A_5, 4,
+		PSG::KEY::Gs5, 4,
+		PSG::KEY::A_5, 8,
+		PSG::KEY::E_5, 4,
+		PSG::KEY::Eb5, 4,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::C_5, 4,
+		PSG::KEY::B_4, 4,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::A_4, 8,
+		// 27
+		PSG::KEY::B_4, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::A_4, 8,
+		// 28
+		PSG::KEY::E_5, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::E_5, 8,
+		// 29
+		PSG::KEY::Q,   8,
+		PSG::KEY::A_5, 4,
+		PSG::KEY::Gs5, 4,
+		PSG::KEY::A_5, 8,
+		PSG::KEY::F_5, 4,
+		PSG::KEY::E_5, 4,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::D_5, 4,
+		PSG::KEY::Cs5, 4,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::A_4, 8,
+		// 30
+		PSG::KEY::Q,   8,
+		PSG::KEY::A_5, 4,
+		PSG::KEY::Gs5, 4,
+		PSG::KEY::A_5, 8,
+		PSG::KEY::F_5, 4,
+		PSG::KEY::E_5, 4,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::D_5, 4,
+		PSG::KEY::Cs5, 4,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::A_4, 8,
+		// 31
+		PSG::KEY::B_4, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::F_5, 8,
+		// 32
+		PSG::KEY::E_5, 8,
+		PSG::KEY::A_4, 8,  // F_4, 8
+		PSG::KEY::Gs4, 8,  // E_4, 8
+		PSG::KEY::F_4, 8,  // D_4, 8
+		PSG::KEY::E_4, 8,  // C_4, 8
+		PSG::KEY::D_4, 8,  // B_3, 8
+		PSG::KEY::C_4, 8,  // A_3, 8
+		PSG::KEY::B_3, 8,  // G_3, 8
+		// 33
+		PSG::KEY::Q,   8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::E_5, 8,
+		// 34
+		PSG::KEY::A_4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::Cs5, 8,
+		// 35
+		PSG::KEY::D_5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::E_5, 8,  // Cs5, 8 
+		PSG::KEY::F_5, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::A_5, 8,  // C_5, 8
+		PSG::KEY::F_5, 8,
+		// 36
+		PSG::KEY::Gs5, 8,
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::Gs5, 8,
+		PSG::KEY::A_5, 8,
+		PSG::KEY::B_5, 8,
+		PSG::KEY::Gs5, 8,
+		// 37
+		PSG::KEY::Bb5, 8,
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::Cs5, 8,
+		// 38
+		PSG::KEY::Gs5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::D_5, 8,
+		// 39
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::Eb5, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Eb5, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Eb5, 8,
+		PSG::KEY::Bb4, 8,
+		// 40
+		PSG::KEY::E_5, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Fs4, 8,
+		// 41
+		PSG::KEY::B_4, 16,
+		PSG::KEY::Bb4, 16,
+		PSG::KEY::B_4, 16,
+		PSG::KEY::Fs5, 16,  // PSG::KEY::Fs4, 16,
+		// 42
+		PSG::KEY::Eb4, 8,
+		PSG::KEY::Cs4, 8,
+		PSG::KEY::Eb4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::Fs4, 8,
+		// 43
+		PSG::KEY::Q,   8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::Eb4, 8,
+		PSG::KEY::Fs4, 8,
+		// 44
+		PSG::KEY::E_4, 8,
+		PSG::KEY::Eb4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::Gs4, 8,
+		// 45
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::A_4, 8,
+		// 46
+		PSG::KEY::Eb5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::Eb5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::A_4, 8,
+		// 47
+		PSG::KEY::E_5, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::B_4, 8,
+		// 48
+		PSG::KEY::E_5, 8,
+		PSG::KEY::E_6, 8,  // PSG::KEY::Gs5, 8,
+		PSG::KEY::D_6, 8,  // PSG::KEY::F_5, 8,
+		PSG::KEY::C_6, 8,  // PSG::KEY::E_5, 8,
+		PSG::KEY::B_5, 8,  // PSG::KEY::D_5, 8,
+		PSG::KEY::A_5, 8,  // PSG::KEY::C_5, 8,
+		PSG::KEY::Gs5, 8,  // PSG::KEY::B_4, 8,
+		PSG::KEY::E_5, 8,  // PSG::KEY::Gs4, 8,
+		// 49
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::Eb4, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Eb4, 8,
+		PSG::KEY::G_4, 8,
+		PSG::KEY::Bb4, 8,
+		// 50
+		PSG::KEY::D_5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::A_4, 8,
+		// 51
+		PSG::KEY::Eb5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::Eb5, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::A_4, 8,
+		// 52
+		PSG::KEY::E_5, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::B_4, 8,
+		// 53
+		PSG::KEY::F_5, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::F_5, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::Cs5, 8,
+		// 54
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Cs5, 8,
+		// 55
+		PSG::KEY::G_5, 8,  // KEY::Bb4, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::G_5, 8,  // KEY::Bb4, 8,
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Cs5, 8,
+		// 56
+		PSG::KEY::Gs5, 8,  // KEY::C_5, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::Eb4, 8,
+		PSG::KEY::Cs4, 8,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::Gs3, 8,
+		// 57
+		PSG::KEY::Q,   8,
+		PSG::KEY::Gs5, 8,
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::Gs5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::Gs5, 8,
+		PSG::KEY::Eb5, 8,
+		PSG::KEY::Gs5, 8,
+		// 58
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Bb5, 8,
+		PSG::KEY::Gs5, 8,
+		PSG::KEY::Bb5, 8,
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::Bb5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::Bb5, 8,
+		// 59
+		PSG::KEY::Eb5, 8,
+		PSG::KEY::B_5, 8,
+		PSG::KEY::A_5, 8,
+		PSG::KEY::B_5, 8,
+		PSG::KEY::Gb5, 8,
+		PSG::KEY::B_5, 8,
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::B_5, 8,
+		// 60
+		PSG::KEY::E_5, 8,
+		PSG::KEY::Eb5, 8,
+		PSG::KEY::E_5, 8,
+		PSG::KEY::Fs5, 8,
+		PSG::KEY::Gs5, 8,
+		PSG::KEY::A_5, 8,
+		PSG::KEY::B_5, 8,
+		PSG::KEY::Gs5, 8,
+
+
+
+
+
 
 		PSG::CTRL::END
 	};
@@ -450,6 +786,230 @@ namespace {
 		PSG::KEY::D_4, 8,
 		PSG::KEY::C_4, 8,
 		PSG::KEY::B_3, 8,
+		// 25
+		PSG::KEY::A_3, 8,
+		PSG::KEY::C_4, 4,
+		PSG::KEY::B_3, 4,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::C_4, 4,
+		PSG::KEY::B_3, 4,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::Eb4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::C_3, 8,
+		// 26
+		PSG::KEY::A_3, 8,
+		PSG::KEY::C_4, 4,
+		PSG::KEY::B_3, 4,
+		PSG::KEY::C_4, 8,
+		PSG::KEY::C_4, 4,
+		PSG::KEY::B_3, 4,
+		PSG::KEY::C_4, 8,  // Fs3, 8
+		PSG::KEY::Eb4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::E_4, 8,
+		PSG::KEY::C_3, 8,
+		// 27
+		PSG::KEY::F_3, 16,
+		PSG::KEY::E_3, 16,
+		PSG::KEY::D_3, 16,
+		PSG::KEY::Eb3, 16,
+		// 28
+		PSG::KEY::E_3, 32,
+		PSG::KEY::A_3, 32,
+		// 29
+		PSG::KEY::D_3, 8,
+		PSG::KEY::F_4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::D_4, 4,
+		PSG::KEY::Cs4, 4,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::F_4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::D_4, 8,
+		// 30
+		PSG::KEY::C_4, 8,
+		PSG::KEY::F_4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::D_4, 4,
+		PSG::KEY::Cs4, 4,
+		PSG::KEY::D_4, 8,  // B_3, 8
+		PSG::KEY::F_4, 4,
+		PSG::KEY::E_4, 4,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::D_4, 8,
+		// 31
+		PSG::KEY::F_3, 16,
+		PSG::KEY::E_3, 16,
+		PSG::KEY::D_3, 32,
+		// 32
+		PSG::KEY::E_3, 16,
+		PSG::KEY::Q,   16*3,
+		// 33
+		PSG::KEY::A_3, 16,
+		PSG::KEY::Q,   16*3,
+		// 34
+		PSG::KEY::Q,   8*8,
+		// 35
+		PSG::KEY::Q,   8*8,
+		// 36
+		PSG::KEY::B_4, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::Gs4, 8,
+		PSG::KEY::A_4, 8,
+		PSG::KEY::B_4, 8,
+		PSG::KEY::C_5, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::B_4, 8,
+		// 37
+		PSG::KEY::Cs5, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Cs4, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Bb4, 8,
+		// 38
+		PSG::KEY::F_4, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::F_4, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::D_5, 8,
+		PSG::KEY::Bb4, 8,
+		// 39
+		PSG::KEY::Eb4, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Eb4, 8,
+		PSG::KEY::Bb4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Bb4, 8,
+		// 40
+		PSG::KEY::Cs4, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Bb3, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Cs4, 8,
+		PSG::KEY::Bb3, 8,
+		PSG::KEY::Fs4, 8,
+		PSG::KEY::Bb3, 8,
+		// 41
+		PSG::KEY::B_3, 8,
+		PSG::KEY::Fs3, 8,
+		PSG::KEY::E_3, 8,
+		PSG::KEY::Fs3, 8,
+		PSG::KEY::Eb3, 8,
+		PSG::KEY::Fs3, 8,
+		PSG::KEY::Cs3, 8,
+		PSG::KEY::Fs3, 8,
+		// 42
+		PSG::KEY::B_2, 8,
+		PSG::KEY::Bb2, 8,
+		PSG::KEY::B_2, 8,
+		PSG::KEY::C_3, 8,
+		PSG::KEY::Eb3, 8,
+		PSG::KEY::E_3, 8,
+		PSG::KEY::Fs3, 8,
+		PSG::KEY::E_3, 8,
+		// 43
+		PSG::KEY::E_3, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::Gs3, 8,  // PSG::KEY::E_3, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::Fs3, 8,  // PSG::KEY::B_2, 8,
+		PSG::KEY::B_3, 8,
+		// 44
+		PSG::KEY::Gs3, 8,  // PSG::KEY::E_3, 8,
+		PSG::KEY::Fs3, 8,
+		PSG::KEY::Gs3, 8,
+		PSG::KEY::A_3, 8,
+		PSG::KEY::B_3, 8,
+		PSG::KEY::Cs4, 8,
+		PSG::KEY::D_4, 8,
+		PSG::KEY::B_3, 8,
+		// 45
+		PSG::KEY::A_3, 16,
+		PSG::KEY::A_2, 16,
+		PSG::KEY::A_3, 16,
+		PSG::KEY::A_2, 16,
+		// 46
+		PSG::KEY::Fs3, 16,
+		PSG::KEY::Fs2, 16,
+		PSG::KEY::B_2, 16,
+		PSG::KEY::B_2, 16,
+		// 47
+		PSG::KEY::E_3, 16,
+		PSG::KEY::E_2, 16,
+		PSG::KEY::E_3, 16,
+		PSG::KEY::E_2, 16,
+		// 48
+		PSG::KEY::E_3, 16,
+		PSG::KEY::Q,   16*3,
+		// 49
+		PSG::KEY::E_4, 16,
+		PSG::KEY::E_4, 16,
+		PSG::KEY::E_4, 16,
+		PSG::KEY::E_4, 16,
+		// 50
+		PSG::KEY::D_4, 16,
+		PSG::KEY::D_4, 16,
+		PSG::KEY::D_4, 16,
+		PSG::KEY::D_4, 16,
+		// 51
+		PSG::KEY::C_4, 16,
+		PSG::KEY::C_4, 16,
+		PSG::KEY::C_4, 16,
+		PSG::KEY::C_4, 16,
+		// 52
+		PSG::KEY::B_3, 16,
+		PSG::KEY::B_3, 16,
+		PSG::KEY::B_3, 16,
+		PSG::KEY::B_3, 16,
+		// 53
+		PSG::KEY::B_3, 16,
+		PSG::KEY::B_3, 16,
+		PSG::KEY::B_3, 16,
+		PSG::KEY::B_3, 16,
+		// 54
+		PSG::KEY::A_3, 16,
+		PSG::KEY::A_3, 16,
+		PSG::KEY::A_3, 16,
+		PSG::KEY::A_3, 16,
+		// 55
+		PSG::KEY::Eb3, 16,
+		PSG::KEY::Eb3, 16,  //  PSG::KEY::Eb2, 16, 
+		PSG::KEY::Eb3, 16,
+		PSG::KEY::Eb3, 16,  //  PSG::KEY::Eb2, 16, 
+		// 56
+		PSG::KEY::Gs2, 8,
+		PSG::KEY::Gs3, 8,
+		PSG::KEY::Fs3, 8,
+		PSG::KEY::E_3, 8,
+		PSG::KEY::Eb3, 8,
+		PSG::KEY::Cs3, 8,
+		PSG::KEY::C_3, 8,
+		PSG::KEY::Gs2, 8,
+		// 57
+		PSG::KEY::Cs3, 16,
+		PSG::KEY::Q,   16*3,
+		// 58
+		PSG::KEY::Q,   16*4,
+		// 59
+		PSG::KEY::Q,   16*4,
+		// 60
+		PSG::KEY::Q,   16*4,
+
+
 
 		PSG::CTRL::END
 	};
@@ -543,6 +1103,8 @@ int main(int argc, char *argv[])
 
 	auto pos = pwm_pos_;
 	uint8_t delay = 100;
+	uint16_t bar = 0;
+	bool pause = false;
 	while(1) {
 		timer_b_.sync();
 
@@ -555,6 +1117,22 @@ int main(int argc, char *argv[])
 			delay--;
 		} else {
 			psg_mng_.service();
+		}
+
+		if(sci_length() > 0) {
+			auto ch = sci_getch();
+			if(ch == ' ') {
+				pause = !pause;
+				psg_mng_.pause(pause);
+			}
+		}
+
+		{  // 楽譜のデバッグ用（小節番号を表示）
+			auto tmp = (psg_mng_.get_total_count(0) / 64);
+			if(bar != tmp) {
+				bar = tmp;
+//				utils::format("%d\n") % bar;
+			}
 		}
 	}
 }
