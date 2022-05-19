@@ -336,7 +336,7 @@ pacman -S mingw-w64-x86_64-boost
 ## R8C プロジェクトのソースコードを取得
 
 ```
-   git clone git://github.com/hirakuni45/R8C.git
+   git clone https://github.com/hirakuni45/R8C.git
 ```
    
  - プロジェクトを全てコンパイル
