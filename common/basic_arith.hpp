@@ -5,7 +5,7 @@
 			※テキストの数式を展開して、計算結果を得る。@n
 			演算式解析
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2015, 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2015, 2021 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */

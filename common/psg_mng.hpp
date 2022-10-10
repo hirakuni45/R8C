@@ -211,8 +211,8 @@ namespace utils {
 			CALL7,		///< (1) サブルーチンコール７
 			RET,		///< (1) サブルーチンコールから復帰
 			REPEAT,		///< (1) リピート
-			ATTACK,		///< (2) 音のアタック, num(0 ~ 255)
-			RELEASE,	///< (3) 音のリリース, frame(n), num(0 ~ 255)
+			ATTACK,		///< (2) 音のアタック, gain(0 ~ 255)
+			RELEASE,	///< (3) 音のリリース, release_frame(n), gain(0 ~ 255)
 			CHOUT,		///< (2) 文字出力, char（楽譜のデバッグ用に文字を出力）
 		};
 
@@ -393,7 +393,9 @@ namespace utils {
 						// -エンベロープ
 						uint8_t n = static_cast<uint16_t>(env_ * release_) >> 8;
 						if(n > 0) env_ -= n;
-						else env_ = 0;
+						else {
+							if(env_ > 0) --env_;
+						}
 					}
 				}
 				return w;

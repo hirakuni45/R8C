@@ -18,16 +18,19 @@
 
 namespace {
 
-	typedef device::trb_io<utils::null_task, uint8_t> timer_b;
-	timer_b timer_b_;
+	typedef device::trb_io<utils::null_task, uint8_t> TIMER_B;
+	TIMER_B		timer_b_;
 
-	typedef utils::fifo<uint8_t, 16> buffer;
-	typedef device::uart_io<device::UART0, buffer, buffer> uart;
-	uart uart_;
+	typedef utils::fifo<uint8_t, 16> TX_BUFF;  // 送信バッファ
+	typedef utils::fifo<uint8_t, 16> RX_BUFF;  // 受信バッファ
+	typedef device::uart_io<device::UART0, TX_BUFF, RX_BUFF> UART;
+	UART		uart_;
 
-	utils::command<64> command_;
+	typedef utils::command<64> COMMAND;
+	COMMAND		command_;
 
-	utils::basic_arith<int32_t> arith_;
+	typedef utils::basic_arith<int32_t> ARITH;
+	ARITH		arith_;
 }
 
 extern "C" {
