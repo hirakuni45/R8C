@@ -3,7 +3,7 @@
 #   @file
 #   @brief  Application Makefile
 #   @author 平松邦仁 (hira@rvf-rc45.net)
-#	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+#	@copyright	Copyright (C) 2017, 2022 Kunihito Hiramatsu @n
 #				Released under the MIT license @n
 #				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 #=======================================================================
@@ -25,7 +25,8 @@ PSOURCES	=	main.cpp \
 # Include path for each environment
 ifeq ($(OS),Windows_NT)
 SYSTEM := WIN
-LOCAL_PATH  =   /mingw64
+# LOCAL_PATH  =   /mingw64
+LOCAL_PATH  =   /c/boost_1_74_0
 else
   UNAME := $(shell uname -s)
   ifeq ($(UNAME),Linux)
@@ -41,7 +42,7 @@ endif
 
 STDLIBS		=
 OPTLIBS		=
-INC_SYS     =   $(LOCAL_PATH)/include
+INC_SYS     =   $(LOCAL_PATH)
 INC_LIB		=
 
 PINC_APP	=
@@ -78,7 +79,7 @@ POPT	=	-O2 -std=gnu++14
 COPT	=	-O2
 LOPT	=
 
-PFLAGS	=	-DHAVE_STDINT_H
+PFLAGS	=	-DHAVE_STDINT_H -D_WIN32
 CFLAGS	=
 
 ifeq ($(BUILD),debug)
