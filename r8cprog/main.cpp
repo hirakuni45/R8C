@@ -495,7 +495,7 @@ int main(int argc, char* argv[])
 		for(const auto& t : as) {
 			tpage += ((t.end_ | 0xff) + 1 - (t.org_ & 0xffffff00)) >> 8;
 		}
-		if(tpage == 0) return true;
+		if(tpage == 0) return 0;
 
 		if(prog_.get_progress()) std::cout << "Read:   ";
 
