@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
 	command_.set_prompt("# ");
 
 	uint8_t cnt = 0;
+///	float a = 0.754;
 	while(1) {
 
 		if(command_.service()) {
@@ -127,6 +128,11 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
+
+///		a += 0.12f;
+///		utils::format("%5.4f\n") % a;  /// 15760
+///		printf("%5.4f\n", a);  /// overflow by 42764
+
 
 #if 0
 		if(uart_.length()) {  // UART のレシーブデータがあるか？
