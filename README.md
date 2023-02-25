@@ -229,7 +229,7 @@ sudo port install automake
 
 Linux 環境は、複数あるので、ここでは「Ubuntu 16.04 LTS」環境の場合を書いておきます。
 
- - texinfo、gmp、mpfr、mpc、diffutils、automake コマンドなどをインストール
+ - texinfo、gmp、mpfr、mpc、diffutils、automake コマンドなどをインストール(Ubuntu 22.04では、clangもインストール)
 ```
 sudo apt-get install texinfo
 sudo apt-get install libgmp-dev
@@ -238,6 +238,7 @@ sudo apt-get install libmpc-dev
 sudo apt-get install diffutils
 sudo apt-get install automake
 sudo apt-get install zlib1g-dev
+sudo apt-get install clang (Ubuntu 22.04の場合)
 ```
 
 ---
@@ -396,6 +397,13 @@ tar xfvz /d/Download/boost_1_74_0.tar.gz
     http://developer.wonderpla.net/entry/blog/engineer/CPlusPlus_RaspberryPi/
    
  - MSYS2 での構築
+
+### Ubuntu 22.04 の場合:
+
+ - コンパイルに失敗するのでMakefileで、-fdeclspec を付与
+```
+[Makefile:78]  POPT	=	-O2 -std=gnu++14 ---> POPT	=	-O2 -std=gnu++14 -fdeclspec
+```
 
 ```
 cd r8cprog
