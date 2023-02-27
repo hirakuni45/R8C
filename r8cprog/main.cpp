@@ -20,7 +20,7 @@
 
 namespace {
 
-	const std::string version_ = "0.82b";
+	const std::string version_ = "0.84b";
 	const std::string conf_file = "r8c_prog.conf";
 	const uint32_t progress_num_ = 50;
 	const char progress_cha_ = '#';
