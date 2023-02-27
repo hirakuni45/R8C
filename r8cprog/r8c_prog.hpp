@@ -3,7 +3,7 @@
 /*!	@file
 	@brief	R8C programmer クラス
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2023 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -11,6 +11,7 @@
 #include "r8c_protocol.hpp"
 #include "string_utils.hpp"
 #include <set>
+#include <boost/format.hpp>
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 /*!
@@ -68,6 +69,7 @@ public:
 
 		// 開始
 		if(!proto_.start(path)) {
+			std::cerr << std::endl;
 			std::cerr << "Can't open path: '" << path << "'" << std::endl;
 			return false;
 		}
@@ -75,6 +77,7 @@ public:
 		// コネクション
 		if(!proto_.connection()) {
 			proto_.end();
+			std::cerr << std::endl;
 			std::cerr << "Connection device error..." << std::endl;
 			return false;
 		}
@@ -85,6 +88,7 @@ public:
 		// ボーレート変更
 		int val;
 		if(!utils::string_to_int(brate, val)) {
+			std::cerr << std::endl;
 			std::cerr << "Baud rate conversion error: '" << brate << std::endl;
 			return false;
 		}
@@ -103,6 +107,7 @@ public:
 
 		if(!proto_.change_speed(speed)) {
 			proto_.end();
+			std::cerr << std::endl;
 			std::cerr << "Change speed error: " << brate << std::endl;
 			return false;
 		}
@@ -114,6 +119,7 @@ public:
 		ver_ = proto_.get_version();
 		if(ver_.empty()) {
 			proto_.end();
+			std::cerr << std::endl;
 			std::cerr << "Get version error..." << std::endl;
 			return false;
 		}
@@ -123,6 +129,7 @@ public:
 
 		// ID チェック認証
 		if(!proto_.id_inspection(id_)) {
+			std::cerr << std::endl;
 			std::cerr << "ID error: ";
 			for(int i = 0; i < 7; ++i) {
 				std::cerr << std::hex << std::setw(2) << std::uppercase << std::setfill('0')
@@ -149,6 +156,7 @@ public:
 
 	bool read(uint32_t top, uint8_t* data) {
 		if(!proto_.read_page(top, data)) {
+			std::cerr << std::endl;
 			std::cerr << "Read error: " << std::hex << std::setw(6)
 					  << static_cast<int>(top) << " to " << static_cast<int>(top + 255)
 					  << std::endl;
@@ -170,6 +178,7 @@ public:
 
 		// イレース
 		if(!proto_.erase_page(top)) {
+			std::cerr << std::endl;
 			std::cerr << "Erase error: " << std::hex << std::setw(6)
 					  << static_cast<int>(top) << " to " << static_cast<int>(top + 255)
 					  << std::endl;
@@ -183,6 +192,7 @@ public:
 		using namespace r8c;
 		// ページ書き込み
 		if(!proto_.write_page(top, data)) {
+			std::cerr << std::endl;
    			std::cerr << "Write error: " << std::hex << std::setw(6)
 					  << static_cast<int>(top) << " to " << static_cast<int>(top + 255)
 					  << std::endl;
@@ -196,23 +206,25 @@ public:
 		// ページ読み込み
 		uint8_t tmp[256];
    		if(!proto_.read_page(top, tmp)) {
+			std::cerr << std::endl;
    			std::cerr << "Read error: " << std::hex << std::setw(6)
 					  << static_cast<int>(top) << " to " << static_cast<int>(top + 255)
 					  << std::endl;
    			return false;
    		}
 
+		uint32_t erc = 0;
 		for(int i = 0; i < 256; ++i) {
 			if(data[i] != tmp[i]) {
-   			std::cerr << "Verify error: " << std::hex << std::setw(6)
-					  << "0x" << static_cast<int>(top)
-					  << std::setw(2) << static_cast<int>(data[top + i]) << " -> "
-					  << static_cast<int>(tmp[i])
-					  << std::endl;
-				return false;
+				if(erc == 0) {
+					std::cerr << std::endl;
+				}
+   				std::cerr << boost::format("Verify error at 0x%06X: 0x%02X -> 0x%02X")
+					% (top + i) % static_cast<uint32_t>(data[i]) % static_cast<uint32_t>(tmp[i]) << std::endl;
+				++erc;
 			}
 		}
-		return true;
+		return erc == 0;
 	}
 
 	void end() {
