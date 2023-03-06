@@ -2,7 +2,7 @@
 /*!	@file
 	@brief	Renesas R8C Series Programmer (Flash Writer)
     @author 平松邦仁 (hira@rvf-rc45.net)
-	@copyright	Copyright (C) 2017 Kunihito Hiramatsu @n
+	@copyright	Copyright (C) 2017, 2023 Kunihito Hiramatsu @n
 				Released under the MIT license @n
 				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 */
@@ -20,7 +20,7 @@
 
 namespace {
 
-	const std::string version_ = "0.84b";
+	const std::string version_ = "0.90";
 	const std::string conf_file = "r8c_prog.conf";
 	const uint32_t progress_num_ = 50;
 	const char progress_cha_ = '#';
@@ -68,13 +68,21 @@ namespace {
 		uint32_t	c = 0;
 	};
 
-
-	void progress_(uint32_t pageall, page_t& page)
+	void progress_(const char* tag, uint32_t pageall, page_t& page)
 	{
+		std::string s;
+		s += tag;
+		std::cout << '\r';
 		uint32_t pos = progress_num_ * page.n / pageall;
-		for(uint32_t i = 0; i < (pos - page.c); ++i) {
-			std::cout << progress_cha_ << std::flush;
+		for(uint32_t i = 0; i < progress_num_; ++i) {
+			char ch = progress_cha_;
+			if(pos < i) {
+				ch = ' ';
+			}
+			s += ch;
 		}
+		s += (boost::format(" %3d %%") % ((page.n  + 1) * 100 / pageall)).str();
+		std::cout << s << std::flush;
 		page.c = pos;
 	}
 
@@ -207,7 +215,7 @@ namespace {
 	}
 
 
-	bool erase_(r8c_prog& prog, const utils::areas& as)
+	bool erase_(const char* title, r8c_prog& prog, const utils::areas& as)
 	{
 		bool noerr = true;
 		page_t page;
@@ -217,7 +225,7 @@ namespace {
 				break;
 			}
    			++page.n;
-			if(prog.get_progress()) progress_(as.size(), page);
+			if(prog.get_progress()) progress_(title, as.size(), page);
 		}
 		if(prog.get_progress()) std::cout << std::endl << std::flush;
 
@@ -497,8 +505,6 @@ int main(int argc, char* argv[])
 		}
 		if(tpage == 0) return 0;
 
-		if(prog_.get_progress()) std::cout << "Read:   ";
-
 		int err = 0;
 		page_t page;
 		for(const auto& t : as) {
@@ -515,10 +521,14 @@ int main(int argc, char* argv[])
 				sadr |= 255;
 				++sadr;
 				++page.n;
-				if(prog_.get_progress()) progress_(tpage, page);
+				if(prog_.get_progress()) {
+					progress_("Read:   ", tpage, page);
+				}
 			}
 		}
-		if(prog_.get_progress()) std::cout << std::endl << std::flush;
+		if(prog_.get_progress()) {
+			std::cout << std::endl << std::flush;
+		}
 
 		dump_areas_(motr, opts.area_val);
 	}
@@ -527,15 +537,13 @@ int main(int argc, char* argv[])
 	//===================================== イレース
 	if(opts.erase_data || opts.erase_rom) {
 		if(opts.erase_data) {
-			if(opts.progress) std::cout << "Erase-data: ";
-			if(!erase_(prog_, devt.data_area_)) {
+			if(!erase_("Erase-data: ", prog_, devt.data_area_)) {
 				prog_.end();
 				return -1;
 			}
 		}
 		if(opts.erase_rom) {
-			if(opts.progress) std::cout << "Erase-rom:  ";
-			if(!erase_(prog_, devt.rom_area_)) {
+			if(!erase_("Erase-rom:  ", prog_, devt.rom_area_)) {
 				prog_.end();
 				return -1;
 			}
@@ -543,17 +551,13 @@ int main(int argc, char* argv[])
 	} else if(opts.erase) {  // 最適化消去（書き込むエリアのみ消去）
 		auto areas = motsx_.create_area_map();
 
-		if(opts.progress) {
-			std::cout << "Erase:  " << std::flush;
-		}
-
 		page_t page;
 		for(const auto& a : areas) {
 			uint32_t adr = a.min_ & 0xffffff00;
 			uint32_t len = 0;
 			while(len < (a.max_ - a.min_ + 1)) {
 				if(opts.progress) {
-					progress_(pageall, page);
+					progress_("Erase:  ", pageall, page);
 				}
 				if(!prog_.erase_page(adr)) {  // 256 バイト単位で消去要求を送る
 					prog_.end();
@@ -574,17 +578,13 @@ int main(int argc, char* argv[])
 	if(opts.write) {
 		auto areas = motsx_.create_area_map();
 
-		if(opts.progress) {
-			std::cout << "Write:  " << std::flush;
-		}
-
 		page_t page;
 		for(const auto& a : areas) {
 			uint32_t adr = a.min_ & 0xffffff00;
 			uint32_t len = 0;
 			while(len < (a.max_ - a.min_ + 1)) {
 				if(opts.progress) {
-					progress_(pageall, page);
+					progress_("Write:  ", pageall, page);
 				}
 				/// std::cout << boost::format("%08X to %08X") % adr % (adr + 255) << std::endl;
 				auto mem = motsx_.get_memory(adr);
@@ -607,15 +607,13 @@ int main(int argc, char* argv[])
 	if(opts.verify) {
 		auto areas = motsx_.create_area_map();
 
-		if(prog_.get_progress()) std::cout << "Verify: ";
-
 		page_t page;
 		for(const auto& a : areas) {
 			uint32_t adr = a.min_ & 0xffffff00;
 			uint32_t len = 0;
 			while(len < (a.max_ - a.min_ + 1)) {
 				if(opts.progress) {
-					progress_(pageall, page);
+					progress_("Verify: ", pageall, page);
 				}
 				/// std::cout << boost::format("%08X to %08X") % adr % (adr + 255) << std::endl;
 				auto mem = motsx_.get_memory(adr);
@@ -629,7 +627,9 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		if(prog_.get_progress()) std::cout << std::endl << std::flush;
+		if(prog_.get_progress()) {
+			std::cout << std::endl << std::flush;
+		}
 	}
 
 	prog_.end();
