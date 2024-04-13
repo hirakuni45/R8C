@@ -18,8 +18,9 @@
         }
     },
     "files.associations": {
-        "functional": "cpp"
-    },
+		"functional": "cpp",
+		"array": "cpp"
+	},
     "editor.insertSpaces": false
     // "terminal.integrated.cursorStyle": "line",
     // "C_Cpp.updateChannel": "Insiders",
