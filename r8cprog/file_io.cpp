@@ -386,7 +386,7 @@ namespace utils {
 			case 'd':
 			case 'D':
 				{
-					unsigned char t[8];
+					unsigned char t[8] = { 0 };
 					memcpy(p, t, 8);
 					for(int i = 0; i < 8; ++i) {
 						*p++ = t[8 - 1 - i];

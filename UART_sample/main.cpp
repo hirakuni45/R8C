@@ -24,6 +24,7 @@
 
 namespace {
 
+	// 指定ポートに「吸い込み」でＬＥＤを接続
 	typedef device::PORT<device::PORT1, device::bitpos::B0, false> LED0;
 	typedef device::PORT<device::PORT1, device::bitpos::B1, false> LED1;
 
@@ -58,11 +59,15 @@ extern "C" {
 	}
 
 
+	// 割り込み関数（プロトタイプは common/vect.h を参照）
+	// ※ヘッダーで宣言している名称と正確に一致させる必要がある点に注意。
 	void UART0_TX_intr(void) {
 		uart_.isend();
 	}
 
 
+	// 割り込み関数（プロトタイプは common/vect.h を参照）
+	// ※ヘッダーで宣言している名称と正確に一致させる必要がある点に注意。
 	void UART0_RX_intr(void) {
 		uart_.irecv();
 	}
