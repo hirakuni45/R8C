@@ -3,7 +3,7 @@
 #   @file
 #   @brief  Application Makefile
 #   @author 平松邦仁 (hira@rvf-rc45.net)
-#	@copyright	Copyright (C) 2017, 2022 Kunihito Hiramatsu @n
+#	@copyright	Copyright (C) 2017, 2024 Kunihito Hiramatsu @n
 #				Released under the MIT license @n
 #				https://github.com/hirakuni45/R8C/blob/master/LICENSE
 #=======================================================================
@@ -27,6 +27,7 @@ ifeq ($(OS),Windows_NT)
 SYSTEM := WIN
 # LOCAL_PATH  =   /mingw64
 LOCAL_PATH  =   /c/boost_1_74_0
+CMD_EXT = exe
 else
   UNAME := $(shell uname -s)
   ifeq ($(UNAME),Linux)
@@ -38,6 +39,7 @@ else
     OSX_VER := $(shell sw_vers -productVersion | sed 's/^\([0-9]*.[0-9]*\).[0-9]*/\1/')
     LOCAL_PATH = /opt/local
   endif
+CMD_EXT =
 endif
 
 STDLIBS		=
@@ -166,7 +168,7 @@ bin_zip:
 	zip $(subst .exe,,$(TARGET))_$(shell date +%Y%m%d%H)_bin.zip *.exe *.dll
 
 install:
-	cp $(TARGET) /usr/local/bin/.
+	cp $(TARGET).$(CMD_EXT) /usr/local/bin/.
 	cp $(TARGET).conf /usr/local/bin/.
 
 -include $(DEPENDS)
