@@ -108,7 +108,7 @@ pacman -S git
 - 時期により異なる
 ```
 $ gcc --version
-gcc (GCC) 11.3.0
+gcc (GCC) 13.2.0
 Copyright (C) 2021 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -145,10 +145,9 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ### MSYS2 環境の修正
 
 - 素の MSYS2 環境は、何かと使いづらい事もあるので、以下の修正を行うとより良く使えると思います
-- 環境ファイルは、/c/msys64/home/xxxx にあります。
-
+- 環境ファイルは、/c/msys64/home/xxxx にあります
+- 'ls -a' コマンドによる秘密ファイルの表示
 ```
-Uranus-W10.~ % ls -a
 ./   .bash_history  .bash_profile  .emacs     .inputrc  .profile
 ../  .bash_logout   .bashrc        .emacs.d/  .lesshst
 ```
